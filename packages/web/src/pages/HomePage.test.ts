@@ -235,6 +235,7 @@ describe("HomePage dashboard layout", () => {
     ]);
     expect(featureGrid.findAllComponents(RouterLinkStub)[5]?.props("to")).toBe("/lecture-practice");
     expect(featureGrid.text()).not.toContain("毕业礼包");
+    expect(featureGrid.text()).not.toContain("毕业指南");
   });
 
   it("renders dashboard cards with jump hints", async () => {

@@ -40,7 +40,7 @@ describe("router placeholders for homepage feature entries", () => {
       ["exams", "/exams"],
       ["custom-requirements", "/custom-requirements"],
       ["srtp", "/srtp"],
-      ["graduation-gift", "/graduation-gift"]
+      ["graduation-guide", "/graduation-guide"]
     ] as const;
 
     for (const [name, path] of expectedRoutes) {

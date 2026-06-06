@@ -4,13 +4,13 @@ import CoursesPage from "./pages/CoursesPage.vue";
 import CustomRequirementsPage from "./pages/CustomRequirementsPage.vue";
 import GpaCourseMatchesPage from "./pages/GpaCourseMatchesPage.vue";
 import GpaPage from "./pages/GpaPage.vue";
+import GraduationGuidePage from "./pages/GraduationGuidePage.vue";
 import HomePage from "./pages/HomePage.vue";
 import LabExamEventsPage from "./pages/LabExamEventsPage.vue";
 import LecturePracticePage from "./pages/LecturePracticePage.vue";
 import LoginPage from "./pages/LoginPage.vue";
 import NewsPage from "./pages/NewsPage.vue";
 import CourseRecommendationsPage from "./pages/CourseRecommendationsPage.vue";
-import PlaceholderPage from "./pages/PlaceholderPage.vue";
 import PlazaPage from "./pages/PlazaPage.vue";
 import PlansPage from "./pages/PlansPage.vue";
 import ProfilePage from "./pages/ProfilePage.vue";
@@ -80,10 +80,10 @@ export const router = createRouter({
       component: SrtpPage
     },
     {
-      path: "/graduation-gift",
-      name: "graduation-gift",
-      component: PlaceholderPage,
-      meta: { title: "毕业礼包", description: "当全部毕业要求满足且数据已确认后展示毕业指南入口。" }
+      path: "/graduation-guide",
+      name: "graduation-guide",
+      component: GraduationGuidePage,
+      meta: { title: "毕业指南", description: "本科生离校全流程指南，包含手续办理、档案转递与时间安排。" }
     },
     { path: "/login", name: "login", component: LoginPage },
     { path: "/profile", name: "profile", component: ProfilePage }

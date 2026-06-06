@@ -59,12 +59,12 @@ describe("ProfilePage", () => {
       }
     });
 
-    const giftEntry = wrapper
+    const guideEntry = wrapper
       .findAllComponents(RouterLinkStub)
-      .find((entry) => entry.attributes("data-testid") === "profile-graduation-gift");
+      .find((entry) => entry.attributes("data-testid") === "profile-graduation-guide");
 
-    expect(giftEntry?.text()).toContain("毕业礼包");
-    expect(giftEntry?.props("to")).toBe("/graduation-gift");
+    expect(guideEntry?.text()).toContain("毕业指南");
+    expect(guideEntry?.props("to")).toBe("/graduation-guide");
   });
 
   it("uses the shared college selector on the personal profile page", () => {
