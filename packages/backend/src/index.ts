@@ -41,6 +41,28 @@ const app = createApp({
     createLabExamEventRepository,
     createReminderRepository
   },
+  mcp: {
+    authRepository: createAuthRepository(db),
+    reminderRepository,
+    coursesProgressRepository: createCoursesProgressRepository(db),
+    gpaRepository: createGpaRepository(db),
+    programPlanRepository: createProgramPlanRepository(db),
+    customRequirementRepository: createCustomRequirementRepository(db),
+    homeSummaryDependencies: {
+      coursesProgressRepository: createCoursesProgressRepository(db),
+      gpaRepository: createGpaRepository(db),
+      lecturePracticeRepository: createLecturePracticeRepository(db),
+      volunteerLaborRepository: createVolunteerLaborRepository(db),
+      srtpRepository: createSrtpRepository(db),
+      customRequirementRepository: createCustomRequirementRepository(db)
+    },
+    labExamEvents: {
+      db,
+      createLabExamEventRepository,
+      createReminderRepository
+    },
+    rateLimitPerMinute: config.MCP_RATE_LIMIT_PER_MINUTE
+  },
   corsOrigin: config.CORS_ORIGIN,
   amapWeatherKey: config.AMAP_WEATHER_KEY
 });
