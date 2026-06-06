@@ -236,6 +236,47 @@ describe("reminder routes", () => {
     expect(listResponse.body.reminders[0].title).toBe("实验报告截止");
   });
 
+  it("strips lifecycle and source-binding fields from PUT updates while applying user-editable fields", async () => {
+    const app = createApp();
+
+    const createResponse = await request(app)
+      .post("/api/reminders")
+      .set("Authorization", authHeader())
+      .send({
+        title: "原始提醒",
+        category: "custom",
+        priority: "normal",
+        dueAt: "2026-06-08T10:00:00.000Z"
+      });
+
+    expect(createResponse.status).toBe(201);
+    const createdReminder = createResponse.body.reminder;
+
+    const updateResponse = await request(app)
+      .put(`/api/reminders/${createdReminder.id}`)
+      .set("Authorization", authHeader())
+      .send({
+        title: "更新后的提醒",
+        status: "done",
+        completedAt: "2026-06-09T10:00:00.000Z",
+        snoozedUntil: "2026-06-10T10:00:00.000Z",
+        deletedAt: "2026-06-11T10:00:00.000Z",
+        sourceType: "custom",
+        sourceId: "00000000-0000-4000-8000-000000000777"
+      });
+
+    expect(updateResponse.status).toBe(200);
+    expect(updateResponse.body.reminder).toMatchObject({
+      title: "更新后的提醒",
+      status: "pending",
+      completedAt: null,
+      snoozedUntil: null,
+      deletedAt: null,
+      sourceType: createdReminder.sourceType,
+      sourceId: createdReminder.sourceId
+    });
+  });
+
   it("returns pending count and top home reminders sorted by due time", async () => {
     const repository = createRepository([
       createReminder({ id: "00000000-0000-4000-8000-000000000001", title: "third", dueAt: new Date("2026-06-10T00:00:00.000Z") }),

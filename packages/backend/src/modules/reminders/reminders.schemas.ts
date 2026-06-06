@@ -40,15 +40,9 @@ export const updateReminderSchema = z.object({
   dueAt: isoDateSchema.optional(),
   location: z.string().max(200).nullable().optional(),
   notes: nullableStringSchema.optional(),
-  sourceType: reminderSourceTypeSchema.optional(),
-  sourceId: nullableUuidSchema.optional(),
   reminderOffsets: reminderOffsetsSchema.optional(),
   smsEnabled: z.boolean().optional(),
   showOnHome: z.boolean().optional(),
-  status: reminderStatusSchema.optional(),
-  completedAt: nullableIsoDateSchema.optional(),
-  snoozedUntil: nullableIsoDateSchema.optional(),
-  deletedAt: nullableIsoDateSchema.optional()
 });
 
 export const listReminderQuerySchema = z.object({
