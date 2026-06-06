@@ -82,6 +82,7 @@ describe("HomePage dashboard layout", () => {
       "自定义要求",
       "毕业礼包"
     ]);
+    expect(featureGrid.findAllComponents(RouterLinkStub)[5]?.props("to")).toBe("/lecture-practice");
   });
 
   it("renders dashboard cards with jump hints", () => {
