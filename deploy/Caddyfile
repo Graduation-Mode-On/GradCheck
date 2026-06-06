@@ -1,17 +1,17 @@
 gc.myseu.cn {
-encode zstd gzip
-root * /srv
+	encode zstd gzip
+	root * /srv
 
-handle /api/* {
-reverse_proxy backend:3000
-}
+	handle /api/* {
+		reverse_proxy backend:3000
+	}
 
-handle /health {
-reverse_proxy backend:3000
-}
+	handle /health {
+		reverse_proxy backend:3000
+	}
 
-handle {
-try_files {path} /index.html
-file_server
-}
+	handle {
+		try_files {path} /index.html
+		file_server
+	}
 }
