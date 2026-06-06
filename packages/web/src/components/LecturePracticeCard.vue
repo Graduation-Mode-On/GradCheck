@@ -11,6 +11,8 @@ const props = defineProps<{
   unit: string;
   step?: number;
   saved?: boolean;
+  /** 简化 gauge 模式：不显示目标切换，使用 target 作为目标值 */
+  simple?: boolean;
 }>();
 
 const emit = defineEmits<{
@@ -32,17 +34,27 @@ function toggle() {
   emit("updateValue", String(next));
 }
 
-// gauge 模式：目标切换（纯前端）
+// gauge 模式：目标值
 const creditGoal = ref(1.0);
-const gaugeSegments = 10;
-const filledSegments = computed(() => {
-  const pct = Math.min(props.current / creditGoal.value, 1);
-  return Math.round(pct * gaugeSegments);
-});
+const gaugeGoal = computed(() => (props.simple ? props.target : creditGoal.value));
+const gaugeSegments = computed(() => (props.simple ? Math.ceil(props.target) : 10));
+
+/** 计算第 index 个格子（从0开始）的填充比例 0~1 */
+function segmentFillRatio(index: number): number {
+  const totalRatio = Math.min(props.current / gaugeGoal.value, 1);
+  const segmentRatio = totalRatio * gaugeSegments.value;
+  return Math.max(0, Math.min(1, segmentRatio - index));
+}
 
 // 提示文字
 const hintText = computed(() => {
   if (props.variant === "gauge") {
+    if (props.simple) {
+      if (props.current < props.target) {
+        return `还差 ${Number((props.target - props.current).toFixed(2))} ${props.unit}`;
+      }
+      return "已完成";
+    }
     const credits = props.current;
     if (credits < 1) {
       return `距及格还差 ${Number((1 - credits).toFixed(2))} 学分`;
@@ -97,7 +109,7 @@ const goalOptions = [
 
       <!-- 右上角计数 / 目标切换 -->
       <div class="flex items-center gap-2">
-        <template v-if="variant === 'gauge'">
+        <template v-if="variant === 'gauge' && !simple">
           <div class="flex rounded-lg bg-slate-100 p-0.5">
             <button
               v-for="opt in goalOptions"
@@ -117,7 +129,7 @@ const goalOptions = [
         </template>
         <span class="text-sm font-bold text-[var(--tommy-primary)]">
           <template v-if="variant === 'gauge'">
-            {{ displayCurrent }} / {{ creditGoal }}
+            {{ displayCurrent }} / {{ simple ? target : creditGoal }}
           </template>
           <template v-else>
             {{ current }} / {{ target }}
@@ -192,13 +204,13 @@ const goalOptions = [
           <div
             v-for="i in gaugeSegments"
             :key="i"
-            class="h-2.5 flex-1 rounded-full transition"
-            :class="
-              i <= filledSegments
-                ? 'bg-[var(--tommy-primary)]'
-                : 'bg-slate-200'
-            "
-          />
+            class="relative h-2.5 flex-1 rounded-full bg-slate-200 overflow-hidden"
+          >
+            <div
+              class="absolute inset-y-0 left-0 rounded-full bg-[var(--tommy-primary)] transition-all duration-300"
+              :style="{ width: (segmentFillRatio(i - 1) * 100) + '%' }"
+            />
+          </div>
         </div>
 
         <p class="mt-3 text-center text-sm text-[var(--tommy-text-secondary)]">
@@ -212,7 +224,7 @@ const goalOptions = [
             class="flex-1 rounded-xl bg-slate-100 py-2.5 text-sm font-bold text-[var(--tommy-text)] active:bg-slate-200"
             @click="adjust(-1)"
           >
-            -0.1
+            -{{ step ?? 0.1 }}
           </button>
           <button
             :data-testid="`progress-${fieldKey}-increment`"
@@ -220,7 +232,7 @@ const goalOptions = [
             class="flex-1 rounded-xl bg-[color-mix(in_srgb,var(--tommy-primary)_12%,white)] py-2.5 text-sm font-bold text-[var(--tommy-primary)] active:opacity-80"
             @click="adjust(1)"
           >
-            +0.1
+            +{{ step ?? 0.1 }}
           </button>
         </div>
       </template>
