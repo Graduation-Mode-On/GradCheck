@@ -38,5 +38,6 @@ describe("AppShell responsive navigation", () => {
     expect(mobileNav.text()).toContain("资讯");
     expect(mobileNav.text()).toContain("广场");
     expect(mobileNav.text()).toContain("个人");
+    expect(mobileNav.findAll('[data-testid="mobile-tab-icon"]')).toHaveLength(4);
   });
 });

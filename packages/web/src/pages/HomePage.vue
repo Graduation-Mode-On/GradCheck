@@ -55,7 +55,7 @@ const featureCards = [
 
 <template>
   <AppShell>
-    <section class="mb-6 rounded-3xl bg-gradient-to-br from-blue-700 to-cyan-500 p-6 text-white shadow-lg">
+    <section class="mb-6 rounded-3xl bg-gradient-to-br from-[var(--tommy-primary)] to-[var(--tommy-info)] p-6 text-white shadow-lg">
       <p class="text-sm opacity-80">欢迎回来</p>
       <h1 class="mt-2 text-2xl font-bold">
         {{ data?.user.profile?.displayName ?? data?.user.email ?? "GradCheck 用户" }}
