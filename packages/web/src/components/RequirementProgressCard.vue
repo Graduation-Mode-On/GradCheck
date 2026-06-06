@@ -7,6 +7,7 @@ const props = defineProps<{
   statusText: string;
   missingText: string;
   unit: string;
+  step?: number;
 }>();
 
 const emit = defineEmits<{
@@ -19,7 +20,9 @@ function clamp(value: number): number {
 }
 
 function adjust(delta: number) {
-  emit("updateValue", String(clamp(Number(props.value || 0) + delta)));
+  const step = props.step ?? 1;
+  const next = clamp(Number(props.value || 0) + delta * step);
+  emit("updateValue", String(Number(next.toFixed(2))));
 }
 </script>
 
@@ -44,7 +47,7 @@ function adjust(delta: number) {
         type="button"
         @click="adjust(-1)"
       >
-        -1
+        -{{ step ?? 1 }}
       </button>
       <label class="sr-only" :for="`progress-${fieldKey}`">{{ title }}</label>
       <div class="relative">
@@ -53,6 +56,7 @@ function adjust(delta: number) {
           :data-testid="`progress-${fieldKey}-input`"
           class="w-full rounded-xl border border-slate-300 px-3 py-2 pr-12 text-center"
           min="0"
+          :step="step ?? 1"
           type="number"
           :value="value"
           @input="emit('updateValue', ($event.target as HTMLInputElement).value)"
@@ -65,7 +69,7 @@ function adjust(delta: number) {
         type="button"
         @click="adjust(1)"
       >
-        +1
+        +{{ step ?? 1 }}
       </button>
     </div>
 

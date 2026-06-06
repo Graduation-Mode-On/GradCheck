@@ -122,6 +122,7 @@ function countStatus(value: number, target: number) {
           :value="String(Number(form.socialPracticeCredits))"
           target-text="1 学分"
           unit="学分"
+          :step="0.1"
           :status-text="Number(form.socialPracticeCredits) >= 1 ? '已及格' : '未及格'"
           :missing-text="socialPracticeStatus(form.socialPracticeCredits)"
           @update-value="updateCredits"

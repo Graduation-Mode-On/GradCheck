@@ -101,4 +101,26 @@ describe("LecturePracticePage", () => {
       expect.objectContaining({ humanLectureCount: 8 })
     );
   });
+
+  it("adjusts social practice credits in 0.1 increments", async () => {
+    mocks.token = "token";
+    mocks.getLecturePracticeProgress.mockResolvedValue({
+      progress: {
+        humanLectureCount: 0,
+        bookReportCount: 0,
+        socialPracticeCredits: "0.00",
+        socialPracticeCourseCount: 0
+      }
+    });
+    const wrapper = mountPage();
+
+    await flushPromises();
+
+    const creditsInput = wrapper.get('[data-testid="progress-socialPracticeCredits-input"]');
+    await wrapper.get('[data-testid="progress-socialPracticeCredits-increment"]').trigger("click");
+    expect((creditsInput.element as HTMLInputElement).value).toBe("0.1");
+    await wrapper.get('[data-testid="progress-socialPracticeCredits-decrement"]').trigger("click");
+    await wrapper.get('[data-testid="progress-socialPracticeCredits-decrement"]').trigger("click");
+    expect((creditsInput.element as HTMLInputElement).value).toBe("0");
+  });
 });
