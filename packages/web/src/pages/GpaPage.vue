@@ -8,16 +8,12 @@ import AppShell from "../components/AppShell.vue";
 import {
   createGpaCourse,
   deleteGpaCourse,
-  deleteGpaCourseMatch,
-  getGpaCourseMatches,
   getGpaDashboard,
   getToken,
   importGpaTranscriptCourses,
   updateGpaCourse,
-  upsertGpaCourseMatch,
   uploadGpaTranscript,
   type GpaCourse,
-  type GpaCourseMatchItem,
   type GpaDashboardResponse,
   type GpaScopeResult,
   type GpaTranscriptCoursePreview
@@ -30,6 +26,8 @@ const authToken = getToken();
 const message = ref("");
 const editingCourseId = ref<string | null>(null);
 const openActionsCourseId = ref<string | null>(null);
+const courseKeyword = ref("");
+const courseStatusFilter = ref("all");
 const formPanel = ref<HTMLElement | null>(null);
 const transcriptFile = ref<File | null>(null);
 const transcriptPreview = ref<{
@@ -40,7 +38,6 @@ const transcriptPreview = ref<{
   warnings: string[];
 } | null>(null);
 const selectedTranscriptCourseKeys = ref<Set<string>>(new Set());
-const selectedMatchTargets = ref<Record<string, string>>({});
 const form = reactive<GpaCourseInput>({
   term: "2025-2026 春",
   name: "",
@@ -61,13 +58,22 @@ const { data, error, isLoading } = useQuery({
   queryFn: getGpaDashboard,
   enabled: computed(() => Boolean(authToken))
 });
-const courseMatchesQuery = useQuery({
-  queryKey: ["gpa-course-matches", authToken],
-  queryFn: getGpaCourseMatches,
-  enabled: computed(() => Boolean(authToken))
-});
 
 const courses = computed(() => data.value?.courses ?? []);
+const filteredCourses = computed(() => {
+  const query = courseKeyword.value.trim().toLowerCase();
+  return courses.value.filter((course) => {
+    const searchableText = [course.name, course.term, course.credit, course.score].join(" ").toLowerCase();
+    const matchesKeyword = !query || searchableText.includes(query);
+    const matchesStatus =
+      courseStatusFilter.value === "all" ||
+      (courseStatusFilter.value === "required" && course.isRequired) ||
+      (courseStatusFilter.value === "elective" && !course.isRequired) ||
+      (courseStatusFilter.value === "first-attempt" && course.isFirstAttempt) ||
+      (courseStatusFilter.value === "gpa-eligible" && course.isGpaEligible);
+    return matchesKeyword && matchesStatus;
+  });
+});
 const result = computed(() => data.value?.result ?? null);
 const dashboardErrorMessage = computed(() => {
   const dashboardError = error.value;
@@ -118,36 +124,6 @@ const deleteMutation = useMutation({
   onSuccess: applyDashboard,
   onError: (error) => {
     message.value = error instanceof Error ? error.message : "删除失败";
-  }
-});
-
-const bindMatchMutation = useMutation({
-  mutationFn: async ({ courseId, target }: { courseId: string; target: string }) => {
-    const [matchTargetType, id] = target.split(":");
-    return upsertGpaCourseMatch(
-      courseId,
-      matchTargetType === "group"
-        ? { matchTargetType: "group", programPlanCourseGroupId: id }
-        : { matchTargetType: "course", programPlanCourseId: id }
-    );
-  },
-  onSuccess: async (response) => {
-    await applyDashboard(response.dashboard);
-    await courseMatchesQuery.refetch();
-  },
-  onError: (error) => {
-    message.value = error instanceof Error ? error.message : "保存课程匹配失败";
-  }
-});
-
-const unbindMatchMutation = useMutation({
-  mutationFn: deleteGpaCourseMatch,
-  onSuccess: async (response) => {
-    await applyDashboard(response.dashboard);
-    await courseMatchesQuery.refetch();
-  },
-  onError: (error) => {
-    message.value = error instanceof Error ? error.message : "取消课程匹配失败";
   }
 });
 
@@ -247,32 +223,6 @@ function toGpaCourseInput(course: GpaTranscriptCoursePreview): GpaCourseInput {
     isFirstAttempt: course.isFirstAttempt,
     isGpaEligible: course.isGpaEligible
   };
-}
-
-function selectedMatchTarget(item: GpaCourseMatchItem) {
-  if (selectedMatchTargets.value[item.course.id]) {
-    return selectedMatchTargets.value[item.course.id];
-  }
-  if (item.match?.matchTargetType === "group" && item.match.programPlanCourseGroupId) {
-    return `group:${item.match.programPlanCourseGroupId}`;
-  }
-  if (item.match?.programPlanCourseId) {
-    return `course:${item.match.programPlanCourseId}`;
-  }
-  return "";
-}
-
-function setSelectedMatchTarget(courseId: string, value: string) {
-  selectedMatchTargets.value = { ...selectedMatchTargets.value, [courseId]: value };
-}
-
-function bindSelectedMatch(item: GpaCourseMatchItem) {
-  const target = selectedMatchTarget(item);
-  if (!target) {
-    message.value = "请先选择匹配目标";
-    return;
-  }
-  bindMatchMutation.mutate({ courseId: item.course.id, target });
 }
 
 function formatMetric(value: number | null): string {
@@ -382,69 +332,54 @@ function scopeSubtitle(scope: GpaScopeResult | undefined): string {
     </section>
 
     <section class="mb-5 rounded-3xl bg-white p-5 shadow-sm">
-      <h2 class="text-lg font-bold text-[var(--tommy-text)]">课程匹配</h2>
-      <p class="mt-1 text-sm text-[var(--tommy-text-secondary)]">查看 GPA 课程与培养方案课程/课程组的对应关系，也可以手动调整。</p>
-      <p v-if="courseMatchesQuery.isLoading.value" class="mt-4 text-sm text-[var(--tommy-text-secondary)]">正在加载匹配结果...</p>
-      <div v-else data-testid="gpa-match-list" class="mt-4 space-y-3">
-        <div
-          v-for="item in courseMatchesQuery.data.value?.items ?? []"
-          :key="item.course.id"
-          class="rounded-2xl border border-slate-200 p-3"
-        >
-          <div class="flex flex-wrap items-center justify-between gap-3">
-            <div>
-              <p class="font-semibold text-[var(--tommy-text)]">{{ item.course.name }}</p>
-              <p class="mt-1 text-xs text-[var(--tommy-text-secondary)]">
-                当前：{{ item.match ? (item.match.matchTargetType === "group" ? "课程组匹配" : "课程匹配") : "未匹配" }}
-              </p>
-            </div>
-            <div class="flex flex-wrap gap-2">
-              <select
-                data-testid="gpa-match-select"
-                class="rounded-xl border border-slate-300 px-3 py-2 text-sm"
-                :value="selectedMatchTarget(item)"
-                @change="setSelectedMatchTarget(item.course.id, ($event.target as HTMLSelectElement).value)"
-              >
-                <option value="">选择匹配目标</option>
-                <option v-for="course in item.candidates.courses" :key="`course:${course.id}`" :value="`course:${course.id}`">
-                  {{ course.name }}（{{ course.credits }} 学分）
-                </option>
-                <option v-for="group in item.candidates.groups" :key="`group:${group.id}`" :value="`group:${group.id}`">
-                  课程组：{{ group.name }}
-                </option>
-              </select>
-              <button
-                data-testid="gpa-match-bind"
-                class="rounded-xl bg-[var(--tommy-primary)] px-3 py-2 text-sm font-semibold text-white"
-                type="button"
-                @click="bindSelectedMatch(item)"
-              >
-                绑定
-              </button>
-              <button
-                data-testid="gpa-match-unbind"
-                class="rounded-xl bg-slate-100 px-3 py-2 text-sm font-semibold text-[var(--tommy-text)]"
-                type="button"
-                @click="unbindMatchMutation.mutate(item.course.id)"
-              >
-                解绑
-              </button>
-            </div>
-          </div>
+      <div class="flex flex-wrap items-center justify-between gap-3">
+        <div>
+          <h2 class="text-lg font-bold text-[var(--tommy-text)]">课程匹配</h2>
+          <p class="mt-1 text-sm text-[var(--tommy-text-secondary)]">在独立页面里搜索、筛选并管理 GPA 课程与培养方案的对应关系。</p>
         </div>
+        <RouterLink
+          data-testid="gpa-match-page-link"
+          to="/gpa/course-matches"
+          class="rounded-xl bg-slate-900 px-4 py-2.5 text-sm font-semibold text-white"
+        >
+          管理课程匹配
+        </RouterLink>
       </div>
     </section>
 
     <section class="grid gap-5 lg:grid-cols-[1fr_360px]">
       <article class="rounded-3xl bg-white p-5 shadow-sm">
-        <h2 class="text-lg font-bold text-[var(--tommy-text)]">我的课程</h2>
+        <div class="flex flex-wrap items-start justify-between gap-3">
+          <div>
+            <h2 class="text-lg font-bold text-[var(--tommy-text)]">我的课程</h2>
+            <p class="mt-1 text-sm text-[var(--tommy-text-secondary)]">按课程名、学期或课程属性筛选已导入课程。</p>
+          </div>
+        </div>
+        <div v-if="courses.length > 0" class="mt-4 grid gap-3 sm:grid-cols-[1fr_11rem]">
+          <input
+            v-model="courseKeyword"
+            data-testid="gpa-course-search"
+            class="rounded-xl border border-slate-300 px-3 py-2 text-sm"
+            placeholder="搜索课程名称或学期"
+          />
+          <select v-model="courseStatusFilter" data-testid="gpa-course-status-filter" class="rounded-xl border border-slate-300 px-3 py-2 text-sm">
+            <option value="all">全部课程</option>
+            <option value="required">必修</option>
+            <option value="elective">非必修</option>
+            <option value="first-attempt">首修</option>
+            <option value="gpa-eligible">计入 GPA</option>
+          </select>
+        </div>
         <p v-if="isLoading" class="mt-4 text-sm text-[var(--tommy-text-secondary)]">正在加载课程...</p>
         <p v-else-if="dashboardErrorMessage" class="mt-4 rounded-xl bg-[color-mix(in_srgb,var(--tommy-primary)_12%,white)] px-3 py-2 text-sm text-[var(--tommy-info)]">{{ dashboardErrorMessage }}</p>
         <p v-else-if="courses.length === 0" class="mt-4 rounded-2xl bg-slate-50 p-4 text-sm text-[var(--tommy-text-secondary)]">
           还没有课程，先添加一门课程开始计算。
         </p>
+        <p v-else-if="filteredCourses.length === 0" class="mt-4 rounded-2xl bg-slate-50 p-4 text-sm text-[var(--tommy-text-secondary)]">
+          没有符合条件的课程。
+        </p>
         <div v-else data-testid="gpa-course-list" class="mt-4 space-y-3">
-          <div v-for="course in courses" :key="course.id" class="rounded-2xl border border-slate-200 p-4">
+          <div v-for="course in filteredCourses" :key="course.id" class="rounded-2xl border border-slate-200 p-4">
             <div class="relative flex flex-wrap items-start justify-between gap-3">
               <div>
                 <p class="font-semibold text-[var(--tommy-text)]">{{ course.name }}</p>

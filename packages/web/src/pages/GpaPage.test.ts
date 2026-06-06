@@ -58,23 +58,25 @@ vi.mock("../lib/api", async () => {
   };
 });
 
+function createCourse(name = "高等数学", term = "2025-2026 春", overrides: Partial<GpaDashboardResponse["courses"][number]> = {}): GpaDashboardResponse["courses"][number] {
+  return {
+    id: overrides.id ?? "course-1",
+    userId: "user-1",
+    term,
+    name,
+    credit: overrides.credit ?? "3.00",
+    score: overrides.score ?? "96.00",
+    isRequired: overrides.isRequired ?? true,
+    isFirstAttempt: overrides.isFirstAttempt ?? true,
+    isGpaEligible: overrides.isGpaEligible ?? true,
+    createdAt: "2026-06-06T00:00:00.000Z",
+    updatedAt: "2026-06-06T00:00:00.000Z"
+  };
+}
+
 function createDashboard(name = "高等数学", term = "2025-2026 春"): GpaDashboardResponse {
   return {
-    courses: [
-      {
-        id: "course-1",
-        userId: "user-1",
-        term,
-        name,
-        credit: "3.00",
-        score: "96.00",
-        isRequired: true,
-        isFirstAttempt: true,
-        isGpaEligible: true,
-        createdAt: "2026-06-06T00:00:00.000Z",
-        updatedAt: "2026-06-06T00:00:00.000Z"
-      }
-    ],
+    courses: [createCourse(name, term)],
     result: {
       requiredFirstAttempt: {
         weightedGpa: 4.8,
@@ -163,6 +165,28 @@ describe("GpaPage", () => {
     expect(wrapper.get('[data-testid="gpa-required-summary"]').text()).toBe("均分 96 · 学分 3 · 1 门");
     expect(wrapper.get('[data-testid="gpa-course-list"]').text()).toContain("高等数学");
     expect(wrapper.get('[data-testid="gpa-course-list"]').text()).toContain("2025-2026 春");
+    expect(wrapper.get('[data-testid="gpa-match-page-link"]').text()).toBe("管理课程匹配");
+  });
+
+  it("filters GPA courses by keyword and course attributes", async () => {
+    getGpaDashboard.mockResolvedValueOnce({
+      ...createDashboard(),
+      courses: [
+        createCourse("高等数学", "2025-2026 春", { id: "course-1", isRequired: true, isGpaEligible: true }),
+        createCourse("体育", "2025-2026 秋", { id: "course-2", isRequired: false, isGpaEligible: false })
+      ]
+    });
+    const wrapper = mountPage();
+    await flushPromises();
+
+    await wrapper.get('[data-testid="gpa-course-search"]').setValue("体育");
+
+    expect(wrapper.get('[data-testid="gpa-course-list"]').text()).toContain("体育");
+    expect(wrapper.get('[data-testid="gpa-course-list"]').text()).not.toContain("高等数学");
+
+    await wrapper.get('[data-testid="gpa-course-status-filter"]').setValue("required");
+
+    expect(wrapper.text()).toContain("没有符合条件的课程。");
   });
 
   it("shows initial load errors instead of the empty course state", async () => {
@@ -335,22 +359,4 @@ describe("GpaPage", () => {
     expect(wrapper.get('[data-testid="gpa-course-list"]').text()).toContain("数据库原理(全英文)");
   });
 
-  it("shows and updates GPA course matches", async () => {
-    upsertGpaCourseMatch.mockResolvedValueOnce({ match: { confirmedByUser: true }, dashboard: createDashboard() });
-    deleteGpaCourseMatch.mockResolvedValueOnce({ dashboard: createDashboard() });
-    const wrapper = mountPage();
-    await flushPromises();
-
-    expect(wrapper.get('[data-testid="gpa-match-list"]').text()).toContain("高等数学");
-    await wrapper.get('[data-testid="gpa-match-select"]').setValue("course:plan-course-1");
-    await wrapper.get('[data-testid="gpa-match-bind"]').trigger("click");
-
-    expect(upsertGpaCourseMatch).toHaveBeenCalledWith("course-1", {
-      matchTargetType: "course",
-      programPlanCourseId: "plan-course-1"
-    });
-
-    await wrapper.get('[data-testid="gpa-match-unbind"]').trigger("click");
-    expect(deleteGpaCourseMatch.mock.calls[0]?.[0]).toBe("course-1");
-  });
 });
