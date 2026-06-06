@@ -10,3 +10,24 @@ describe("router placeholders for mobile tabs", () => {
     expect(router.resolve({ name: "plaza" }).path).toBe("/plaza");
   });
 });
+
+describe("router placeholders for homepage feature entries", () => {
+  it("registers placeholder routes for all homepage feature entry targets", () => {
+    const expectedRoutes = [
+      ["plans", "/plans"],
+      ["courses", "/courses"],
+      ["gpa", "/gpa"],
+      ["course-recommendations", "/course-recommendations"],
+      ["sports", "/sports"],
+      ["volunteer", "/volunteer"],
+      ["exams", "/exams"],
+      ["custom-requirements", "/custom-requirements"],
+      ["graduation-gift", "/graduation-gift"]
+    ] as const;
+
+    for (const [name, path] of expectedRoutes) {
+      expect(router.hasRoute(name)).toBe(true);
+      expect(router.resolve({ name }).path).toBe(path);
+    }
+  });
+});
