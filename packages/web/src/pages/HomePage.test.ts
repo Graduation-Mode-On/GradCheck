@@ -123,7 +123,7 @@ describe("HomePage dashboard layout", () => {
       "讲座实践",
       "志愿劳育",
       "实验考试",
-      "自定义要求",
+      "自定义",
       "SRTP"
     ]);
     expect(featureGrid.findAllComponents(RouterLinkStub)[5]?.props("to")).toBe("/lecture-practice");
