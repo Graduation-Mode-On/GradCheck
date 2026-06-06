@@ -15,6 +15,13 @@
       "when": 1780722846747,
       "tag": "0001_married_jamie_braddock",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1780726618955,
+      "tag": "0002_brainy_mandrill",
+      "breakpoints": true
     }
   ]
 }
