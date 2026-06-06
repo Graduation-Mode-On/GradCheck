@@ -58,9 +58,5 @@ export type PlazaPost = PlazaPostInput & {
 export interface PlazaPostFilters {
   type?: PlazaPostType;
   status?: PlazaPostStatus;
-  course?: string;
-  college?: string;
-  time?: string;
-  tag?: string;
   keyword?: string;
 }

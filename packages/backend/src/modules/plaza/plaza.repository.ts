@@ -1,4 +1,4 @@
-import { and, desc, eq, ilike, isNull, lt, or, sql } from "drizzle-orm";
+import { and, desc, eq, ilike, isNull, lt, or } from "drizzle-orm";
 
 import type { Database } from "../../db/client.js";
 import { plazaPosts } from "../../db/schema.js";
@@ -56,34 +56,13 @@ export function createPlazaRepository(db: Database): PlazaRepository {
     async listPosts(filters) {
       const conditions = [isNull(plazaPosts.deletedAt), eq(plazaPosts.status, filters.status)];
       if (filters.type) conditions.push(eq(plazaPosts.type, filters.type));
-      if (filters.college) conditions.push(ilike(plazaPosts.college, `%${filters.college}%`));
-      if (filters.course) {
-        conditions.push(
-          or(ilike(plazaPosts.offeredCourse, `%${filters.course}%`), ilike(plazaPosts.wantedCourse, `%${filters.course}%`))!
-        );
-      }
-      if (filters.time) {
-        conditions.push(
-          or(ilike(plazaPosts.courseTime, `%${filters.time}%`), ilike(plazaPosts.activityTime, `%${filters.time}%`))!
-        );
-      }
-      if (filters.tag) {
-        conditions.push(sql`${plazaPosts.tags} ? ${filters.tag}`);
-      }
       if (filters.keyword) {
         const pattern = `%${filters.keyword}%`;
         conditions.push(
           or(
             ilike(plazaPosts.title, pattern),
             ilike(plazaPosts.description, pattern),
-            ilike(plazaPosts.contact, pattern),
-            ilike(plazaPosts.offeredCourse, pattern),
-            ilike(plazaPosts.wantedCourse, pattern),
-            ilike(plazaPosts.courseTime, pattern),
-            ilike(plazaPosts.teamPurpose, pattern),
-            ilike(plazaPosts.projectType, pattern),
-            ilike(plazaPosts.teammateRequirements, pattern),
-            ilike(plazaPosts.activityTime, pattern)
+            ilike(plazaPosts.contact, pattern)
           )!
         );
       }

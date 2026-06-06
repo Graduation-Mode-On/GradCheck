@@ -60,6 +60,19 @@ describe("PlazaPage", () => {
     expect(wrapper.find('[data-testid="plaza-search-input"]').exists()).toBe(true);
   });
 
+  it("only shows keyword search and status filter in plaza filters", () => {
+    mocks.token = "token";
+
+    const wrapper = mountPlazaPage();
+
+    expect(wrapper.find('[data-testid="plaza-search-input"]').exists()).toBe(true);
+    expect(wrapper.find('[data-testid="plaza-status-filter"]').exists()).toBe(true);
+    expect(wrapper.find('[data-testid="plaza-course-filter"]').exists()).toBe(false);
+    expect(wrapper.find('[data-testid="plaza-college-filter"]').exists()).toBe(false);
+    expect(wrapper.find('[data-testid="plaza-time-filter"]').exists()).toBe(false);
+    expect(wrapper.find('[data-testid="plaza-tag-filter"]').exists()).toBe(false);
+  });
+
   it("shows an empty state and opens the create form", async () => {
     mocks.token = "token";
     const wrapper = mountPlazaPage();

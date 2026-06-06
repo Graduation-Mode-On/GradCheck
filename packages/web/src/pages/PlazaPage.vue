@@ -27,10 +27,6 @@ if (!getToken()) {
 const activeType = ref<PlazaPostType | "all">("all");
 const status = ref<PlazaPostStatus>("open");
 const keyword = ref("");
-const course = ref("");
-const college = ref("");
-const time = ref("");
-const tag = ref("");
 const isFormOpen = ref(false);
 const editingPost = ref<PlazaPost | null>(null);
 const formError = ref("");
@@ -38,11 +34,7 @@ const formError = ref("");
 const filters = computed<PlazaPostFilters>(() => ({
   type: activeType.value === "all" ? undefined : activeType.value,
   status: status.value,
-  keyword: keyword.value || undefined,
-  course: course.value || undefined,
-  college: college.value || undefined,
-  time: time.value || undefined,
-  tag: tag.value || undefined
+  keyword: keyword.value || undefined
 }));
 
 const query = useInfiniteQuery({
@@ -172,10 +164,6 @@ function deletePost(post: PlazaPost) {
 
       <PlazaFilters
         v-model:keyword="keyword"
-        v-model:course="course"
-        v-model:college="college"
-        v-model:time="time"
-        v-model:tag="tag"
         v-model:status="status"
       />
 

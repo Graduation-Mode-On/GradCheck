@@ -207,36 +207,13 @@ describe("GradCheck API baseline", () => {
         let visible = [...posts.values()].filter((post) => !post.deletedAt);
         visible = visible.filter((post) => post.status === (filters.status ?? "open"));
         if (filters.type) visible = visible.filter((post) => post.type === filters.type);
-        if (filters.college) visible = visible.filter((post) => post.college.includes(filters.college ?? ""));
-        if (filters.tag) visible = visible.filter((post) => post.tags.includes(filters.tag ?? ""));
-        if (filters.course) {
-          visible = visible.filter(
-            (post) =>
-              normalized(post.offeredCourse).includes(filters.course?.toLowerCase() ?? "") ||
-              normalized(post.wantedCourse).includes(filters.course?.toLowerCase() ?? "")
-          );
-        }
-        if (filters.time) {
-          visible = visible.filter(
-            (post) =>
-              normalized(post.courseTime).includes(filters.time?.toLowerCase() ?? "") ||
-              normalized(post.activityTime).includes(filters.time?.toLowerCase() ?? "")
-          );
-        }
         if (filters.keyword) {
           const keyword = filters.keyword.toLowerCase();
           visible = visible.filter((post) =>
             [
               post.title,
               post.description,
-              post.contact,
-              post.offeredCourse,
-              post.wantedCourse,
-              post.courseTime,
-              post.teamPurpose,
-              post.projectType,
-              post.teammateRequirements,
-              post.activityTime
+              post.contact
             ].some((value) => normalized(value).includes(keyword))
           );
         }
@@ -341,6 +318,45 @@ describe("GradCheck API baseline", () => {
       expect(listResponse.status).toBe(200);
       expect(listResponse.body.posts).toHaveLength(1);
       expect(listResponse.body.nextCursor).toBeNull();
+    });
+
+    it("matches plaza keyword only against title, description, and contact", async () => {
+      const app = createApp({ authRepository: createRepository(), plazaRepository: createPlazaRepository() });
+      const token = await registerAndToken(app, "keyword-owner@example.com");
+
+      await request(app)
+        .post("/api/plaza/posts")
+        .set("Authorization", `Bearer ${token}`)
+        .send({
+          type: "course_exchange",
+          title: "想换数据库课程",
+          college: "计算机科学与工程学院",
+          contact: "QQ 123456",
+          description: "只搜索这里的正文",
+          tags: ["标签唯一词"],
+          offeredCourse: "课程唯一词",
+          wantedCourse: "另一个课程唯一词",
+          courseTime: "时间唯一词"
+        })
+        .expect(201);
+
+      const titleResponse = await request(app)
+        .get("/api/plaza/posts?keyword=数据库")
+        .set("Authorization", `Bearer ${token}`);
+      const courseResponse = await request(app)
+        .get("/api/plaza/posts?keyword=课程唯一词")
+        .set("Authorization", `Bearer ${token}`);
+      const tagResponse = await request(app)
+        .get("/api/plaza/posts?keyword=标签唯一词")
+        .set("Authorization", `Bearer ${token}`);
+      const timeResponse = await request(app)
+        .get("/api/plaza/posts?keyword=时间唯一词")
+        .set("Authorization", `Bearer ${token}`);
+
+      expect(titleResponse.body.posts).toHaveLength(1);
+      expect(courseResponse.body.posts).toHaveLength(0);
+      expect(tagResponse.body.posts).toHaveLength(0);
+      expect(timeResponse.body.posts).toHaveLength(0);
     });
 
     it("creates team recruiting posts and rejects invalid member counts", async () => {
