@@ -6,6 +6,12 @@ gc.myseu.cn {
 		reverse_proxy backend:3000
 	}
 
+	handle /mcp* {
+		reverse_proxy backend:3000 {
+			flush_interval -1
+		}
+	}
+
 	handle /health {
 		reverse_proxy backend:3000
 	}
