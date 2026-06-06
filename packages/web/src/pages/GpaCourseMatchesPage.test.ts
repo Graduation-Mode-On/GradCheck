@@ -54,8 +54,14 @@ describe("GpaCourseMatchesPage", () => {
           course: { id: "c1", userId: "u1", term: "2025-2026 春", name: "高等数学", credit: "3.00", score: "96.00", isRequired: true, isFirstAttempt: true, isGpaEligible: true, createdAt: "", updatedAt: "" },
           match: { matchTargetType: "course", programPlanCourseId: "p1", programPlanCourseGroupId: null, matchMethod: "normalized_name_credit", confidence: "0.92", confirmedByUser: false },
           candidates: {
-            courses: [{ id: "p1", code: "MATH", name: "高等数学", credits: "3.00", requirementType: "required" }],
-            groups: [{ id: "g1", name: "通识选修课", requirementType: "min_credits" }]
+            courses: [
+              { id: "p2", code: "ART", name: "艺术实践", credits: "2.00", requirementType: "elective" },
+              { id: "p1", code: "MATH", name: "高等数学", credits: "3.00", requirementType: "required" }
+            ],
+            groups: [
+              { id: "g1", name: "通识选修课", requirementType: "min_credits" },
+              { id: "g2", name: "任选课程组", requirementType: "min_credits" }
+            ]
           }
         },
         {
@@ -105,7 +111,7 @@ describe("GpaCourseMatchesPage", () => {
     expect(wrapper.get('[data-testid="gpa-match-list"]').text()).toContain("高等数学");
     expect(wrapper.get('[data-testid="gpa-match-list"]').text()).toContain("电影艺术理论与实践");
     expect(wrapper.get('[data-testid="gpa-match-candidate-group"]').text()).toContain("通识选修课");
-    expect(wrapper.find('[data-testid="gpa-match-candidate-course"]').exists()).toBe(false);
+    expect(wrapper.find('[data-testid="gpa-match-candidate-course"]').exists()).toBe(true);
     expect(wrapper.findAll('[data-testid="gpa-match-unbind"]')).toHaveLength(1);
 
     await wrapper.get('[data-testid="gpa-match-unbind"]').trigger("click");
@@ -141,5 +147,22 @@ describe("GpaCourseMatchesPage", () => {
       matchTargetType: "course",
       programPlanCourseId: "p1"
     });
+  });
+
+  it("sorts candidate targets by shared characters and prefers groups when similarity is low", async () => {
+    const wrapper = mountPage();
+    await flushPromises();
+
+    await wrapper.get('[data-testid="gpa-match-open"]').trigger("click");
+    const defaultTargets = wrapper.findAll('[data-match-target="true"]');
+
+    expect(defaultTargets[0]?.text()).toContain("高等数学");
+    expect(defaultTargets[1]?.text()).toContain("通识选修课");
+
+    await wrapper.get('[data-testid="gpa-match-target-search"]').setValue("xyz");
+    const lowSimilarityTargets = wrapper.findAll('[data-match-target="true"]');
+
+    expect(lowSimilarityTargets[0]?.text()).toContain("通识选修课");
+    expect(lowSimilarityTargets[1]?.text()).toContain("任选课程组");
   });
 });
