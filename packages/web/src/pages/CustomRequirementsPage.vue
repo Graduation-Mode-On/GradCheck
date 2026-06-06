@@ -173,6 +173,26 @@ async function removeRequirement(id: string) {
           <input data-testid="custom-requirement-show-on-home" v-model="form.showOnHome" type="checkbox" />
           主页展示
         </label>
+        <label class="block text-sm font-medium text-[var(--tommy-text-secondary)]">
+          截止时间
+          <input
+            data-testid="custom-requirement-deadline"
+            :value="form.deadline ?? ''"
+            class="mt-1 w-full rounded-xl border border-slate-300 px-3 py-2"
+            type="date"
+            @input="form.deadline = ($event.target as HTMLInputElement).value || null"
+          />
+        </label>
+        <label class="block text-sm font-medium text-[var(--tommy-text-secondary)]">
+          备注
+          <textarea
+            data-testid="custom-requirement-notes"
+            :value="form.notes ?? ''"
+            class="mt-1 w-full rounded-xl border border-slate-300 px-3 py-2"
+            rows="3"
+            @input="form.notes = ($event.target as HTMLTextAreaElement).value || null"
+          />
+        </label>
         <button data-testid="custom-requirement-submit" class="rounded-xl bg-[var(--tommy-primary)] px-5 py-2.5 font-semibold text-white sm:col-span-2" type="submit">
           {{ editingRequirementId ? "保存自定义要求" : "新增自定义要求" }}
         </button>

@@ -87,6 +87,8 @@ describe("CustomRequirementsPage", () => {
     expect(wrapper.find('[data-testid="custom-requirement-source"]').exists()).toBe(true);
     expect(wrapper.find('[data-testid="custom-requirement-include-in-progress"]').exists()).toBe(true);
     expect(wrapper.find('[data-testid="custom-requirement-show-on-home"]').exists()).toBe(true);
+    expect(wrapper.find('[data-testid="custom-requirement-deadline"]').exists()).toBe(true);
+    expect(wrapper.find('[data-testid="custom-requirement-notes"]').exists()).toBe(true);
   });
 
   it("lets users toggle whether an existing requirement is shown on home", async () => {
@@ -116,6 +118,8 @@ describe("CustomRequirementsPage", () => {
 
     expect((wrapper.get('[data-testid="custom-requirement-name"]').element as HTMLInputElement).value).toBe("人文讲座");
     expect((wrapper.get('[data-testid="custom-requirement-unit"]').element as HTMLInputElement).value).toBe("次");
+    expect((wrapper.get('[data-testid="custom-requirement-deadline"]').element as HTMLInputElement).value).toBe("2026-06-30");
+    expect((wrapper.get('[data-testid="custom-requirement-notes"]').element as HTMLTextAreaElement).value).toBe("需要学院认定");
     expect(wrapper.get('[data-testid="custom-requirement-submit"]').text()).toBe("保存自定义要求");
   });
 });
