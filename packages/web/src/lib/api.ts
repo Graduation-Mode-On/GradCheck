@@ -807,9 +807,6 @@ export async function listRecommendationHistory(term: string): Promise<{ recomme
   return request<{ recommendations: RecommendationResult[] }>(`/api/course-recommendations/history${toQueryString({ term })}`);
 }
 
-export type CoursesRuleStatus = "completed" | "in_progress" | "not_started";
-export type CoursesRuleTargetType = "all_courses" | "courses" | "credits" | "either" | "manual";
-
 export interface CoursesPlanCourseRef {
   id: string;
   code: string;
@@ -951,6 +948,30 @@ export interface GraduationSummaryResponse {
 
 export async function getGraduationSummary(): Promise<GraduationSummaryResponse> {
   return request<GraduationSummaryResponse>("/api/home/graduation-summary");
+}
+
+export type CoursesRuleStatus = "completed" | "in_progress" | "not_started";
+export type CoursesRuleTargetType = "all_courses" | "courses" | "credits" | "either" | "manual";
+
+export interface CoursesPlanCourseRef {
+  id: string;
+  code: string;
+  name: string;
+  credits: string;
+}
+
+export interface CoursesCompletedPlanCourse extends CoursesPlanCourseRef {
+  matchedGpaCourseId: string;
+  matchedGpaCourseTerm: string;
+  matchedGpaCourseScore: string;
+}
+
+export interface CoursesMatchedFreeCourse {
+  gpaCourseId: string;
+  name: string;
+  credits: string;
+  score: string;
+  term: string;
 }
 
 export interface CoursesPlanGroup {
