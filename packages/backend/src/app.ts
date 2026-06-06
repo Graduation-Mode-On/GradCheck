@@ -19,6 +19,8 @@ import type { CoursesProgressRepository } from "./modules/courses-progress/cours
 import { createCoursesProgressRouter } from "./modules/courses-progress/courses-progress.routes.js";
 import type { SrtpRepository } from "./modules/srtp/srtp.repository.js";
 import { createSrtpRouter } from "./modules/srtp/srtp.routes.js";
+import type { SportsRepository } from "./modules/sports/sports.repository.js";
+import { createSportsRouter } from "./modules/sports/sports.routes.js";
 import { createUserRouter } from "./modules/users/user.routes.js";
 import type { VolunteerLaborRepository } from "./modules/volunteer-labor/volunteer-labor.repository.js";
 import { createVolunteerLaborRouter } from "./modules/volunteer-labor/volunteer-labor.routes.js";
@@ -35,6 +37,7 @@ export interface AppDependencies {
   volunteerLaborRepository: VolunteerLaborRepository;
   customRequirementRepository: CustomRequirementRepository;
   srtpRepository: SrtpRepository;
+  sportsRepository: SportsRepository;
   programPlanRepository: ProgramPlanRepository;
   gpaRepository: GpaRepository;
   coursesProgressRepository: CoursesProgressRepository;
@@ -58,6 +61,7 @@ export function createApp(dependencies: AppDependencies) {
   app.use("/api/plaza/posts", createPlazaRouter(dependencies.authRepository, dependencies.plazaRepository));
   app.use("/api/news", createNewsRouter(dependencies.newsRepository));
   app.use("/api/srtp", createSrtpRouter(dependencies.authRepository, dependencies.srtpRepository));
+  app.use("/api/sports", createSportsRouter(dependencies.authRepository, dependencies.sportsRepository));
   app.use("/api/program-plans", createProgramPlansRouter(dependencies.authRepository, dependencies.programPlanRepository));
   app.use(
     "/api/courses",

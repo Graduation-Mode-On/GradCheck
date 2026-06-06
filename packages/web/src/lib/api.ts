@@ -4,6 +4,7 @@ import type { NewsItem, NewsItemFilters } from "../schemas/news";
 import type { PlazaPost, PlazaPostFilters, PlazaPostInput, PlazaPostStatus } from "../schemas/plaza";
 import type { CurriculumPlan, ProgramPlanPreview } from "../schemas/programPlan";
 import type { SrtpOverview, SrtpRecord, SrtpRecordInput } from "../schemas/srtp";
+import type { SportsProgress, SportsProgressInput } from "../schemas/sports";
 import type { VolunteerLaborProgress, VolunteerLaborProgressInput } from "../schemas/volunteerLabor";
 import type { CustomRequirementInput } from "../schemas/customRequirement";
 import type { GpaCourseInput } from "../schemas/gpa";
@@ -367,6 +368,17 @@ export async function updateVolunteerLaborProgress(
   input: VolunteerLaborProgressInput
 ): Promise<{ progress: VolunteerLaborProgress }> {
   return request<{ progress: VolunteerLaborProgress }>("/api/volunteer-labor/me", {
+    method: "PUT",
+    body: JSON.stringify(input)
+  });
+}
+
+export async function getSportsProgress(): Promise<{ progress: SportsProgress }> {
+  return request<{ progress: SportsProgress }>("/api/sports/me");
+}
+
+export async function updateSportsProgress(input: SportsProgressInput): Promise<{ progress: SportsProgress }> {
+  return request<{ progress: SportsProgress }>("/api/sports/me", {
     method: "PUT",
     body: JSON.stringify(input)
   });

@@ -24,6 +24,7 @@ import type { CurriculumPlan, ProgramPlanSummary } from "./modules/program-plans
 import { normalizeProgramPlanCourses } from "./modules/program-plans/program-plan-normalizer.js";
 import type { SrtpRepository } from "./modules/srtp/srtp.repository.js";
 import type { SrtpRecord, SrtpRecordInput } from "./modules/srtp/srtp.schemas.js";
+import type { SportsRepository } from "./modules/sports/sports.repository.js";
 import type { UserProfile } from "./modules/users/user.repository.js";
 
 const now = new Date("2026-06-06T00:00:00.000Z");
@@ -48,6 +49,16 @@ interface TestVolunteerLaborProgress {
   volunteerHours: string;
   ordinaryLaborCount: number;
   specialLaborCount: number;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+interface TestSportsProgress {
+  userId: string;
+  currentRuns: number;
+  targetRuns: number;
+  lastRunDate?: string | null;
+  runDates: string[];
   createdAt: Date;
   updatedAt: Date;
 }
@@ -407,6 +418,36 @@ function createGpaRepository(): GpaRepository {
       };
     }
 
+    function createSportsRepository(): SportsRepository {
+      const progressByUser = new Map<string, TestSportsProgress>();
+
+      return {
+        async getProgress(userId: string) {
+          return (
+            progressByUser.get(userId) ?? {
+              userId,
+              currentRuns: 0,
+              targetRuns: 45,
+              lastRunDate: null,
+              runDates: [],
+              createdAt: new Date(0),
+              updatedAt: new Date(0)
+            }
+          );
+        },
+        async upsertProgress(userId: string, input: Omit<TestSportsProgress, "userId" | "createdAt" | "updatedAt">) {
+          const progress: TestSportsProgress = {
+            userId,
+            ...input,
+            createdAt: progressByUser.get(userId)?.createdAt ?? now,
+            updatedAt: now
+          };
+          progressByUser.set(userId, progress);
+          return progress;
+        }
+      };
+    }
+
     function createCustomRequirementRepository(): CustomRequirementRepository {
       return {
         async listByUserId() {
@@ -435,16 +476,17 @@ function createGpaRepository(): GpaRepository {
           gpaRepository: createGpaRepository(),
           lecturePracticeRepository: createLecturePracticeRepository(),
           volunteerLaborRepository: createVolunteerLaborRepository(),
-        customRequirementRepository: createCustomRequirementRepository(),
-        coursesProgressRepository: {
-          async loadProgressData() {
-            return { plan: null, planCourses: [], planGroups: [], gpaCourses: [], matches: [], ignoredGroupIds: [] };
-          },
-          async ignoreGroup() {},
-          async unignoreGroup() {}
-        }
-      });
-    }
+          sportsRepository: createSportsRepository(),
+          customRequirementRepository: createCustomRequirementRepository(),
+          coursesProgressRepository: {
+            async loadProgressData() {
+              return { plan: null, planCourses: [], planGroups: [], gpaCourses: [], matches: [], ignoredGroupIds: [] };
+            },
+            async ignoreGroup() {},
+            async unignoreGroup() {}
+          }
+        });
+      }
 
       beforeEach(() => {
     vi.stubEnv("JWT_SECRET", "test-secret-that-is-long-enough");
