@@ -13,6 +13,7 @@ export interface GpaDashboard {
 export interface GpaRepository {
   listCourses(userId: string): Promise<GpaCourse[]>;
   createCourseAndRecalculate(userId: string, input: GpaCourseInput): Promise<GpaDashboard>;
+  createCoursesAndRecalculate(userId: string, input: GpaCourseInput[]): Promise<GpaDashboard>;
   updateCourseAndRecalculate(userId: string, courseId: string, input: GpaCourseInput): Promise<GpaDashboard | null>;
   deleteCourseAndRecalculate(userId: string, courseId: string): Promise<GpaDashboard | null>;
 }
@@ -60,6 +61,15 @@ export function createGpaRepository(db: Database): GpaRepository {
       return db.transaction(async (tx) => {
         await lockUserGpa(tx, userId);
         await tx.insert(gpaCourses).values({ userId, ...input });
+        return recalculateAndPersist(tx, userId);
+      });
+    },
+    async createCoursesAndRecalculate(userId, input) {
+      return db.transaction(async (tx) => {
+        await lockUserGpa(tx, userId);
+        if (input.length > 0) {
+          await tx.insert(gpaCourses).values(input.map((course) => ({ userId, ...course })));
+        }
         return recalculateAndPersist(tx, userId);
       });
     },

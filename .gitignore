@@ -1,7 +1,9 @@
 node_modules
 .worktrees/
+.superpowers/
 dist
 .env
 .DS_Store
 data/
 *.log
+.agent/*

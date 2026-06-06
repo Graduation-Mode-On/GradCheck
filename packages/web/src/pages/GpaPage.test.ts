@@ -5,7 +5,16 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import GpaPage from "./GpaPage.vue";
 import type { GpaDashboardResponse } from "../lib/api";
 
-const { authState, replace, getGpaDashboard, createGpaCourse, updateGpaCourse, deleteGpaCourse } = vi.hoisted(() => ({
+const {
+  authState,
+  replace,
+  getGpaDashboard,
+  createGpaCourse,
+  updateGpaCourse,
+  deleteGpaCourse,
+  uploadGpaTranscript,
+  importGpaTranscriptCourses
+} = vi.hoisted(() => ({
   authState: {
     token: "token" as string | null
   },
@@ -13,7 +22,9 @@ const { authState, replace, getGpaDashboard, createGpaCourse, updateGpaCourse, d
   getGpaDashboard: vi.fn(),
   createGpaCourse: vi.fn(),
   updateGpaCourse: vi.fn(),
-  deleteGpaCourse: vi.fn()
+  deleteGpaCourse: vi.fn(),
+  uploadGpaTranscript: vi.fn(),
+  importGpaTranscriptCourses: vi.fn()
 }));
 
 vi.mock("vue-router", () => ({
@@ -32,7 +43,9 @@ vi.mock("../lib/api", async () => {
     getGpaDashboard,
     createGpaCourse,
     updateGpaCourse,
-    deleteGpaCourse
+    deleteGpaCourse,
+    uploadGpaTranscript,
+    importGpaTranscriptCourses
   };
 });
 
@@ -111,6 +124,8 @@ describe("GpaPage", () => {
     createGpaCourse.mockReset();
     updateGpaCourse.mockReset();
     deleteGpaCourse.mockReset();
+    uploadGpaTranscript.mockReset();
+    importGpaTranscriptCourses.mockReset();
     getGpaDashboard.mockResolvedValue(createDashboard());
   });
 
@@ -118,8 +133,10 @@ describe("GpaPage", () => {
     const wrapper = mountPage();
     await flushPromises();
 
+    expect(wrapper.get('[data-testid="gpa-result-grid"]').classes()).toContain("grid-cols-2");
     expect(wrapper.get('[data-testid="gpa-required-result"]').text()).toContain("4.8");
     expect(wrapper.get('[data-testid="gpa-overall-result"]').text()).toContain("96");
+    expect(wrapper.get('[data-testid="gpa-required-summary"]').text()).toBe("均分 96 · 学分 3 · 1 门");
     expect(wrapper.get('[data-testid="gpa-course-list"]').text()).toContain("高等数学");
     expect(wrapper.get('[data-testid="gpa-course-list"]').text()).toContain("2025-2026 春");
   });
@@ -216,5 +233,81 @@ describe("GpaPage", () => {
 
     expect(wrapper.get('[data-testid="gpa-course-list"]').text()).toContain("程序设计");
     expect(wrapper.get('[data-testid="gpa-course-list"]').text()).not.toContain("高等数学");
+  });
+
+  it("opens course actions and scrolls to the form when editing", async () => {
+    const scrollIntoView = vi.fn();
+    Element.prototype.scrollIntoView = scrollIntoView;
+    const wrapper = mountPage();
+    await flushPromises();
+
+    await wrapper.get('[data-testid="gpa-course-actions"]').trigger("click");
+
+    expect(wrapper.get('[data-testid="gpa-course-edit"]').text()).toBe("编辑");
+    expect(wrapper.get('[data-testid="gpa-course-delete"]').text()).toBe("删除");
+
+    await wrapper.get('[data-testid="gpa-course-edit"]').trigger("click");
+
+    expect(wrapper.get('[data-testid="gpa-course-form-title"]').text()).toBe("编辑课程");
+    expect((wrapper.get('[data-testid="gpa-course-name"]').element as HTMLInputElement).value).toBe("高等数学");
+    expect(scrollIntoView).toHaveBeenCalledWith({ behavior: "smooth", block: "start" });
+  });
+
+  it("previews and imports transcript courses", async () => {
+    const transcriptCourse = {
+      term: "2025-2026 春",
+      name: "数据库原理(全英文)",
+      credit: "3",
+      score: "85",
+      isRequired: false,
+      isFirstAttempt: true,
+      isGpaEligible: true,
+      rawName: "数据库原理(全英文)",
+      rawGrade: "85",
+      exclusionReason: null,
+      warnings: []
+    };
+    uploadGpaTranscript.mockResolvedValueOnce({
+      preview: {
+        sourceFilename: "grades.pdf",
+        courseCount: 1,
+        importableCourseCount: 1,
+        courses: [transcriptCourse],
+        warnings: []
+      }
+    });
+    importGpaTranscriptCourses.mockResolvedValueOnce({
+      importedCount: 1,
+      skippedCount: 0,
+      dashboard: createDashboard("数据库原理(全英文)", "2025-2026 春")
+    });
+    const wrapper = mountPage();
+    await flushPromises();
+    const fileInput = wrapper.get('[data-testid="gpa-transcript-file"]');
+    const file = new File(["pdf"], "grades.pdf", { type: "application/pdf" });
+    Object.defineProperty(fileInput.element, "files", { value: [file] });
+
+    await fileInput.trigger("change");
+    await wrapper.get('[data-testid="gpa-transcript-preview"]').trigger("click");
+    await flushPromises();
+
+    expect(uploadGpaTranscript).toHaveBeenCalledWith(file);
+    expect(wrapper.get('[data-testid="gpa-transcript-preview-list"]').text()).toContain("数据库原理(全英文)");
+
+    await wrapper.get('[data-testid="gpa-transcript-import"]').trigger("click");
+    await flushPromises();
+
+    expect(importGpaTranscriptCourses).toHaveBeenCalledWith([
+      {
+        term: "2025-2026 春",
+        name: "数据库原理(全英文)",
+        credit: "3",
+        score: "85",
+        isRequired: false,
+        isFirstAttempt: true,
+        isGpaEligible: true
+      }
+    ]);
+    expect(wrapper.get('[data-testid="gpa-course-list"]').text()).toContain("数据库原理(全英文)");
   });
 });

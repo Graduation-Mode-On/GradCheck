@@ -191,6 +191,19 @@ function createGpaRepository(): GpaRepository {
       courses.set(course.id, course);
       return dashboard(userId);
     },
+    async createCoursesAndRecalculate(userId, input: GpaCourseInput[]) {
+      for (const courseInput of input) {
+        const course: GpaCourse = {
+          id: `course-${courses.size + 1}`,
+          userId,
+          ...courseInput,
+          createdAt: now,
+          updatedAt: now
+        };
+        courses.set(course.id, course);
+      }
+      return dashboard(userId);
+    },
     async updateCourseAndRecalculate(userId, courseId, input) {
       const existing = courses.get(courseId);
       if (!existing || existing.userId !== userId) {
@@ -1235,6 +1248,51 @@ const app = createTestApp();
             isGpaEligible: true
           })
           .expect(404);
+      });
+
+      it("rejects non-PDF transcript preview uploads", async () => {
+        const app = createTestApp();
+        const token = await registerAndToken(app, "gpa-preview-invalid@example.com");
+
+        await request(app)
+          .post("/api/gpa/transcript/preview")
+          .set("Authorization", `Bearer ${token}`)
+          .attach("file", Buffer.from("not a pdf"), "grades.txt")
+          .expect(400);
+      });
+
+      it("imports confirmed transcript courses and skips duplicates", async () => {
+        const app = createTestApp();
+        const token = await registerAndToken(app, "gpa-import@example.com");
+        const course = {
+          term: "2025-2026 春",
+          name: "数据库原理(全英文)",
+          credit: "3",
+          score: "85",
+          isRequired: false,
+          isFirstAttempt: true,
+          isGpaEligible: true
+        };
+
+        const firstImport = await request(app)
+          .post("/api/gpa/transcript/import")
+          .set("Authorization", `Bearer ${token}`)
+          .send({ courses: [course] });
+
+        expect(firstImport.status).toBe(201);
+        expect(firstImport.body.importedCount).toBe(1);
+        expect(firstImport.body.skippedCount).toBe(0);
+        expect(firstImport.body.dashboard.courses).toHaveLength(1);
+
+        const secondImport = await request(app)
+          .post("/api/gpa/transcript/import")
+          .set("Authorization", `Bearer ${token}`)
+          .send({ courses: [course] });
+
+        expect(secondImport.status).toBe(200);
+        expect(secondImport.body.importedCount).toBe(0);
+        expect(secondImport.body.skippedCount).toBe(1);
+        expect(secondImport.body.dashboard.courses).toHaveLength(1);
       });
     });
   });

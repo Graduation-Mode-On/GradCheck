@@ -10,6 +10,7 @@ import PlaceholderPage from "./pages/PlaceholderPage.vue";
 import PlazaPage from "./pages/PlazaPage.vue";
 import PlansPage from "./pages/PlansPage.vue";
 import ProfilePage from "./pages/ProfilePage.vue";
+import SportsPage from "./pages/SportsPage.vue";
 import SrtpPage from "./pages/SrtpPage.vue";
 import VolunteerPage from "./pages/VolunteerPage.vue";
 
@@ -42,7 +43,7 @@ export const router = createRouter({
     {
       path: "/sports",
       name: "sports",
-      component: PlaceholderPage,
+      component: SportsPage,
       meta: { title: "体育跑操", description: "后续用于记录体测、跑操次数和体育毕业风险。" }
     },
     { path: "/lecture-practice", name: "lecture-practice", component: LecturePracticePage },

@@ -41,9 +41,9 @@ const samplePlan = {
   planJson: {
     program: { school: "东南大学", college: "软件学院", major: "软件工程", grade: "2022级", total_credits: 166 },
     courses: [
+      { code: "BJSL1010", name: "数据结构", credits: 3, category: "专业主干课", subcategory: "软件工程", term: { year: "二", semester: "1" } },
       { code: "B07M1050", name: "工科数学分析I", credits: 6, category: "通识教育基础课", subcategory: "数学类", term: { year: "一", semester: "1" } },
-      { code: "BJSL0020", name: "程序设计基础及语言I(双语)", credits: 2, category: "大类学科基础课", subcategory: "软件工程", term: { year: "一", semester: "1" } },
-      { code: "BJSL1010", name: "数据结构", credits: 3, category: "专业主干课", subcategory: "软件工程", term: { year: "二", semester: "1" } }
+      { code: "BJSL0020", name: "程序设计基础及语言I(双语)", credits: 2, category: "大类学科基础课", subcategory: "软件工程", term: { year: "一", semester: "1" } }
     ],
     requirements: [
       { id: "sishi_choose_one", type: "choose_one_of", title: "四史四选一" },
@@ -93,6 +93,7 @@ describe("PlansPage", () => {
       value: [new File(["pdf"], "software-plan.pdf", { type: "application/pdf" })]
     });
     await wrapper.get('[data-testid="program-plan-file"]').trigger("change");
+    expect(wrapper.get('[data-testid="program-plan-mock-upload"]').text()).toBe("解析");
     await wrapper.get('[data-testid="program-plan-mock-upload"]').trigger("click");
     await flushPromises();
 
@@ -128,6 +129,26 @@ describe("PlansPage", () => {
     expect(wrapper.text()).not.toContain("数据结构");
   });
 
+  it("filters preview courses by semester alongside category", async () => {
+    mocks.token = "token";
+    const wrapper = mountPage();
+
+    await flushPromises();
+    Object.defineProperty(wrapper.get('[data-testid="program-plan-file"]').element, "files", {
+      value: [new File(["pdf"], "software-plan.pdf", { type: "application/pdf" })]
+    });
+    await wrapper.get('[data-testid="program-plan-file"]').trigger("change");
+    await wrapper.get('[data-testid="program-plan-mock-upload"]').trigger("click");
+    await flushPromises();
+
+    expect(wrapper.find('[data-testid="program-course-semester"]').exists()).toBe(true);
+    expect(wrapper.findAll('[data-testid="program-course-semester"] option').map((option) => option.attributes("value"))).toEqual(["all", "一-1", "二-1"]);
+    await wrapper.get('[data-testid="program-course-semester"]').setValue("二-1");
+
+    expect(wrapper.text()).toContain("数据结构");
+    expect(wrapper.text()).not.toContain("工科数学分析I");
+  });
+
   it("imports and binds the preview plan", async () => {
     mocks.token = "token";
     const wrapper = mountPage();
@@ -157,5 +178,24 @@ describe("PlansPage", () => {
     expect(wrapper.text()).toContain("当前绑定方案");
     expect(wrapper.text()).toContain("软件工程");
     expect(wrapper.text()).toContain("2022级");
+  });
+
+  it("shows a display page for an existing plan and opens reimport on demand", async () => {
+    mocks.token = "token";
+    mocks.getCurrentProgramPlan.mockResolvedValue({ plan: { id: "plan-1", ...samplePlan } });
+
+    const wrapper = mountPage();
+    await flushPromises();
+
+    expect(wrapper.text()).toContain("我的培养方案");
+    expect(wrapper.text()).toContain("课程总览");
+    expect(wrapper.text()).toContain("毕业要求清单");
+    expect(wrapper.find('[data-testid="program-plan-file"]').exists()).toBe(false);
+    expect(wrapper.find('[data-testid="program-plan-import"]').exists()).toBe(false);
+
+    await wrapper.get('[data-testid="program-plan-reimport"]').trigger("click");
+
+    expect(wrapper.find('[data-testid="program-plan-file"]').exists()).toBe(true);
+    expect(wrapper.text()).toContain("重新导入培养方案");
   });
 });

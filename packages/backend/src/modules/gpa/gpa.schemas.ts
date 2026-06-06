@@ -26,4 +26,8 @@ export const gpaCourseInputSchema = z.object({
   isGpaEligible: z.boolean()
 });
 
+export const gpaTranscriptImportSchema = z.object({
+  courses: z.array(gpaCourseInputSchema).min(1).max(300)
+});
+
 export type GpaCourseInputRequest = z.infer<typeof gpaCourseInputSchema>;
