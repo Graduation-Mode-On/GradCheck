@@ -14,7 +14,7 @@ CREATE TABLE "program_plans" (
 	"updated_at" timestamp with time zone DEFAULT now() NOT NULL
 );
 --> statement-breakpoint
-CREATE TABLE "user_program_bindings" (
+CREATE TABLE "user_program_plan_bindings" (
 	"user_id" uuid PRIMARY KEY NOT NULL,
 	"program_plan_id" uuid NOT NULL,
 	"confirmed_at" timestamp with time zone DEFAULT now() NOT NULL,
@@ -22,5 +22,5 @@ CREATE TABLE "user_program_bindings" (
 	"updated_at" timestamp with time zone DEFAULT now() NOT NULL
 );
 --> statement-breakpoint
-ALTER TABLE "user_program_bindings" ADD CONSTRAINT "user_program_bindings_user_id_users_id_fk" FOREIGN KEY ("user_id") REFERENCES "public"."users"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
-ALTER TABLE "user_program_bindings" ADD CONSTRAINT "user_program_bindings_program_plan_id_program_plans_id_fk" FOREIGN KEY ("program_plan_id") REFERENCES "public"."program_plans"("id") ON DELETE cascade ON UPDATE no action;
+ALTER TABLE "user_program_plan_bindings" ADD CONSTRAINT "user_program_plan_bindings_user_id_users_id_fk" FOREIGN KEY ("user_id") REFERENCES "public"."users"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "user_program_plan_bindings" ADD CONSTRAINT "user_program_plan_bindings_program_plan_id_program_plans_id_fk" FOREIGN KEY ("program_plan_id") REFERENCES "public"."program_plans"("id") ON DELETE cascade ON UPDATE no action;

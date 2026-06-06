@@ -15,7 +15,7 @@
 **Files:** `packages/backend/src/db/schema.ts`, `packages/backend/src/modules/program-plans/*`, `packages/backend/src/app.ts`, `packages/backend/src/index.ts`, `packages/backend/src/app.test.ts`
 
 - [ ] Write failing backend tests for unauthenticated access, mock PDF upload, non-PDF rejection, import, and GET current binding.
-- [ ] Add `programPlans` and `userProgramBindings` tables.
+- [ ] Add `programPlans` and `userProgramPlanBindings` tables.
 - [ ] Add `program-plans` schemas/types aligned to `pdf-extract` JSON top-level shape.
 - [ ] Add repository and routes.
 - [ ] Copy a trimmed sample fixture from `/Users/river/Documents/Projects/pdf-extract/plan.json` into backend module.
@@ -37,7 +37,7 @@
 **Files:** `packages/backend/drizzle/*`
 
 - [ ] Run `pnpm db:generate`.
-- [ ] Verify migration creates `program_plans` and `user_program_bindings`.
+- [ ] Verify migration creates `program_plans` and `user_program_plan_bindings`.
 - [ ] Run `pnpm test`, `pnpm typecheck`, and `pnpm build`.
 - [ ] Commit migration.
 

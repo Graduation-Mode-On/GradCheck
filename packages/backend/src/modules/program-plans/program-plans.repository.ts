@@ -1,7 +1,7 @@
 import { eq } from "drizzle-orm";
 
 import type { Database } from "../../db/client.js";
-import { programPlans, userProgramBindings } from "../../db/schema.js";
+import { programPlans, userProgramPlanBindings } from "../../db/schema.js";
 import type { CurriculumPlan, ProgramPlanSummary } from "./program-plans.schemas.js";
 
 export interface ProgramPlanBinding {
@@ -40,10 +40,10 @@ export function createProgramPlanRepository(db: Database): ProgramPlanRepository
     async createAndBind(userId, sourceFilename, planJson) {
       const [plan] = await db.insert(programPlans).values(valuesFromPlan(sourceFilename, planJson)).returning();
       const [binding] = await db
-        .insert(userProgramBindings)
+        .insert(userProgramPlanBindings)
         .values({ userId, programPlanId: plan.id })
         .onConflictDoUpdate({
-          target: userProgramBindings.userId,
+          target: userProgramPlanBindings.userId,
           set: { programPlanId: plan.id, confirmedAt: new Date(), updatedAt: new Date() }
         })
         .returning();
@@ -53,8 +53,8 @@ export function createProgramPlanRepository(db: Database): ProgramPlanRepository
     async getBoundPlan(userId) {
       const [binding] = await db
         .select()
-        .from(userProgramBindings)
-        .where(eq(userProgramBindings.userId, userId))
+        .from(userProgramPlanBindings)
+        .where(eq(userProgramPlanBindings.userId, userId))
         .limit(1);
       if (!binding) return null;
       const [plan] = await db

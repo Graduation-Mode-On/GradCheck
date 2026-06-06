@@ -151,7 +151,7 @@ export const programPlans = pgTable("program_plans", {
   updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull()
 });
 
-export const userProgramBindings = pgTable("user_program_bindings", {
+export const userProgramPlanBindings = pgTable("user_program_plan_bindings", {
   userId: uuid("user_id")
     .primaryKey()
     .references(() => users.id, { onDelete: "cascade" }),

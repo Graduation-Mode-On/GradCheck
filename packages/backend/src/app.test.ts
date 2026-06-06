@@ -1027,11 +1027,11 @@ const app = createTestApp();
         school: "东南大学",
         major: "软件工程",
         totalCredits: "166",
-        courseCount: 3,
-        requirementCount: 2,
+        courseCount: 134,
+        requirementCount: 13,
         warningCount: 0
       });
-      expect(response.body.preview.planJson.courses[0]).toMatchObject({ code: "B07M1050", name: "工科数学分析I" });
+      expect(response.body.preview.planJson.courses[0]).toMatchObject({ code: "B15M0010", name: "马克思主义基本原理概论" });
     });
 
     it("rejects non-PDF mock uploads", async () => {
@@ -1066,8 +1066,8 @@ const app = createTestApp();
         sourceFilename: "software-plan.pdf",
         school: "东南大学",
         major: "软件工程",
-        courseCount: 3,
-        requirementCount: 2
+        courseCount: 134,
+        requirementCount: 13
       });
 
       const currentResponse = await request(app).get("/api/program-plans/me").set("Authorization", `Bearer ${token}`);

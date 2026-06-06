@@ -61,7 +61,7 @@ Add `program_plans`:
 - `created_at`
 - `updated_at`
 
-Add `user_program_bindings`:
+Add `user_program_plan_bindings`:
 
 - `user_id` UUID primary key, references `users.id` with cascade delete.
 - `program_plan_id` UUID, references `program_plans.id` with cascade delete.
@@ -83,7 +83,7 @@ Add authenticated APIs under `/api/program-plans`:
   - Accepts a parsed plan JSON and source filename.
   - Validates the top-level `pdf-extract` shape.
   - Saves a `program_plans` row.
-  - Upserts `user_program_bindings` for the authenticated user.
+  - Upserts `user_program_plan_bindings` for the authenticated user.
   - Returns `{ plan, binding }`.
 
 - `GET /api/program-plans/me`
