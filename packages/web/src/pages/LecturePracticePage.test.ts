@@ -82,6 +82,23 @@ describe("LecturePracticePage", () => {
     expect(wrapper.text()).toContain("社会实践公开课");
   });
 
+  it("uses different badge colors for incomplete and completed statuses", async () => {
+    mocks.token = "token";
+    const wrapper = mountPage();
+
+    await flushPromises();
+
+    expect(wrapper.get('[data-testid="progress-humanLectureCount-status"]').classes()).toEqual(
+      expect.arrayContaining(["bg-[color-mix(in_srgb,var(--tommy-warning)_14%,white)]", "text-[var(--tommy-warning)]"])
+    );
+
+    await wrapper.get('[data-testid="progress-humanLectureCount-input"]').setValue("8");
+
+    expect(wrapper.get('[data-testid="progress-humanLectureCount-status"]').classes()).toEqual(
+      expect.arrayContaining(["bg-[color-mix(in_srgb,var(--tommy-success)_14%,white)]", "text-[var(--tommy-success)]"])
+    );
+  });
+
   it("supports plus minus controls, manual input, and save", async () => {
     mocks.token = "token";
     const wrapper = mountPage();

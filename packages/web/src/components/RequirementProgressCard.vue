@@ -24,6 +24,16 @@ function adjust(delta: number) {
   const next = clamp(Number(props.value || 0) + delta * step);
   emit("updateValue", String(Number(next.toFixed(2))));
 }
+
+function statusClass(statusText: string): string {
+  if (statusText.includes("未及格")) {
+    return "bg-[color-mix(in_srgb,var(--tommy-error)_14%,white)] text-[var(--tommy-error)]";
+  }
+  if (statusText.includes("已完成") || statusText.includes("已及格") || statusText.includes("优秀")) {
+    return "bg-[color-mix(in_srgb,var(--tommy-success)_14%,white)] text-[var(--tommy-success)]";
+  }
+  return "bg-[color-mix(in_srgb,var(--tommy-warning)_14%,white)] text-[var(--tommy-warning)]";
+}
 </script>
 
 <template>
@@ -33,7 +43,11 @@ function adjust(delta: number) {
         <h2 class="text-lg font-bold text-[var(--tommy-text)]">{{ title }}</h2>
         <p class="mt-1 text-sm text-[var(--tommy-text-secondary)]">目标：{{ targetText }}</p>
       </div>
-      <span class="rounded-full bg-[color-mix(in_srgb,var(--tommy-primary)_12%,white)] px-3 py-1 text-xs font-semibold text-[var(--tommy-info)]">
+      <span
+        :data-testid="`progress-${fieldKey}-status`"
+        class="rounded-full px-3 py-1 text-xs font-semibold"
+        :class="statusClass(statusText)"
+      >
         {{ statusText }}
       </span>
     </div>
