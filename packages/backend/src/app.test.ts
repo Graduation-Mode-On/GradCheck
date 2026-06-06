@@ -503,7 +503,6 @@ function createGpaRepository(): GpaRepository {
           gpaRepository: createGpaRepository(),
           lecturePracticeRepository: createLecturePracticeRepository(),
           volunteerLaborRepository: createVolunteerLaborRepository(),
-<<<<<<< HEAD
           sportsRepository: createSportsRepository(),
           customRequirementRepository: createCustomRequirementRepository(),
           courseRecommendationRepository: createCourseRecommendationRepository(),
