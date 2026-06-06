@@ -15,6 +15,7 @@ const queryClient = useQueryClient();
 const message = ref("");
 const form = reactive({
   displayName: "",
+  studentId: "",
   college: "",
   major: "",
   grade: new Date().getFullYear(),
@@ -42,6 +43,7 @@ watchEffect(() => {
   form.major = profile.major;
   form.grade = profile.grade;
   form.gpaGoal = profile.gpaGoal;
+  form.studentId = profile.studentId ?? "";
 });
 
 const mutation = useMutation({
@@ -77,6 +79,18 @@ async function logout() {
         <label class="block text-sm font-medium text-[var(--tommy-text-secondary)]">
           显示名称
           <input v-model="form.displayName" class="mt-1 w-full rounded-xl border border-slate-300 px-3 py-2" />
+        </label>
+        <label class="block text-sm font-medium text-[var(--tommy-text-secondary)]">
+          学生一卡通（9 位数字）
+          <input
+            data-testid="profile-student-id"
+            v-model="form.studentId"
+            class="mt-1 w-full rounded-xl border border-slate-300 px-3 py-2"
+            inputmode="numeric"
+            pattern="\d{9}"
+            maxlength="9"
+            placeholder="例如 213220001"
+          />
         </label>
         <label class="block text-sm font-medium text-[var(--tommy-text-secondary)]">
           学院

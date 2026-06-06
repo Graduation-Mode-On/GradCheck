@@ -1,7 +1,7 @@
 import request from "supertest";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-import { createApp } from "./app.js";
+import { createApp, type AppDependencies } from "./app.js";
 import type { AuthRepository } from "./modules/auth/auth.repository.js";
 import type { CourseRecommendationRepository } from "./modules/course-recommendations/course-recommendations.repository.js";
 import type { CustomRequirementRepository } from "./modules/custom-requirements/custom-requirement.repository.js";
@@ -9,6 +9,7 @@ import { calculateGpaResult } from "./modules/gpa/gpa.calculator.js";
 import { matchGpaCourseToPlanRequirement } from "./modules/gpa/course-plan-matcher.js";
 import type { GpaDashboard, GpaRepository } from "./modules/gpa/gpa.repository.js";
 import type { GpaCourse, GpaCourseInput } from "./modules/gpa/gpa.types.js";
+import type { LabExamEventRepository } from "./modules/lab-exam-events/lab-exam-events.types.js";
 import type { NewsRepository } from "./modules/news/news.repository.js";
 import type { NewsItemRecord } from "./modules/news/news.types.js";
 import type {
@@ -23,10 +24,12 @@ import type { PlazaPostStatus } from "./modules/plaza/plaza.types.js";
 import type { ProgramPlanBinding, ProgramPlanRepository } from "./modules/program-plans/program-plans.repository.js";
 import type { CurriculumPlan, ProgramPlanSummary } from "./modules/program-plans/program-plans.schemas.js";
 import { normalizeProgramPlanCourses } from "./modules/program-plans/program-plan-normalizer.js";
+import type { ReminderRepository } from "./modules/reminders/reminders.types.js";
 import type { SrtpRepository } from "./modules/srtp/srtp.repository.js";
 import type { SrtpRecord, SrtpRecordInput } from "./modules/srtp/srtp.schemas.js";
 import type { SportsRepository } from "./modules/sports/sports.repository.js";
 import type { UserProfile } from "./modules/users/user.repository.js";
+import { HttpError } from "./lib/http-error.js";
 
 const now = new Date("2026-06-06T00:00:00.000Z");
 const testPlanCoursesByUser = new Map<
@@ -212,6 +215,13 @@ function createRepository(): AuthRepository {
       return profiles.get(userId) ?? null;
     },
     async upsertProfile(userId, input) {
+      const existingForStudentId = [...profiles.values()].find(
+        (entry) => entry.studentId === input.studentId && entry.userId !== userId
+      );
+      if (existingForStudentId) {
+        throw new HttpError(409, "该学生一卡通已被其他账号使用");
+      }
+
       const profile: UserProfile = {
         userId,
         displayName: input.displayName,
@@ -219,6 +229,7 @@ function createRepository(): AuthRepository {
         major: input.major,
         grade: input.grade,
         gpaGoal: input.gpaGoal,
+        studentId: input.studentId,
         createdAt: now,
         updatedAt: now
       };
@@ -512,7 +523,9 @@ function createGpaRepository(): GpaRepository {
             },
             async ignoreGroup() {},
             async unignoreGroup() {}
-          }
+          },
+          reminderRepository: createReminderRepositoryStub(),
+          labExamEvents: createLabExamEventsDeps()
         });
       }
 
@@ -529,6 +542,13 @@ function createGpaRepository(): GpaRepository {
     expect(response.body).toEqual({ status: "ok", service: "gradcheck-backend" });
   });
 
+  it("mounts reminder and lab exam routes behind authentication", async () => {
+    const app = createTestApp();
+
+    await request(app).get("/api/reminders").expect(401);
+    await request(app).get("/api/lab-exam-events").expect(401);
+  });
+
   it("registers a user, returns the current user, and updates profile data", async () => {
 const app = createTestApp();
 
@@ -542,7 +562,8 @@ const app = createTestApp();
           college: "计算机科学与工程学院",
           major: "软件工程",
           grade: 2022,
-          gpaGoal: "3.70"
+          gpaGoal: "3.70",
+          studentId: "213220001"
         }
       });
 
@@ -555,7 +576,8 @@ const app = createTestApp();
         college: "计算机科学与工程学院",
         major: "软件工程",
         grade: 2022,
-        gpaGoal: "3.70"
+        gpaGoal: "3.70",
+        studentId: "213220001"
       }
     });
 
@@ -582,7 +604,8 @@ const app = createTestApp();
         college: "计算机科学与工程学院",
         major: "计算机科学与技术",
         grade: 2023,
-        gpaGoal: "3.90"
+        gpaGoal: "3.90",
+        studentId: "213220002"
       });
 
     expect(profileResponse.status).toBe(200);
@@ -591,7 +614,8 @@ const app = createTestApp();
       college: "计算机科学与工程学院",
       major: "计算机科学与技术",
       grade: 2023,
-      gpaGoal: "3.90"
+      gpaGoal: "3.90",
+      studentId: "213220002"
     });
   });
 
@@ -751,6 +775,14 @@ const app = createTestApp();
     };
   }
 
+  function studentIdFromEmail(email: string): string {
+    let hash = 0;
+    for (const ch of email) {
+      hash = (hash * 31 + ch.charCodeAt(0)) >>> 0;
+    }
+    return String(200000000 + (hash % 100000000)).padStart(9, "0");
+  }
+
   async function registerAndToken(app: ReturnType<typeof createApp>, email: string) {
     const response = await request(app)
       .post("/api/auth/register")
@@ -762,7 +794,8 @@ const app = createTestApp();
           college: "计算机科学与工程学院",
           major: "软件工程",
           grade: 2022,
-          gpaGoal: "3.70"
+          gpaGoal: "3.70",
+          studentId: studentIdFromEmail(email)
         }
       });
     return response.body.token as string;

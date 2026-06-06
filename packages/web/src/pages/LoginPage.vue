@@ -15,6 +15,7 @@ const form = reactive({
   email: "",
   password: "",
   displayName: "",
+  studentId: "",
   college: "",
   major: "",
   grade: new Date().getFullYear(),
@@ -35,7 +36,8 @@ const mutation = useMutation({
       college: form.college,
       major: form.major,
       grade: form.grade,
-      gpaGoal: form.gpaGoal
+      gpaGoal: form.gpaGoal,
+      studentId: form.studentId
     });
 
     return register(
@@ -112,6 +114,18 @@ function submit() {
           <label class="block text-sm font-medium text-[var(--tommy-text-secondary)]">
             显示名称
             <input data-testid="register-display-name" v-model="form.displayName" class="mt-1 w-full rounded-xl border border-slate-300 px-3 py-2" />
+          </label>
+          <label class="block text-sm font-medium text-[var(--tommy-text-secondary)]">
+            学生一卡通（9 位数字）
+            <input
+              data-testid="register-student-id"
+              v-model="form.studentId"
+              class="mt-1 w-full rounded-xl border border-slate-300 px-3 py-2"
+              inputmode="numeric"
+              pattern="\d{9}"
+              maxlength="9"
+              placeholder="例如 213220001"
+            />
           </label>
           <label class="block text-sm font-medium text-[var(--tommy-text-secondary)]">
             学院

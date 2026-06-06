@@ -1,13 +1,16 @@
 <script setup lang="ts">
-import { useQuery } from "@tanstack/vue-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/vue-query";
 import { computed } from "vue";
 import { useRouter } from "vue-router";
 
 import AppShell from "../components/AppShell.vue";
+import HomeReminderCard from "../components/HomeReminderCard.vue";
 import {
+  completeReminder,
   getCurrentUser,
   getGpaDashboard,
   getGraduationSummary,
+  getHomeReminders,
   getToken,
   listCustomRequirements,
   type GraduationDimension,
@@ -15,6 +18,7 @@ import {
 } from "../lib/api";
 
 const router = useRouter();
+const queryClient = useQueryClient();
 
 if (!getToken()) {
   void router.replace("/login");
@@ -38,12 +42,24 @@ const { data: gpaDashboard } = useQuery({
   enabled: computed(() => Boolean(getToken()))
 });
 
+const { data: homeRemindersData } = useQuery({
+  queryKey: ["reminders", "home"],
+  queryFn: getHomeReminders,
+  enabled: computed(() => Boolean(getToken()))
+});
+
+const completeHomeReminderMutation = useMutation({
+  mutationFn: (id: string) => completeReminder(id, true),
+  onSuccess: async () => {
+    await queryClient.invalidateQueries({ queryKey: ["reminders"] });
+  }
+});
+
 const { data: graduationSummary } = useQuery({
   queryKey: ["graduation-summary", getToken()],
   queryFn: getGraduationSummary,
   enabled: computed(() => Boolean(getToken()))
 });
-
 const homeCustomRequirements = computed(() =>
   (customRequirementsData.value?.customRequirements ?? []).filter((requirement) => requirement.showOnHome).slice(0, 3)
 );
@@ -190,13 +206,6 @@ const dashboardCards = computed(() => [
     metric: currentGpaText.value,
     description: "录入课程成绩后，估算剩余课程需要达到的平均绩点。",
     to: "/gpa"
-  },
-  {
-    title: "提醒事项",
-    hint: "查看全部提醒 >",
-    metric: "5 个待办",
-    description: "实验、考试、志愿心得、劳育和跑操提醒会集中展示在这里。",
-    to: "/profile"
   },
   {
     title: "机会推荐",
@@ -358,6 +367,11 @@ const dashboardCards = computed(() => [
       </div>
 
       <div class="grid gap-4 lg:grid-cols-2">
+        <HomeReminderCard
+          :reminders="homeRemindersData?.reminders ?? []"
+          :pending-count="homeRemindersData?.pendingCount ?? 0"
+          :on-complete="(id: string) => completeHomeReminderMutation.mutate(id)"
+        />
         <RouterLink
           v-for="card in dashboardCards.slice(1)"
           :key="card.title"
