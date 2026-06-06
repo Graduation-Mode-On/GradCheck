@@ -3,6 +3,12 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { createApp } from "./app.js";
 import type { AuthRepository } from "./modules/auth/auth.repository.js";
+import type { CustomRequirementRepository } from "./modules/custom-requirements/custom-requirement.repository.js";
+import { calculateGpaResult } from "./modules/gpa/gpa.calculator.js";
+import type { GpaDashboard, GpaRepository } from "./modules/gpa/gpa.repository.js";
+import type { GpaCourse, GpaCourseInput } from "./modules/gpa/gpa.types.js";
+import type { NewsRepository } from "./modules/news/news.repository.js";
+import type { NewsItemRecord } from "./modules/news/news.types.js";
 import type {
   CreatePlazaPostRecordInput,
   PlazaRepository
@@ -12,9 +18,107 @@ import type {
   UpdatePlazaPostInput
 } from "./modules/plaza/plaza.schemas.js";
 import type { PlazaPostStatus } from "./modules/plaza/plaza.types.js";
+import type { ProgramPlanBinding, ProgramPlanRepository } from "./modules/program-plans/program-plans.repository.js";
+import type { CurriculumPlan, ProgramPlanSummary } from "./modules/program-plans/program-plans.schemas.js";
+import type { SrtpRepository } from "./modules/srtp/srtp.repository.js";
+import type { SrtpRecord, SrtpRecordInput } from "./modules/srtp/srtp.schemas.js";
 import type { UserProfile } from "./modules/users/user.repository.js";
 
 const now = new Date("2026-06-06T00:00:00.000Z");
+
+interface TestLecturePracticeProgress {
+  userId: string;
+  humanLectureCount: number;
+  bookReportCount: number;
+  socialPracticeCredits: string;
+  socialPracticeCourseCount: number;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+interface TestVolunteerLaborProgress {
+  userId: string;
+  volunteerHours: string;
+  ordinaryLaborCount: number;
+  specialLaborCount: number;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+function createProgramPlanRepository(): ProgramPlanRepository {
+  const plans = new Map<string, ProgramPlanSummary>();
+  const bindings = new Map<string, ProgramPlanBinding>();
+
+  return {
+    async createAndBind(userId: string, sourceFilename: string, planJson: CurriculumPlan) {
+      const plan: ProgramPlanSummary = {
+        id: `program-plan-${plans.size + 1}`,
+        sourceFilename,
+        school: planJson.program.school,
+        college: planJson.program.college ?? null,
+        major: planJson.program.major,
+        grade: planJson.program.grade ?? null,
+        totalCredits: planJson.program.total_credits == null ? null : String(planJson.program.total_credits),
+        courseCount: planJson.courses.length,
+        requirementCount: planJson.requirements.length,
+        warningCount: planJson.warnings.length,
+        planJson,
+        createdAt: now,
+        updatedAt: now
+      };
+      plans.set(plan.id, plan);
+      const binding: ProgramPlanBinding = {
+        userId,
+        programPlanId: plan.id,
+        confirmedAt: now,
+        createdAt: bindings.get(userId)?.createdAt ?? now,
+        updatedAt: now
+      };
+      bindings.set(userId, binding);
+      return { plan, binding };
+    },
+    async getBoundPlan(userId: string) {
+      const binding = bindings.get(userId);
+      return binding ? (plans.get(binding.programPlanId) ?? null) : null;
+    }
+  };
+}
+
+function createSrtpRepository(): SrtpRepository {
+  const records = new Map<string, SrtpRecord>();
+
+  return {
+    async listRecords(userId) {
+      return [...records.values()]
+        .filter((record) => record.userId === userId)
+        .sort((a, b) => b.updatedAt.getTime() - a.updatedAt.getTime() || b.id.localeCompare(a.id));
+    },
+    async createRecord(userId: string, input: SrtpRecordInput) {
+      const record: SrtpRecord = {
+        id: `00000000-0000-0000-0000-${String(records.size + 1).padStart(12, "0")}`,
+        userId,
+        ...input,
+        createdAt: now,
+        updatedAt: now
+      };
+      records.set(record.id, record);
+      return record;
+    },
+    async updateRecord(userId: string, id: string, input: SrtpRecordInput) {
+      const existing = records.get(id);
+      if (!existing || existing.userId !== userId) return null;
+      const record = { ...existing, ...input, updatedAt: now };
+      records.set(id, record);
+      return record;
+    },
+    async deleteRecord(userId: string, id: string) {
+      const existing = records.get(id);
+      if (!existing || existing.userId !== userId) return false;
+      records.delete(id);
+      return true;
+    }
+  };
+}
 
 function createRepository(): AuthRepository {
   const users = new Map<string, Parameters<AuthRepository["createUser"]>[0] & { id: string; createdAt: Date; updatedAt: Date }>();
@@ -61,13 +165,154 @@ function createRepository(): AuthRepository {
   };
 }
 
-describe("GradCheck API baseline", () => {
-  beforeEach(() => {
+function createGpaRepository(): GpaRepository {
+  const courses = new Map<string, GpaCourse>();
+
+  function dashboard(userId: string): GpaDashboard {
+    const userCourses = [...courses.values()].filter((course) => course.userId === userId);
+    return {
+      courses: userCourses,
+      result: calculateGpaResult(userCourses)
+    };
+  }
+
+  return {
+    async listCourses(userId) {
+      return dashboard(userId).courses;
+    },
+    async createCourseAndRecalculate(userId, input: GpaCourseInput) {
+      const course: GpaCourse = {
+        id: `course-${courses.size + 1}`,
+        userId,
+        ...input,
+        createdAt: now,
+        updatedAt: now
+      };
+      courses.set(course.id, course);
+      return dashboard(userId);
+    },
+    async updateCourseAndRecalculate(userId, courseId, input) {
+      const existing = courses.get(courseId);
+      if (!existing || existing.userId !== userId) {
+        return null;
+      }
+      courses.set(courseId, { ...existing, ...input, updatedAt: now });
+      return dashboard(userId);
+    },
+    async deleteCourseAndRecalculate(userId, courseId) {
+      const existing = courses.get(courseId);
+      if (!existing || existing.userId !== userId) {
+        return null;
+      }
+      courses.delete(courseId);
+      return dashboard(userId);
+    }
+  };
+}
+
+    function createLecturePracticeRepository() {
+      const progressByUser = new Map<string, TestLecturePracticeProgress>();
+
+      return {
+        async getProgress(userId: string) {
+          return (
+            progressByUser.get(userId) ?? {
+              userId,
+              humanLectureCount: 0,
+              bookReportCount: 0,
+              socialPracticeCredits: "0.00",
+              socialPracticeCourseCount: 0,
+              createdAt: now,
+              updatedAt: now
+            }
+          );
+        },
+        async upsertProgress(
+          userId: string,
+          input: Omit<TestLecturePracticeProgress, "userId" | "createdAt" | "updatedAt">
+        ) {
+          const progress: TestLecturePracticeProgress = {
+            userId,
+            ...input,
+            createdAt: progressByUser.get(userId)?.createdAt ?? now,
+            updatedAt: now
+          };
+          progressByUser.set(userId, progress);
+          return progress;
+        }
+      };
+    }
+
+    function createVolunteerLaborRepository() {
+      const progressByUser = new Map<string, TestVolunteerLaborProgress>();
+
+      return {
+        async getProgress(userId: string) {
+          return (
+            progressByUser.get(userId) ?? {
+              userId,
+              volunteerHours: "0.00",
+              ordinaryLaborCount: 0,
+              specialLaborCount: 0,
+              createdAt: now,
+              updatedAt: now
+            }
+          );
+        },
+        async upsertProgress(
+          userId: string,
+          input: Omit<TestVolunteerLaborProgress, "userId" | "createdAt" | "updatedAt">
+        ) {
+          const progress: TestVolunteerLaborProgress = {
+            userId,
+            ...input,
+            createdAt: progressByUser.get(userId)?.createdAt ?? now,
+            updatedAt: now
+          };
+          progressByUser.set(userId, progress);
+          return progress;
+        }
+      };
+    }
+
+    function createCustomRequirementRepository(): CustomRequirementRepository {
+      return {
+        async listByUserId() {
+          return [];
+        },
+        async create() {
+          throw new Error("not used");
+        },
+        async update() {
+          throw new Error("not used");
+        },
+        async delete() {
+          throw new Error("not used");
+        }
+      };
+    }
+
+    describe("GradCheck API baseline", () => {
+      function createTestApp() {
+        return createApp({
+          authRepository: createRepository(),
+          plazaRepository: createPlazaRepository(),
+          newsRepository: createNewsRepository(),
+          srtpRepository: createSrtpRepository(),
+          programPlanRepository: createProgramPlanRepository(),
+          gpaRepository: createGpaRepository(),
+          lecturePracticeRepository: createLecturePracticeRepository(),
+          volunteerLaborRepository: createVolunteerLaborRepository(),
+          customRequirementRepository: createCustomRequirementRepository()
+        });
+      }
+
+      beforeEach(() => {
     vi.stubEnv("JWT_SECRET", "test-secret-that-is-long-enough");
   });
 
   it("returns health status", async () => {
-    const app = createApp({ authRepository: createRepository(), plazaRepository: createPlazaRepository() });
+    const app = createTestApp();
 
     const response = await request(app).get("/health");
 
@@ -76,7 +321,7 @@ describe("GradCheck API baseline", () => {
   });
 
   it("registers a user, returns the current user, and updates profile data", async () => {
-    const app = createApp({ authRepository: createRepository(), plazaRepository: createPlazaRepository() });
+const app = createTestApp();
 
     const registerResponse = await request(app)
       .post("/api/auth/register")
@@ -176,6 +421,43 @@ describe("GradCheck API baseline", () => {
       currentMembers: input.type === "team_recruit" ? input.currentMembers : null,
       targetMembers: input.type === "team_recruit" ? input.targetMembers : null,
       activityTime: input.type === "team_recruit" ? input.activityTime : null
+    };
+  }
+
+  function createNewsRepository(): NewsRepository {
+    const items = new Map<string, NewsItemRecord>();
+
+    return {
+      async listItems(filters) {
+        let visible = [...items.values()].filter((item) => item.status === "active");
+        if (filters.type) visible = visible.filter((item) => item.type === filters.type);
+        if (filters.keyword) {
+          const keyword = filters.keyword.toLowerCase();
+          visible = visible.filter((item) =>
+            [item.title, item.organizer ?? "", item.description ?? ""].some((value) =>
+              value.toLowerCase().includes(keyword)
+            )
+          );
+        }
+        visible.sort((a, b) => b.updatedAt.getTime() - a.updatedAt.getTime() || b.id.localeCompare(a.id));
+        const start = filters.cursor ? visible.findIndex((item) => item.id === filters.cursor) + 1 : 0;
+        const page = visible.slice(start, start + filters.limit);
+        const nextCursor = visible[start + filters.limit]?.id ?? null;
+        return { items: page, nextCursor };
+      },
+      async findItemById(id: string) {
+        return items.get(id) ?? null;
+      },
+      async createItem(values) {
+        const item: NewsItemRecord = {
+          id: `news-${items.size + 1}`,
+          ...values,
+          createdAt: now,
+          updatedAt: now
+        };
+        items.set(item.id, item);
+        return item;
+      }
     };
   }
 
@@ -283,7 +565,7 @@ describe("GradCheck API baseline", () => {
     });
 
     it("creates and lists course exchange posts for authenticated users", async () => {
-      const app = createApp({ authRepository: createRepository(), plazaRepository: createPlazaRepository() });
+const app = createTestApp();
       const token = await registerAndToken(app, "owner@example.com");
 
       const createResponse = await request(app)
@@ -321,7 +603,7 @@ describe("GradCheck API baseline", () => {
     });
 
     it("matches plaza keyword only against title, description, and contact", async () => {
-      const app = createApp({ authRepository: createRepository(), plazaRepository: createPlazaRepository() });
+const app = createTestApp();
       const token = await registerAndToken(app, "keyword-owner@example.com");
 
       await request(app)
@@ -360,7 +642,7 @@ describe("GradCheck API baseline", () => {
     });
 
     it("creates team recruiting posts and rejects invalid member counts", async () => {
-      const app = createApp({ authRepository: createRepository(), plazaRepository: createPlazaRepository() });
+const app = createTestApp();
       const token = await registerAndToken(app, "leader@example.com");
 
       const invalidResponse = await request(app)
@@ -411,7 +693,7 @@ describe("GradCheck API baseline", () => {
     });
 
     it("allows only the author to edit, close, reopen, and soft-delete posts", async () => {
-      const app = createApp({ authRepository: createRepository(), plazaRepository: createPlazaRepository() });
+const app = createTestApp();
       const ownerToken = await registerAndToken(app, "post-owner@example.com");
       const otherToken = await registerAndToken(app, "other@example.com");
 
@@ -469,7 +751,7 @@ describe("GradCheck API baseline", () => {
   });
 
   it("rejects duplicate registration and unauthenticated profile access", async () => {
-    const app = createApp({ authRepository: createRepository(), plazaRepository: createPlazaRepository() });
+const app = createTestApp();
     const payload = { email: "student@example.com", password: "password123" };
 
     await request(app).post("/api/auth/register").send(payload).expect(201);
@@ -480,5 +762,480 @@ describe("GradCheck API baseline", () => {
     expect(duplicateResponse.body).toEqual({ error: { message: "Email is already registered" } });
     expect(unauthenticatedResponse.status).toBe(401);
     expect(unauthenticatedResponse.body).toEqual({ error: { message: "Authorization bearer token is required" } });
+  });
+
+  describe("lecture practice and volunteer labor API", () => {
+    beforeEach(() => {
+      vi.stubEnv("JWT_SECRET", "test-secret-that-is-long-enough");
+    });
+
+    it("requires authentication for lecture practice and volunteer labor progress", async () => {
+      const app = createTestApp();
+
+      await request(app).get("/api/lecture-practice/me").expect(401);
+      await request(app).get("/api/volunteer-labor/me").expect(401);
+    });
+
+    it("returns default lecture practice progress and persists updates", async () => {
+      const app = createTestApp();
+      const token = await registerAndToken(app, "lecture-owner@example.com");
+
+      const defaultResponse = await request(app)
+        .get("/api/lecture-practice/me")
+        .set("Authorization", `Bearer ${token}`);
+
+      expect(defaultResponse.status).toBe(200);
+      expect(defaultResponse.body.progress).toMatchObject({
+        humanLectureCount: 0,
+        bookReportCount: 0,
+        socialPracticeCredits: "0.00",
+        socialPracticeCourseCount: 0
+      });
+
+      const updateResponse = await request(app)
+        .put("/api/lecture-practice/me")
+        .set("Authorization", `Bearer ${token}`)
+        .send({
+          humanLectureCount: 8,
+          bookReportCount: 2,
+          socialPracticeCredits: "3.00",
+          socialPracticeCourseCount: 1
+        });
+
+      expect(updateResponse.status).toBe(200);
+      expect(updateResponse.body.progress).toMatchObject({
+        humanLectureCount: 8,
+        bookReportCount: 2,
+        socialPracticeCredits: "3.00",
+        socialPracticeCourseCount: 1
+      });
+
+      const savedResponse = await request(app)
+        .get("/api/lecture-practice/me")
+        .set("Authorization", `Bearer ${token}`);
+
+      expect(savedResponse.body.progress).toMatchObject(updateResponse.body.progress);
+    });
+
+    it("rejects invalid lecture practice values", async () => {
+      const app = createTestApp();
+      const token = await registerAndToken(app, "invalid-lecture@example.com");
+
+      await request(app)
+        .put("/api/lecture-practice/me")
+        .set("Authorization", `Bearer ${token}`)
+        .send({
+          humanLectureCount: -1,
+          bookReportCount: 2,
+          socialPracticeCredits: "1.00",
+          socialPracticeCourseCount: 1
+        })
+        .expect(400);
+
+      await request(app)
+        .put("/api/lecture-practice/me")
+        .set("Authorization", `Bearer ${token}`)
+        .send({
+          humanLectureCount: 1.5,
+          bookReportCount: 2,
+          socialPracticeCredits: "1.00",
+          socialPracticeCourseCount: 1
+        })
+        .expect(400);
+    });
+
+    it("returns default volunteer labor progress and persists updates", async () => {
+      const app = createTestApp();
+      const token = await registerAndToken(app, "volunteer-owner@example.com");
+
+      const defaultResponse = await request(app)
+        .get("/api/volunteer-labor/me")
+        .set("Authorization", `Bearer ${token}`);
+
+      expect(defaultResponse.status).toBe(200);
+      expect(defaultResponse.body.progress).toMatchObject({
+        volunteerHours: "0.00",
+        ordinaryLaborCount: 0,
+        specialLaborCount: 0
+      });
+
+      const updateResponse = await request(app)
+        .put("/api/volunteer-labor/me")
+        .set("Authorization", `Bearer ${token}`)
+        .send({
+          volunteerHours: "12.00",
+          ordinaryLaborCount: 2,
+          specialLaborCount: 1
+        });
+
+      expect(updateResponse.status).toBe(200);
+      expect(updateResponse.body.progress).toMatchObject({
+        volunteerHours: "12.00",
+        ordinaryLaborCount: 2,
+        specialLaborCount: 1
+      });
+
+      const savedResponse = await request(app)
+        .get("/api/volunteer-labor/me")
+        .set("Authorization", `Bearer ${token}`);
+
+      expect(savedResponse.body.progress).toMatchObject(updateResponse.body.progress);
+    });
+
+    it("rejects invalid volunteer labor values", async () => {
+      const app = createTestApp();
+      const token = await registerAndToken(app, "invalid-volunteer@example.com");
+
+      await request(app)
+        .put("/api/volunteer-labor/me")
+        .set("Authorization", `Bearer ${token}`)
+        .send({
+          volunteerHours: "-1.00",
+          ordinaryLaborCount: 2,
+          specialLaborCount: 1
+        })
+        .expect(400);
+
+      await request(app)
+        .put("/api/volunteer-labor/me")
+        .set("Authorization", `Bearer ${token}`)
+        .send({
+          volunteerHours: "12.00",
+          ordinaryLaborCount: 1.5,
+          specialLaborCount: 1
+        })
+        .expect(400);
+    });
+  });
+
+  describe("SRTP API", () => {
+    beforeEach(() => {
+      vi.stubEnv("JWT_SECRET", "test-secret-that-is-long-enough");
+    });
+
+    it("requires authentication for SRTP records", async () => {
+      const app = createTestApp();
+
+      await request(app).get("/api/srtp/me").expect(401);
+      await request(app).post("/api/srtp/me/records").send({}).expect(401);
+    });
+
+    it("returns an empty SRTP summary for users with no records", async () => {
+      const app = createTestApp();
+      const token = await registerAndToken(app, "srtp-empty@example.com");
+
+      const response = await request(app).get("/api/srtp/me").set("Authorization", `Bearer ${token}`);
+
+      expect(response.status).toBe(200);
+      expect(response.body).toEqual({
+        records: [],
+        summary: {
+          totalCredits: "0.00",
+          passingRequiredCredits: "2.00",
+          excellentRequiredCredits: "6.00",
+          status: "not_passing",
+          missingForPassing: "2.00",
+          missingForExcellent: "6.00"
+        }
+      });
+
+    });
+
+    it("creates SRTP records and calculates passing and excellent summary", async () => {
+      const app = createTestApp();
+      const token = await registerAndToken(app, "srtp-owner@example.com");
+
+      await request(app)
+        .post("/api/srtp/me/records")
+        .set("Authorization", `Bearer ${token}`)
+        .send({ title: "挑战杯竞赛", type: "competition", credits: "1.20", description: "校赛获奖" })
+        .expect(201);
+      await request(app)
+        .post("/api/srtp/me/records")
+        .set("Authorization", `Bearer ${token}`)
+        .send({ title: "SRTP 项目", type: "project", credits: "1.00", description: "项目结题" })
+        .expect(201);
+
+      const passingResponse = await request(app).get("/api/srtp/me").set("Authorization", `Bearer ${token}`);
+
+      expect(passingResponse.body.summary).toMatchObject({
+        totalCredits: "2.20",
+        status: "passing",
+        missingForPassing: "0.00",
+        missingForExcellent: "3.80"
+      });
+
+      await request(app)
+        .post("/api/srtp/me/records")
+        .set("Authorization", `Bearer ${token}`)
+        .send({ title: "SRTP 讲座", type: "lecture", credits: "3.80", description: "系列讲座" })
+        .expect(201);
+
+      const excellentResponse = await request(app).get("/api/srtp/me").set("Authorization", `Bearer ${token}`);
+
+      expect(excellentResponse.body.summary).toMatchObject({
+        totalCredits: "6.00",
+        status: "excellent",
+        missingForPassing: "0.00",
+        missingForExcellent: "0.00"
+      });
+      expect(excellentResponse.body.records).toHaveLength(3);
+    });
+
+    it("edits and deletes owned SRTP records", async () => {
+      const app = createTestApp();
+      const token = await registerAndToken(app, "srtp-edit@example.com");
+
+      const createResponse = await request(app)
+        .post("/api/srtp/me/records")
+        .set("Authorization", `Bearer ${token}`)
+        .send({ title: "SRTP 讲座", type: "lecture", credits: "0.50", description: "讲座记录" });
+      const recordId = createResponse.body.record.id as string;
+
+      await request(app)
+        .put(`/api/srtp/me/records/${recordId}`)
+        .set("Authorization", `Bearer ${token}`)
+        .send({ title: "SRTP 讲座更新", type: "lecture", credits: "1.50", description: "更新后" })
+        .expect(200);
+
+      const updatedResponse = await request(app).get("/api/srtp/me").set("Authorization", `Bearer ${token}`);
+      expect(updatedResponse.body.records[0]).toMatchObject({ title: "SRTP 讲座更新", credits: "1.50" });
+      expect(updatedResponse.body.summary.totalCredits).toBe("1.50");
+
+      await request(app).delete(`/api/srtp/me/records/${recordId}`).set("Authorization", `Bearer ${token}`).expect(200);
+
+      const deletedResponse = await request(app).get("/api/srtp/me").set("Authorization", `Bearer ${token}`);
+      expect(deletedResponse.body.records).toHaveLength(0);
+      expect(deletedResponse.body.summary.totalCredits).toBe("0.00");
+    });
+
+    it("rejects invalid SRTP record input and missing records", async () => {
+      const app = createTestApp();
+      const token = await registerAndToken(app, "srtp-invalid@example.com");
+
+      await request(app)
+        .post("/api/srtp/me/records")
+        .set("Authorization", `Bearer ${token}`)
+        .send({ title: "", type: "competition", credits: "1.00", description: "" })
+        .expect(400);
+
+      await request(app)
+        .post("/api/srtp/me/records")
+        .set("Authorization", `Bearer ${token}`)
+        .send({ title: "无效类型", type: "invalid", credits: "1.00", description: "" })
+        .expect(400);
+
+      await request(app)
+        .post("/api/srtp/me/records")
+        .set("Authorization", `Bearer ${token}`)
+        .send({ title: "负学分", type: "other", credits: "-0.10", description: "" })
+        .expect(400);
+
+      await request(app)
+        .put("/api/srtp/me/records/00000000-0000-0000-0000-000000000000")
+        .set("Authorization", `Bearer ${token}`)
+        .send({ title: "不存在", type: "other", credits: "1.00", description: "" })
+        .expect(404);
+    });
+  });
+
+  describe("program plan import API", () => {
+    beforeEach(() => {
+      vi.stubEnv("JWT_SECRET", "test-secret-that-is-long-enough");
+    });
+
+    it("requires authentication for program plan import APIs", async () => {
+      const app = createTestApp();
+
+      await request(app).get("/api/program-plans/me").expect(401);
+      await request(app).post("/api/program-plans/import").send({}).expect(401);
+    });
+
+    it("returns null when the user has no bound program plan", async () => {
+      const app = createTestApp();
+      const token = await registerAndToken(app, "plan-empty@example.com");
+
+      const response = await request(app).get("/api/program-plans/me").set("Authorization", `Bearer ${token}`);
+
+      expect(response.status).toBe(200);
+      expect(response.body).toEqual({ plan: null });
+    });
+
+    it("mock uploads a PDF and returns pdf-extract sample preview", async () => {
+      const app = createTestApp();
+      const token = await registerAndToken(app, "plan-upload@example.com");
+
+      const response = await request(app)
+        .post("/api/program-plans/mock-upload")
+        .set("Authorization", `Bearer ${token}`)
+        .attach("file", Buffer.from("%PDF-1.4"), "software-plan.pdf");
+
+      expect(response.status).toBe(200);
+      expect(response.body.preview).toMatchObject({
+        sourceFilename: "software-plan.pdf",
+        school: "东南大学",
+        major: "软件工程",
+        totalCredits: "166",
+        courseCount: 134,
+        requirementCount: 13,
+        warningCount: 0
+      });
+      expect(response.body.preview.planJson.courses[0]).toMatchObject({ code: "B15M0010", name: "马克思主义基本原理概论" });
+    });
+
+    it("rejects non-PDF mock uploads", async () => {
+      const app = createTestApp();
+      const token = await registerAndToken(app, "plan-upload-invalid@example.com");
+
+      await request(app)
+        .post("/api/program-plans/mock-upload")
+        .set("Authorization", `Bearer ${token}`)
+        .attach("file", Buffer.from("not pdf"), "plan.txt")
+        .expect(400);
+    });
+
+    it("imports and binds a preview plan to the current user", async () => {
+      const app = createTestApp();
+      const token = await registerAndToken(app, "plan-import@example.com");
+      const uploadResponse = await request(app)
+        .post("/api/program-plans/mock-upload")
+        .set("Authorization", `Bearer ${token}`)
+        .attach("file", Buffer.from("%PDF-1.4"), "software-plan.pdf");
+
+      const importResponse = await request(app)
+        .post("/api/program-plans/import")
+        .set("Authorization", `Bearer ${token}`)
+        .send({
+          sourceFilename: uploadResponse.body.preview.sourceFilename,
+          planJson: uploadResponse.body.preview.planJson
+        });
+
+      expect(importResponse.status).toBe(201);
+      expect(importResponse.body.plan).toMatchObject({
+        sourceFilename: "software-plan.pdf",
+        school: "东南大学",
+        major: "软件工程",
+        courseCount: 134,
+        requirementCount: 13
+      });
+
+      const currentResponse = await request(app).get("/api/program-plans/me").set("Authorization", `Bearer ${token}`);
+      expect(currentResponse.body.plan.id).toBe(importResponse.body.plan.id);
+    });
+
+    describe("GPA API", () => {
+      beforeEach(() => {
+        vi.stubEnv("JWT_SECRET", "test-secret-that-is-long-enough");
+      });
+
+      it("persists GPA courses and recalculates latest results after changes", async () => {
+        const app = createTestApp();
+        const token = await registerAndToken(app, "gpa@example.com");
+
+        const emptyResponse = await request(app).get("/api/gpa").set("Authorization", `Bearer ${token}`);
+
+        expect(emptyResponse.status).toBe(200);
+        expect(emptyResponse.body).toEqual({
+          courses: [],
+          result: {
+            requiredFirstAttempt: {
+              weightedGpa: null,
+              weightedAverageScore: null,
+              totalCredits: 0,
+              courseCount: 0
+            },
+            overall: {
+              weightedGpa: null,
+              weightedAverageScore: null,
+              totalCredits: 0,
+              courseCount: 0
+            }
+          }
+        });
+
+        const createResponse = await request(app)
+          .post("/api/gpa/courses")
+          .set("Authorization", `Bearer ${token}`)
+          .send({
+            term: "2025-2026 春",
+            name: "高等数学",
+            credit: "3.00",
+            score: "96.00",
+            isRequired: true,
+            isFirstAttempt: true,
+            isGpaEligible: true
+          });
+
+        expect(createResponse.status).toBe(201);
+        expect(createResponse.body.courses).toHaveLength(1);
+        expect(createResponse.body.result.requiredFirstAttempt).toEqual({
+          weightedGpa: 4.8,
+          weightedAverageScore: 96,
+          totalCredits: 3,
+          courseCount: 1
+        });
+
+        const courseId = createResponse.body.courses[0].id as string;
+        const updateResponse = await request(app)
+          .put(`/api/gpa/courses/${courseId}`)
+          .set("Authorization", `Bearer ${token}`)
+          .send({
+            term: "2025-2026 秋",
+            name: "高等数学",
+            credit: "3.00",
+            score: "90.00",
+            isRequired: true,
+            isFirstAttempt: true,
+            isGpaEligible: true
+          });
+
+        expect(updateResponse.status).toBe(200);
+        expect(updateResponse.body.result.requiredFirstAttempt.weightedGpa).toBe(4);
+        expect(updateResponse.body.result.requiredFirstAttempt.weightedAverageScore).toBe(90);
+
+        const deleteResponse = await request(app)
+          .delete(`/api/gpa/courses/${courseId}`)
+          .set("Authorization", `Bearer ${token}`);
+
+        expect(deleteResponse.status).toBe(200);
+        expect(deleteResponse.body.courses).toEqual([]);
+        expect(deleteResponse.body.result.overall.weightedGpa).toBeNull();
+      });
+
+      it("does not allow users to update another user's GPA course", async () => {
+        const app = createTestApp();
+        const firstToken = await registerAndToken(app, "gpa-owner@example.com");
+        const secondToken = await registerAndToken(app, "gpa-other@example.com");
+
+        const createResponse = await request(app)
+          .post("/api/gpa/courses")
+          .set("Authorization", `Bearer ${firstToken}`)
+          .send({
+            term: "2025-2026 春",
+            name: "大学物理",
+            credit: "2.00",
+            score: "88.00",
+            isRequired: true,
+            isFirstAttempt: true,
+            isGpaEligible: true
+          });
+
+        const courseId = createResponse.body.courses[0].id as string;
+
+        await request(app)
+          .put(`/api/gpa/courses/${courseId}`)
+          .set("Authorization", `Bearer ${secondToken}`)
+          .send({
+            term: "2025-2026 春",
+            name: "大学物理",
+            credit: "2.00",
+            score: "100.00",
+            isRequired: true,
+            isFirstAttempt: true,
+            isGpaEligible: true
+          })
+          .expect(404);
+      });
+    });
   });
 });

@@ -171,7 +171,7 @@ function editRunsFromMenu(): void {
 
 const { data, isLoading, error, refetch } = useQuery({
   queryKey: ["sports-weather", "320100"],
-  queryFn: () => getWeather("all")
+  queryFn: () => getWeather("320100", "all")
 });
 
 const casts = computed(() => {

@@ -1,0 +1,5070 @@
+{
+  "program": {
+    "school": "东南大学",
+    "college": "软件学院",
+    "major": "软件工程",
+    "grade": "2022级",
+    "major_code": "080902",
+    "degree": "工学",
+    "duration_years": 4,
+    "total_credits": 166.0,
+    "summary": null
+  },
+  "courses": [
+    {
+      "code": "B15M0010",
+      "name": "马克思主义基本原理概论",
+      "credits": 3.0,
+      "hours": {
+        "lecture": 48.0,
+        "experiment": 0.0,
+        "discussion": 0.0,
+        "extracurricular": 0.0,
+        "weekly": "3"
+      },
+      "category": "通识教育基础课",
+      "subcategory": "思政类",
+      "term": {
+        "year": "二",
+        "semester": "1"
+      },
+      "assessment": "+",
+      "required_type": "",
+      "notes": [],
+      "tags": [],
+      "source_pages": [
+        4
+      ]
+    },
+    {
+      "code": "B15M0090",
+      "name": "形势与政策(3)",
+      "credits": 0.25,
+      "hours": {
+        "lecture": 8.0,
+        "experiment": 0.0,
+        "discussion": 0.0,
+        "extracurricular": 0.0,
+        "weekly": "2"
+      },
+      "category": "通识教育基础课",
+      "subcategory": "思政类",
+      "term": {
+        "year": "二",
+        "semester": "1"
+      },
+      "assessment": "-",
+      "required_type": "",
+      "notes": [],
+      "tags": [],
+      "source_pages": [
+        4
+      ]
+    },
+    {
+      "code": "B15M0100",
+      "name": "形势与政策(4)",
+      "credits": 0.25,
+      "hours": {
+        "lecture": 8.0,
+        "experiment": 0.0,
+        "discussion": 0.0,
+        "extracurricular": 0.0,
+        "weekly": "2"
+      },
+      "category": "通识教育基础课",
+      "subcategory": "思政类",
+      "term": {
+        "year": "二",
+        "semester": "3"
+      },
+      "assessment": "-",
+      "required_type": "",
+      "notes": [],
+      "tags": [],
+      "source_pages": [
+        4
+      ]
+    },
+    {
+      "code": "B15M0110",
+      "name": "形势与政策(5)",
+      "credits": 0.25,
+      "hours": {
+        "lecture": 8.0,
+        "experiment": 0.0,
+        "discussion": 0.0,
+        "extracurricular": 0.0,
+        "weekly": "2"
+      },
+      "category": "通识教育基础课",
+      "subcategory": "思政类",
+      "term": {
+        "year": "三",
+        "semester": "1"
+      },
+      "assessment": "-",
+      "required_type": "",
+      "notes": [],
+      "tags": [],
+      "source_pages": [
+        4
+      ]
+    },
+    {
+      "code": "B15M0120",
+      "name": "形势与政策(6)",
+      "credits": 0.25,
+      "hours": {
+        "lecture": 8.0,
+        "experiment": 0.0,
+        "discussion": 0.0,
+        "extracurricular": 0.0,
+        "weekly": "2"
+      },
+      "category": "通识教育基础课",
+      "subcategory": "思政类",
+      "term": {
+        "year": "三",
+        "semester": "3"
+      },
+      "assessment": "-",
+      "required_type": "",
+      "notes": [],
+      "tags": [],
+      "source_pages": [
+        4
+      ]
+    },
+    {
+      "code": "B15M0130",
+      "name": "形势与政策(7)",
+      "credits": 0.25,
+      "hours": {
+        "lecture": 8.0,
+        "experiment": 0.0,
+        "discussion": 0.0,
+        "extracurricular": 0.0,
+        "weekly": "2"
+      },
+      "category": "通识教育基础课",
+      "subcategory": "思政类",
+      "term": {
+        "year": "四",
+        "semester": "1"
+      },
+      "assessment": "-",
+      "required_type": "",
+      "notes": [],
+      "tags": [],
+      "source_pages": [
+        4
+      ]
+    },
+    {
+      "code": "B15M0140",
+      "name": "形势与政策(8)",
+      "credits": 0.25,
+      "hours": {
+        "lecture": 8.0,
+        "experiment": 0.0,
+        "discussion": 0.0,
+        "extracurricular": 0.0,
+        "weekly": "2"
+      },
+      "category": "通识教育基础课",
+      "subcategory": "思政类",
+      "term": {
+        "year": "四",
+        "semester": "3"
+      },
+      "assessment": "-",
+      "required_type": "",
+      "notes": [],
+      "tags": [],
+      "source_pages": [
+        4
+      ]
+    },
+    {
+      "code": "B15M0160",
+      "name": "毛泽东思想和中国特色社会主义理论体系概论",
+      "credits": 3.0,
+      "hours": {
+        "lecture": 48.0,
+        "experiment": 0.0,
+        "discussion": 0.0,
+        "extracurricular": 0.0,
+        "weekly": "3"
+      },
+      "category": "通识教育基础课",
+      "subcategory": "思政类",
+      "term": {
+        "year": "二",
+        "semester": "3"
+      },
+      "assessment": "+",
+      "required_type": "",
+      "notes": [],
+      "tags": [],
+      "source_pages": [
+        4
+      ]
+    },
+    {
+      "code": "B15M2001",
+      "name": "习近平新时代中国特色社会主义思想概论",
+      "credits": 3.0,
+      "hours": {
+        "lecture": 48.0,
+        "experiment": 0.0,
+        "discussion": 0.0,
+        "extracurricular": 0.0,
+        "weekly": "3"
+      },
+      "category": "通识教育基础课",
+      "subcategory": "思政类",
+      "term": {
+        "year": "二",
+        "semester": "3"
+      },
+      "assessment": "-",
+      "required_type": "",
+      "notes": [],
+      "tags": [],
+      "source_pages": [
+        4
+      ]
+    },
+    {
+      "code": "B88M0010",
+      "name": "就业导论",
+      "credits": 0.5,
+      "hours": {
+        "lecture": 16.0,
+        "experiment": 0.0,
+        "discussion": 0.0,
+        "extracurricular": 0.0,
+        "weekly": "1"
+      },
+      "category": "通识教育基础课",
+      "subcategory": "思政类",
+      "term": {
+        "year": "三",
+        "semester": "3"
+      },
+      "assessment": "-",
+      "required_type": "",
+      "notes": [],
+      "tags": [],
+      "source_pages": [
+        4
+      ]
+    },
+    {
+      "code": "B15M0030",
+      "name": "中国近现代史纲要",
+      "credits": 3.0,
+      "hours": {
+        "lecture": 48.0,
+        "experiment": 0.0,
+        "discussion": 0.0,
+        "extracurricular": 0.0,
+        "weekly": "3"
+      },
+      "category": "通识教育基础课",
+      "subcategory": "思政类",
+      "term": {
+        "year": "一",
+        "semester": "1"
+      },
+      "assessment": "+",
+      "required_type": "",
+      "notes": [],
+      "tags": [],
+      "source_pages": [
+        4
+      ]
+    },
+    {
+      "code": "B15M0070",
+      "name": "形势与政策(1)",
+      "credits": 0.25,
+      "hours": {
+        "lecture": 8.0,
+        "experiment": 0.0,
+        "discussion": 0.0,
+        "extracurricular": 0.0,
+        "weekly": "2"
+      },
+      "category": "通识教育基础课",
+      "subcategory": "思政类",
+      "term": {
+        "year": "一",
+        "semester": "1"
+      },
+      "assessment": "-",
+      "required_type": "",
+      "notes": [],
+      "tags": [],
+      "source_pages": [
+        4
+      ]
+    },
+    {
+      "code": "B15M0080",
+      "name": "形势与政策(2)",
+      "credits": 0.25,
+      "hours": {
+        "lecture": 8.0,
+        "experiment": 0.0,
+        "discussion": 0.0,
+        "extracurricular": 0.0,
+        "weekly": "2"
+      },
+      "category": "通识教育基础课",
+      "subcategory": "思政类",
+      "term": {
+        "year": "一",
+        "semester": "3"
+      },
+      "assessment": "-",
+      "required_type": "",
+      "notes": [],
+      "tags": [],
+      "source_pages": [
+        4
+      ]
+    },
+    {
+      "code": "B15M0190",
+      "name": "思想道德与法治",
+      "credits": 3.0,
+      "hours": {
+        "lecture": 48.0,
+        "experiment": 0.0,
+        "discussion": 0.0,
+        "extracurricular": 0.0,
+        "weekly": "3"
+      },
+      "category": "通识教育基础课",
+      "subcategory": "思政类",
+      "term": {
+        "year": "一",
+        "semester": "1"
+      },
+      "assessment": "+",
+      "required_type": "",
+      "notes": [],
+      "tags": [],
+      "source_pages": [
+        4
+      ]
+    },
+    {
+      "code": "B15M0060",
+      "name": "军事理论",
+      "credits": 2.0,
+      "hours": {
+        "lecture": 32.0,
+        "experiment": 0.0,
+        "discussion": 0.0,
+        "extracurricular": 0.0,
+        "weekly": "2"
+      },
+      "category": "通识教育基础课",
+      "subcategory": "军体类",
+      "term": {
+        "year": "一",
+        "semester": "1"
+      },
+      "assessment": "-",
+      "required_type": "",
+      "notes": [],
+      "tags": [],
+      "source_pages": [
+        5
+      ]
+    },
+    {
+      "code": "B18M0010",
+      "name": "体育I",
+      "credits": 0.5,
+      "hours": {
+        "lecture": 32.0,
+        "experiment": 0.0,
+        "discussion": 0.0,
+        "extracurricular": 0.0,
+        "weekly": "2"
+      },
+      "category": "通识教育基础课",
+      "subcategory": "军体类",
+      "term": {
+        "year": "一",
+        "semester": "1"
+      },
+      "assessment": "-",
+      "required_type": "",
+      "notes": [],
+      "tags": [],
+      "source_pages": [
+        5
+      ]
+    },
+    {
+      "code": "B18M0020",
+      "name": "体育II",
+      "credits": 0.5,
+      "hours": {
+        "lecture": 32.0,
+        "experiment": 0.0,
+        "discussion": 0.0,
+        "extracurricular": 0.0,
+        "weekly": "2"
+      },
+      "category": "通识教育基础课",
+      "subcategory": "军体类",
+      "term": {
+        "year": "一",
+        "semester": "3"
+      },
+      "assessment": "-",
+      "required_type": "",
+      "notes": [],
+      "tags": [],
+      "source_pages": [
+        5
+      ]
+    },
+    {
+      "code": "B18M0030",
+      "name": "体育III",
+      "credits": 0.5,
+      "hours": {
+        "lecture": 32.0,
+        "experiment": 0.0,
+        "discussion": 0.0,
+        "extracurricular": 0.0,
+        "weekly": "2"
+      },
+      "category": "通识教育基础课",
+      "subcategory": "军体类",
+      "term": {
+        "year": "二",
+        "semester": "1"
+      },
+      "assessment": "-",
+      "required_type": "",
+      "notes": [],
+      "tags": [],
+      "source_pages": [
+        5
+      ]
+    },
+    {
+      "code": "B18M0040",
+      "name": "体育IV",
+      "credits": 0.5,
+      "hours": {
+        "lecture": 32.0,
+        "experiment": 0.0,
+        "discussion": 0.0,
+        "extracurricular": 0.0,
+        "weekly": "2"
+      },
+      "category": "通识教育基础课",
+      "subcategory": "军体类",
+      "term": {
+        "year": "二",
+        "semester": "3"
+      },
+      "assessment": "-",
+      "required_type": "",
+      "notes": [],
+      "tags": [],
+      "source_pages": [
+        5
+      ]
+    },
+    {
+      "code": "B18M0050",
+      "name": "体育V",
+      "credits": 0.5,
+      "hours": {
+        "lecture": null,
+        "experiment": null,
+        "discussion": null,
+        "extracurricular": null,
+        "weekly": "0"
+      },
+      "category": "通识教育基础课",
+      "subcategory": "军体类",
+      "term": {
+        "year": "三",
+        "semester": null
+      },
+      "assessment": "",
+      "required_type": "",
+      "notes": [],
+      "tags": [],
+      "source_pages": [
+        5
+      ]
+    },
+    {
+      "code": "B18M0060",
+      "name": "体育VI",
+      "credits": 0.5,
+      "hours": {
+        "lecture": 0.0,
+        "experiment": 0.0,
+        "discussion": 0.0,
+        "extracurricular": 0.0,
+        "weekly": "0"
+      },
+      "category": "通识教育基础课",
+      "subcategory": "军体类",
+      "term": {
+        "year": "四",
+        "semester": "1"
+      },
+      "assessment": "-",
+      "required_type": "",
+      "notes": [],
+      "tags": [],
+      "source_pages": [
+        5
+      ]
+    },
+    {
+      "code": "B17M0010",
+      "name": "大学英语II",
+      "credits": 2.0,
+      "hours": {
+        "lecture": 32.0,
+        "experiment": 0.0,
+        "discussion": 32.0,
+        "extracurricular": 0.0,
+        "weekly": "4"
+      },
+      "category": "通识教育基础课",
+      "subcategory": "外语类",
+      "term": {
+        "year": "一",
+        "semester": "1"
+      },
+      "assessment": "+",
+      "required_type": "",
+      "notes": [],
+      "tags": [],
+      "source_pages": [
+        5
+      ]
+    },
+    {
+      "code": "B17M0020",
+      "name": "大学英语III",
+      "credits": 2.0,
+      "hours": {
+        "lecture": 32.0,
+        "experiment": 0.0,
+        "discussion": 32.0,
+        "extracurricular": 0.0,
+        "weekly": "4"
+      },
+      "category": "通识教育基础课",
+      "subcategory": "外语类",
+      "term": {
+        "year": "一",
+        "semester": "3"
+      },
+      "assessment": "+",
+      "required_type": "",
+      "notes": [
+        "2级起点"
+      ],
+      "tags": [],
+      "source_pages": [
+        5
+      ]
+    },
+    {
+      "code": "B17M0030",
+      "name": "大学英语IV",
+      "credits": 2.0,
+      "hours": {
+        "lecture": 32.0,
+        "experiment": 0.0,
+        "discussion": 32.0,
+        "extracurricular": 0.0,
+        "weekly": "4"
+      },
+      "category": "通识教育基础课",
+      "subcategory": "外语类",
+      "term": {
+        "year": "二",
+        "semester": "1"
+      },
+      "assessment": "+",
+      "required_type": "",
+      "notes": [],
+      "tags": [],
+      "source_pages": [
+        5
+      ]
+    },
+    {
+      "code": "B17M0040",
+      "name": "大学英语高级课程1",
+      "credits": 2.0,
+      "hours": {
+        "lecture": 32.0,
+        "experiment": 0.0,
+        "discussion": 0.0,
+        "extracurricular": 32.0,
+        "weekly": "2"
+      },
+      "category": "通识教育基础课",
+      "subcategory": "外语类",
+      "term": {
+        "year": "二",
+        "semester": "1"
+      },
+      "assessment": "+",
+      "required_type": "",
+      "notes": [],
+      "tags": [],
+      "source_pages": [
+        5
+      ]
+    },
+    {
+      "code": "B17M0050",
+      "name": "大学英语高级课程2",
+      "credits": 2.0,
+      "hours": {
+        "lecture": 32.0,
+        "experiment": 0.0,
+        "discussion": 0.0,
+        "extracurricular": 32.0,
+        "weekly": "2"
+      },
+      "category": "通识教育基础课",
+      "subcategory": "外语类",
+      "term": {
+        "year": "二",
+        "semester": "1"
+      },
+      "assessment": "+",
+      "required_type": "",
+      "notes": [],
+      "tags": [],
+      "source_pages": [
+        5
+      ]
+    },
+    {
+      "code": "B07M1050",
+      "name": "工科数学分析I",
+      "credits": 6.0,
+      "hours": {
+        "lecture": 96.0,
+        "experiment": 4.0,
+        "discussion": 0.0,
+        "extracurricular": 0.0,
+        "weekly": "6"
+      },
+      "category": "通识教育基础课",
+      "subcategory": "自然科学类",
+      "term": {
+        "year": "一",
+        "semester": "1"
+      },
+      "assessment": "+",
+      "required_type": "",
+      "notes": [],
+      "tags": [],
+      "source_pages": [
+        5
+      ]
+    },
+    {
+      "code": "B07M1060",
+      "name": "工科数学分析II",
+      "credits": 6.0,
+      "hours": {
+        "lecture": 96.0,
+        "experiment": 4.0,
+        "discussion": 0.0,
+        "extracurricular": 0.0,
+        "weekly": "6"
+      },
+      "category": "通识教育基础课",
+      "subcategory": "自然科学类",
+      "term": {
+        "year": "一",
+        "semester": "3"
+      },
+      "assessment": "+",
+      "required_type": "",
+      "notes": [],
+      "tags": [],
+      "source_pages": [
+        5
+      ]
+    },
+    {
+      "code": "B07M2040",
+      "name": "线性代数",
+      "credits": 4.0,
+      "hours": {
+        "lecture": 64.0,
+        "experiment": 0.0,
+        "discussion": 0.0,
+        "extracurricular": 0.0,
+        "weekly": "4"
+      },
+      "category": "通识教育基础课",
+      "subcategory": "自然科学类",
+      "term": {
+        "year": "一",
+        "semester": "1"
+      },
+      "assessment": "+",
+      "required_type": "",
+      "notes": [],
+      "tags": [],
+      "source_pages": [
+        5
+      ]
+    },
+    {
+      "code": "B10M0140",
+      "name": "大学物理实验(理工)I",
+      "credits": 1.0,
+      "hours": {
+        "lecture": 0.0,
+        "experiment": 32.0,
+        "discussion": 0.0,
+        "extracurricular": 0.0,
+        "weekly": "2"
+      },
+      "category": "通识教育基础课",
+      "subcategory": "自然科学类",
+      "term": {
+        "year": "一",
+        "semester": "3"
+      },
+      "assessment": "-",
+      "required_type": "",
+      "notes": [],
+      "tags": [
+        "practice"
+      ],
+      "source_pages": [
+        5
+      ]
+    },
+    {
+      "code": "B10M0240",
+      "name": "大学物理(B)Ⅰ",
+      "credits": 3.0,
+      "hours": {
+        "lecture": 64.0,
+        "experiment": 0.0,
+        "discussion": 0.0,
+        "extracurricular": 0.0,
+        "weekly": "4"
+      },
+      "category": "通识教育基础课",
+      "subcategory": "自然科学类",
+      "term": {
+        "year": "一",
+        "semester": "3"
+      },
+      "assessment": "+",
+      "required_type": "",
+      "notes": [],
+      "tags": [],
+      "source_pages": [
+        5
+      ]
+    },
+    {
+      "code": "B07M3010",
+      "name": "概率论与数理统计",
+      "credits": 3.0,
+      "hours": {
+        "lecture": 48.0,
+        "experiment": 0.0,
+        "discussion": 0.0,
+        "extracurricular": 0.0,
+        "weekly": "3"
+      },
+      "category": "通识教育基础课",
+      "subcategory": "自然科学类",
+      "term": {
+        "year": "二",
+        "semester": "3"
+      },
+      "assessment": "+",
+      "required_type": "",
+      "notes": [],
+      "tags": [],
+      "source_pages": [
+        5
+      ]
+    },
+    {
+      "code": "B07M4010",
+      "name": "复变函数",
+      "credits": 2.0,
+      "hours": {
+        "lecture": 32.0,
+        "experiment": 0.0,
+        "discussion": 0.0,
+        "extracurricular": 0.0,
+        "weekly": "2"
+      },
+      "category": "通识教育基础课",
+      "subcategory": "自然科学类",
+      "term": {
+        "year": "二",
+        "semester": "1"
+      },
+      "assessment": "+",
+      "required_type": "",
+      "notes": [],
+      "tags": [],
+      "source_pages": [
+        5
+      ]
+    },
+    {
+      "code": "B10M0150",
+      "name": "大学物理实验(理工)II",
+      "credits": 1.0,
+      "hours": {
+        "lecture": 0.0,
+        "experiment": 32.0,
+        "discussion": 0.0,
+        "extracurricular": 0.0,
+        "weekly": "2"
+      },
+      "category": "通识教育基础课",
+      "subcategory": "自然科学类",
+      "term": {
+        "year": "二",
+        "semester": "1"
+      },
+      "assessment": "+",
+      "required_type": "",
+      "notes": [],
+      "tags": [
+        "practice"
+      ],
+      "source_pages": [
+        5
+      ]
+    },
+    {
+      "code": "B10M0250",
+      "name": "大学物理(B)Ⅱ",
+      "credits": 3.0,
+      "hours": {
+        "lecture": 64.0,
+        "experiment": 0.0,
+        "discussion": 0.0,
+        "extracurricular": 0.0,
+        "weekly": "4"
+      },
+      "category": "通识教育基础课",
+      "subcategory": "自然科学类",
+      "term": {
+        "year": "二",
+        "semester": "1"
+      },
+      "assessment": "+",
+      "required_type": "",
+      "notes": [],
+      "tags": [],
+      "source_pages": [
+        5
+      ]
+    },
+    {
+      "code": "B00TL080",
+      "name": "人文社科类通识选修课(2学分)",
+      "credits": 2.0,
+      "hours": {
+        "lecture": null,
+        "experiment": null,
+        "discussion": null,
+        "extracurricular": null,
+        "weekly": "0"
+      },
+      "category": "通识教育基础课",
+      "subcategory": "通识选修课程",
+      "term": {
+        "year": null,
+        "semester": null
+      },
+      "assessment": "",
+      "required_type": "",
+      "notes": [],
+      "tags": [
+        "general_elective"
+      ],
+      "source_pages": [
+        5
+      ]
+    },
+    {
+      "code": "B00TL090",
+      "name": "创新创业类通识选修课(2学分)",
+      "credits": 2.0,
+      "hours": {
+        "lecture": null,
+        "experiment": null,
+        "discussion": null,
+        "extracurricular": null,
+        "weekly": "0"
+      },
+      "category": "通识教育基础课",
+      "subcategory": "通识选修课程",
+      "term": {
+        "year": null,
+        "semester": null
+      },
+      "assessment": "",
+      "required_type": "",
+      "notes": [],
+      "tags": [
+        "general_elective"
+      ],
+      "source_pages": [
+        5
+      ]
+    },
+    {
+      "code": "B00TL100",
+      "name": "心理健康教育类通识选修课(2学分)",
+      "credits": 2.0,
+      "hours": {
+        "lecture": null,
+        "experiment": null,
+        "discussion": null,
+        "extracurricular": null,
+        "weekly": "0"
+      },
+      "category": "通识教育基础课",
+      "subcategory": "通识选修课程",
+      "term": {
+        "year": null,
+        "semester": null
+      },
+      "assessment": "",
+      "required_type": "",
+      "notes": [],
+      "tags": [
+        "general_elective"
+      ],
+      "source_pages": [
+        5
+      ]
+    },
+    {
+      "code": "B00TL150",
+      "name": "美育类通识选修课(2学分)",
+      "credits": 2.0,
+      "hours": {
+        "lecture": null,
+        "experiment": null,
+        "discussion": null,
+        "extracurricular": null,
+        "weekly": "0"
+      },
+      "category": "通识教育基础课",
+      "subcategory": "通识选修课程",
+      "term": {
+        "year": null,
+        "semester": null
+      },
+      "assessment": "",
+      "required_type": "",
+      "notes": [],
+      "tags": [
+        "general_elective"
+      ],
+      "source_pages": [
+        5
+      ]
+    },
+    {
+      "code": "BJSL0010",
+      "name": "计算机大类新生研讨",
+      "credits": 1.0,
+      "hours": {
+        "lecture": 16.0,
+        "experiment": 0.0,
+        "discussion": 16.0,
+        "extracurricular": 0.0,
+        "weekly": "2"
+      },
+      "category": "通识教育基础课",
+      "subcategory": "新生研讨课",
+      "term": {
+        "year": "一",
+        "semester": "1"
+      },
+      "assessment": "-",
+      "required_type": "",
+      "notes": [],
+      "tags": [
+        "seminar"
+      ],
+      "source_pages": [
+        6
+      ]
+    },
+    {
+      "code": "B13M0020",
+      "name": "新中国史",
+      "credits": 1.0,
+      "hours": {
+        "lecture": null,
+        "experiment": null,
+        "discussion": null,
+        "extracurricular": null,
+        "weekly": "2"
+      },
+      "category": "通识教育基础课",
+      "subcategory": "四史教育",
+      "term": {
+        "year": "二",
+        "semester": null
+      },
+      "assessment": "",
+      "required_type": "",
+      "notes": [],
+      "tags": [],
+      "source_pages": [
+        6
+      ]
+    },
+    {
+      "code": "B13M0030",
+      "name": "社会主义发展史",
+      "credits": 1.0,
+      "hours": {
+        "lecture": 16.0,
+        "experiment": 0.0,
+        "discussion": 0.0,
+        "extracurricular": 0.0,
+        "weekly": "2"
+      },
+      "category": "通识教育基础课",
+      "subcategory": "四史教育",
+      "term": {
+        "year": "二",
+        "semester": "3"
+      },
+      "assessment": "-",
+      "required_type": "",
+      "notes": [],
+      "tags": [],
+      "source_pages": [
+        6
+      ]
+    },
+    {
+      "code": "B15M1001",
+      "name": "中共党史",
+      "credits": 1.0,
+      "hours": {
+        "lecture": null,
+        "experiment": null,
+        "discussion": null,
+        "extracurricular": null,
+        "weekly": "2"
+      },
+      "category": "通识教育基础课",
+      "subcategory": "四史教育",
+      "term": {
+        "year": "二",
+        "semester": null
+      },
+      "assessment": "",
+      "required_type": "",
+      "notes": [],
+      "tags": [],
+      "source_pages": [
+        6
+      ]
+    },
+    {
+      "code": "B15M1002",
+      "name": "改革开放史",
+      "credits": 1.0,
+      "hours": {
+        "lecture": null,
+        "experiment": null,
+        "discussion": null,
+        "extracurricular": null,
+        "weekly": "2"
+      },
+      "category": "通识教育基础课",
+      "subcategory": "四史教育",
+      "term": {
+        "year": "二",
+        "semester": null
+      },
+      "assessment": "",
+      "required_type": "",
+      "notes": [],
+      "tags": [],
+      "source_pages": [
+        6
+      ]
+    },
+    {
+      "code": "BJSL0020",
+      "name": "程序设计基础及语言I(双语)",
+      "credits": 2.0,
+      "hours": {
+        "lecture": 32.0,
+        "experiment": 32.0,
+        "discussion": 16.0,
+        "extracurricular": 0.0,
+        "weekly": "3"
+      },
+      "category": "专业相关课程",
+      "subcategory": "大类学科基础课",
+      "term": {
+        "year": "一",
+        "semester": "1"
+      },
+      "assessment": "+",
+      "required_type": "",
+      "notes": [],
+      "tags": [
+        "bilingual"
+      ],
+      "source_pages": [
+        6
+      ]
+    },
+    {
+      "code": "BJSL0030",
+      "name": "程序设计基础及语言II(双语)",
+      "credits": 2.0,
+      "hours": {
+        "lecture": 32.0,
+        "experiment": 32.0,
+        "discussion": 16.0,
+        "extracurricular": 0.0,
+        "weekly": "3"
+      },
+      "category": "专业相关课程",
+      "subcategory": "大类学科基础课",
+      "term": {
+        "year": "一",
+        "semester": "3"
+      },
+      "assessment": "+",
+      "required_type": "",
+      "notes": [],
+      "tags": [
+        "bilingual"
+      ],
+      "source_pages": [
+        6
+      ]
+    },
+    {
+      "code": "BJSL0041",
+      "name": "离散数学(双语)",
+      "credits": 4.0,
+      "hours": {
+        "lecture": 64.0,
+        "experiment": 0.0,
+        "discussion": 0.0,
+        "extracurricular": 0.0,
+        "weekly": "4"
+      },
+      "category": "专业相关课程",
+      "subcategory": "大类学科基础课",
+      "term": {
+        "year": "一",
+        "semester": "3"
+      },
+      "assessment": "+",
+      "required_type": "",
+      "notes": [],
+      "tags": [
+        "bilingual"
+      ],
+      "source_pages": [
+        6
+      ]
+    },
+    {
+      "code": "BJSL0050",
+      "name": "数字逻辑电路",
+      "credits": 3.0,
+      "hours": {
+        "lecture": 48.0,
+        "experiment": 0.0,
+        "discussion": 8.0,
+        "extracurricular": 0.0,
+        "weekly": "4"
+      },
+      "category": "专业相关课程",
+      "subcategory": "大类学科基础课",
+      "term": {
+        "year": "一",
+        "semester": "3"
+      },
+      "assessment": "+",
+      "required_type": "",
+      "notes": [],
+      "tags": [],
+      "source_pages": [
+        6
+      ]
+    },
+    {
+      "code": "BJSL0060",
+      "name": "数据结构(双语)",
+      "credits": 4.0,
+      "hours": {
+        "lecture": 64.0,
+        "experiment": 16.0,
+        "discussion": 0.0,
+        "extracurricular": 16.0,
+        "weekly": "4"
+      },
+      "category": "专业相关课程",
+      "subcategory": "大类学科基础课",
+      "term": {
+        "year": "二",
+        "semester": "1"
+      },
+      "assessment": "+",
+      "required_type": "",
+      "notes": [],
+      "tags": [
+        "bilingual"
+      ],
+      "source_pages": [
+        6
+      ]
+    },
+    {
+      "code": "BJSL0070",
+      "name": "计算机组成原理",
+      "credits": 4.0,
+      "hours": {
+        "lecture": 64.0,
+        "experiment": 16.0,
+        "discussion": 0.0,
+        "extracurricular": 16.0,
+        "weekly": "4"
+      },
+      "category": "专业相关课程",
+      "subcategory": "大类学科基础课",
+      "term": {
+        "year": "二",
+        "semester": "1"
+      },
+      "assessment": "+",
+      "required_type": "",
+      "notes": [],
+      "tags": [],
+      "source_pages": [
+        6
+      ]
+    },
+    {
+      "code": "BJSL0080",
+      "name": "操作系统(双语)",
+      "credits": 4.0,
+      "hours": {
+        "lecture": 64.0,
+        "experiment": 8.0,
+        "discussion": 0.0,
+        "extracurricular": 16.0,
+        "weekly": "4"
+      },
+      "category": "专业相关课程",
+      "subcategory": "大类学科基础课",
+      "term": {
+        "year": "二",
+        "semester": "3"
+      },
+      "assessment": "+",
+      "required_type": "",
+      "notes": [],
+      "tags": [
+        "bilingual"
+      ],
+      "source_pages": [
+        6
+      ]
+    },
+    {
+      "code": "BJSL0081",
+      "name": "操作系统(全英文)",
+      "credits": 4.0,
+      "hours": {
+        "lecture": 64.0,
+        "experiment": 8.0,
+        "discussion": 0.0,
+        "extracurricular": 16.0,
+        "weekly": "4"
+      },
+      "category": "专业相关课程",
+      "subcategory": "大类学科基础课",
+      "term": {
+        "year": "二",
+        "semester": "3"
+      },
+      "assessment": "+",
+      "required_type": "",
+      "notes": [],
+      "tags": [
+        "english"
+      ],
+      "source_pages": [
+        6
+      ]
+    },
+    {
+      "code": "B09D0010",
+      "name": "数据库原理(双语)",
+      "credits": 3.0,
+      "hours": {
+        "lecture": 48.0,
+        "experiment": 16.0,
+        "discussion": 0.0,
+        "extracurricular": 16.0,
+        "weekly": "3"
+      },
+      "category": "专业相关课程",
+      "subcategory": "专业主干课",
+      "term": {
+        "year": "三",
+        "semester": "1"
+      },
+      "assessment": "+",
+      "required_type": "",
+      "notes": [],
+      "tags": [
+        "bilingual"
+      ],
+      "source_pages": [
+        6
+      ]
+    },
+    {
+      "code": "B09D0011",
+      "name": "数据库原理(全英文)",
+      "credits": 3.0,
+      "hours": {
+        "lecture": 48.0,
+        "experiment": 16.0,
+        "discussion": 0.0,
+        "extracurricular": 16.0,
+        "weekly": "3"
+      },
+      "category": "专业相关课程",
+      "subcategory": "专业主干课",
+      "term": {
+        "year": "三",
+        "semester": "1"
+      },
+      "assessment": "+",
+      "required_type": "",
+      "notes": [],
+      "tags": [
+        "english"
+      ],
+      "source_pages": [
+        6
+      ]
+    },
+    {
+      "code": "B09T0010",
+      "name": "算法设计与分析",
+      "credits": 3.0,
+      "hours": {
+        "lecture": 32.0,
+        "experiment": 32.0,
+        "discussion": 0.0,
+        "extracurricular": 16.0,
+        "weekly": "3"
+      },
+      "category": "专业相关课程",
+      "subcategory": "专业主干课",
+      "term": {
+        "year": "二",
+        "semester": "3"
+      },
+      "assessment": "+",
+      "required_type": "",
+      "notes": [],
+      "tags": [],
+      "source_pages": [
+        6
+      ]
+    },
+    {
+      "code": "B71S0020",
+      "name": "软件工程导论(双语)",
+      "credits": 3.0,
+      "hours": {
+        "lecture": 48.0,
+        "experiment": 16.0,
+        "discussion": 0.0,
+        "extracurricular": 16.0,
+        "weekly": "3"
+      },
+      "category": "专业相关课程",
+      "subcategory": "专业主干课",
+      "term": {
+        "year": "二",
+        "semester": "3"
+      },
+      "assessment": "+",
+      "required_type": "",
+      "notes": [],
+      "tags": [
+        "bilingual"
+      ],
+      "source_pages": [
+        6
+      ]
+    },
+    {
+      "code": "B71S0010",
+      "name": "软件建模与UML(双语)",
+      "credits": 3.0,
+      "hours": {
+        "lecture": 48.0,
+        "experiment": 8.0,
+        "discussion": 0.0,
+        "extracurricular": 16.0,
+        "weekly": "3"
+      },
+      "category": "专业相关课程",
+      "subcategory": "专业主干课",
+      "term": {
+        "year": "二",
+        "semester": "1"
+      },
+      "assessment": "+",
+      "required_type": "",
+      "notes": [],
+      "tags": [
+        "bilingual"
+      ],
+      "source_pages": [
+        6
+      ]
+    },
+    {
+      "code": "B71S0011",
+      "name": "软件建模与UML(全英文)",
+      "credits": 3.0,
+      "hours": {
+        "lecture": 48.0,
+        "experiment": 8.0,
+        "discussion": 0.0,
+        "extracurricular": 16.0,
+        "weekly": "3"
+      },
+      "category": "专业相关课程",
+      "subcategory": "专业主干课",
+      "term": {
+        "year": "二",
+        "semester": "1"
+      },
+      "assessment": "+",
+      "required_type": "",
+      "notes": [],
+      "tags": [
+        "english"
+      ],
+      "source_pages": [
+        6
+      ]
+    },
+    {
+      "code": "B71S0030",
+      "name": "编译原理(双语)",
+      "credits": 4.0,
+      "hours": {
+        "lecture": 64.0,
+        "experiment": 8.0,
+        "discussion": 0.0,
+        "extracurricular": 16.0,
+        "weekly": "4"
+      },
+      "category": "专业相关课程",
+      "subcategory": "专业主干课",
+      "term": {
+        "year": "三",
+        "semester": "1"
+      },
+      "assessment": "+",
+      "required_type": "",
+      "notes": [],
+      "tags": [
+        "bilingual"
+      ],
+      "source_pages": [
+        6
+      ]
+    },
+    {
+      "code": "B71S0031",
+      "name": "编译原理(全英文)",
+      "credits": 4.0,
+      "hours": {
+        "lecture": 64.0,
+        "experiment": 8.0,
+        "discussion": 0.0,
+        "extracurricular": 16.0,
+        "weekly": "4"
+      },
+      "category": "专业相关课程",
+      "subcategory": "专业主干课",
+      "term": {
+        "year": "三",
+        "semester": "1"
+      },
+      "assessment": "+",
+      "required_type": "",
+      "notes": [],
+      "tags": [
+        "english"
+      ],
+      "source_pages": [
+        6
+      ]
+    },
+    {
+      "code": "B71S0040",
+      "name": "软件设计与体系结构",
+      "credits": 4.0,
+      "hours": {
+        "lecture": 48.0,
+        "experiment": 32.0,
+        "discussion": 0.0,
+        "extracurricular": 16.0,
+        "weekly": "4"
+      },
+      "category": "专业相关课程",
+      "subcategory": "专业主干课",
+      "term": {
+        "year": "三",
+        "semester": "1"
+      },
+      "assessment": "+",
+      "required_type": "",
+      "notes": [],
+      "tags": [],
+      "source_pages": [
+        6
+      ]
+    },
+    {
+      "code": "B71S0050",
+      "name": "软件质量保障",
+      "credits": 3.0,
+      "hours": {
+        "lecture": 48.0,
+        "experiment": 16.0,
+        "discussion": 0.0,
+        "extracurricular": 16.0,
+        "weekly": "3"
+      },
+      "category": "专业相关课程",
+      "subcategory": "专业主干课",
+      "term": {
+        "year": "三",
+        "semester": "3"
+      },
+      "assessment": "+",
+      "required_type": "",
+      "notes": [],
+      "tags": [],
+      "source_pages": [
+        6
+      ]
+    },
+    {
+      "code": "B09T1010",
+      "name": "IT新技术讲座(校企)",
+      "credits": 0.5,
+      "hours": {
+        "lecture": 16.0,
+        "experiment": 0.0,
+        "discussion": 0.0,
+        "extracurricular": 0.0,
+        "weekly": "1"
+      },
+      "category": "专业相关课程",
+      "subcategory": "专业方向及跨学科选修课",
+      "term": {
+        "year": "三",
+        "semester": "3"
+      },
+      "assessment": "-",
+      "required_type": "限选",
+      "notes": [],
+      "tags": [
+        "enterprise"
+      ],
+      "source_pages": [
+        6
+      ]
+    },
+    {
+      "code": "B71S1010",
+      "name": "Java程序设计(双语)",
+      "credits": 3.0,
+      "hours": {
+        "lecture": 48.0,
+        "experiment": 32.0,
+        "discussion": 0.0,
+        "extracurricular": 0.0,
+        "weekly": "3"
+      },
+      "category": "专业相关课程",
+      "subcategory": "专业方向及跨学科选修课",
+      "term": {
+        "year": "二",
+        "semester": "1"
+      },
+      "assessment": "+",
+      "required_type": "",
+      "notes": [],
+      "tags": [
+        "bilingual"
+      ],
+      "source_pages": [
+        6
+      ]
+    },
+    {
+      "code": "B71S1011",
+      "name": "Java程序设计(全英文)",
+      "credits": 3.0,
+      "hours": {
+        "lecture": 48.0,
+        "experiment": 32.0,
+        "discussion": 0.0,
+        "extracurricular": 0.0,
+        "weekly": "3"
+      },
+      "category": "专业相关课程",
+      "subcategory": "专业方向及跨学科选修课",
+      "term": {
+        "year": "二",
+        "semester": "1"
+      },
+      "assessment": "+",
+      "required_type": "",
+      "notes": [],
+      "tags": [
+        "english"
+      ],
+      "source_pages": [
+        6
+      ]
+    },
+    {
+      "code": "B07M4030",
+      "name": "数学建模与数学实验",
+      "credits": 2.0,
+      "hours": {
+        "lecture": 48.0,
+        "experiment": 16.0,
+        "discussion": 0.0,
+        "extracurricular": 0.0,
+        "weekly": "3"
+      },
+      "category": "专业相关课程",
+      "subcategory": "专业方向及跨学科选修课",
+      "term": {
+        "year": "二",
+        "semester": "3"
+      },
+      "assessment": "+",
+      "required_type": "",
+      "notes": [],
+      "tags": [
+        "practice"
+      ],
+      "source_pages": [
+        7
+      ]
+    },
+    {
+      "code": "B0812120",
+      "name": "机器人软件工程",
+      "credits": 2.0,
+      "hours": {
+        "lecture": 24.0,
+        "experiment": 16.0,
+        "discussion": 4.0,
+        "extracurricular": 0.0,
+        "weekly": "3"
+      },
+      "category": "专业相关课程",
+      "subcategory": "专业方向及跨学科选修课",
+      "term": {
+        "year": "三",
+        "semester": "1"
+      },
+      "assessment": "-",
+      "required_type": "",
+      "notes": [],
+      "tags": [],
+      "source_pages": [
+        7
+      ]
+    },
+    {
+      "code": "B0812130",
+      "name": "感知与人机交互(双语)",
+      "credits": 2.0,
+      "hours": {
+        "lecture": 24.0,
+        "experiment": 16.0,
+        "discussion": 4.0,
+        "extracurricular": 16.0,
+        "weekly": "2"
+      },
+      "category": "专业相关课程",
+      "subcategory": "专业方向及跨学科选修课",
+      "term": {
+        "year": "三",
+        "semester": "3"
+      },
+      "assessment": "-",
+      "required_type": "",
+      "notes": [],
+      "tags": [
+        "bilingual"
+      ],
+      "source_pages": [
+        7
+      ]
+    },
+    {
+      "code": "B1450640",
+      "name": "互联网金融(双语)",
+      "credits": 2.0,
+      "hours": {
+        "lecture": 32.0,
+        "experiment": 0.0,
+        "discussion": 0.0,
+        "extracurricular": 0.0,
+        "weekly": "2"
+      },
+      "category": "专业相关课程",
+      "subcategory": "专业方向及跨学科选修课",
+      "term": {
+        "year": "三",
+        "semester": "3"
+      },
+      "assessment": "-",
+      "required_type": "",
+      "notes": [
+        "跨学科选修2"
+      ],
+      "tags": [
+        "bilingual"
+      ],
+      "source_pages": [
+        7
+      ]
+    },
+    {
+      "code": "B1604101",
+      "name": "能源互联网信息技术（研讨）",
+      "credits": 2.0,
+      "hours": {
+        "lecture": 16.0,
+        "experiment": 0.0,
+        "discussion": 16.0,
+        "extracurricular": 0.0,
+        "weekly": "2"
+      },
+      "category": "专业相关课程",
+      "subcategory": "专业方向及跨学科选修课",
+      "term": {
+        "year": "三",
+        "semester": "1"
+      },
+      "assessment": "-",
+      "required_type": "",
+      "notes": [],
+      "tags": [
+        "seminar"
+      ],
+      "source_pages": [
+        7
+      ]
+    },
+    {
+      "code": "B2204570",
+      "name": "虚拟现实与数据可视化(双语、研讨)(外系)",
+      "credits": 2.0,
+      "hours": {
+        "lecture": 16.0,
+        "experiment": 0.0,
+        "discussion": 16.0,
+        "extracurricular": 16.0,
+        "weekly": "2"
+      },
+      "category": "专业相关课程",
+      "subcategory": "专业方向及跨学科选修课",
+      "term": {
+        "year": "三",
+        "semester": "3"
+      },
+      "assessment": "-",
+      "required_type": "",
+      "notes": [],
+      "tags": [
+        "bilingual",
+        "seminar"
+      ],
+      "source_pages": [
+        7
+      ]
+    },
+    {
+      "code": "B58A1180",
+      "name": "感知与人机交互(全英文、研讨)",
+      "credits": 2.0,
+      "hours": {
+        "lecture": 24.0,
+        "experiment": 0.0,
+        "discussion": 24.0,
+        "extracurricular": 0.0,
+        "weekly": "3"
+      },
+      "category": "专业相关课程",
+      "subcategory": "专业方向及跨学科选修课",
+      "term": {
+        "year": "二",
+        "semester": "4"
+      },
+      "assessment": "-",
+      "required_type": "",
+      "notes": [],
+      "tags": [
+        "english",
+        "seminar"
+      ],
+      "source_pages": [
+        7
+      ]
+    },
+    {
+      "code": "B71S1020",
+      "name": "Python编程",
+      "credits": 2.0,
+      "hours": {
+        "lecture": 32.0,
+        "experiment": 16.0,
+        "discussion": 0.0,
+        "extracurricular": 0.0,
+        "weekly": "3"
+      },
+      "category": "专业相关课程",
+      "subcategory": "专业方向及跨学科选修课",
+      "term": {
+        "year": "二",
+        "semester": "1"
+      },
+      "assessment": "+",
+      "required_type": "",
+      "notes": [],
+      "tags": [],
+      "source_pages": [
+        7
+      ]
+    },
+    {
+      "code": "B71S1040",
+      "name": "Java设计模式(研讨)",
+      "credits": 2.0,
+      "hours": {
+        "lecture": 24.0,
+        "experiment": 0.0,
+        "discussion": 24.0,
+        "extracurricular": 0.0,
+        "weekly": "2"
+      },
+      "category": "专业相关课程",
+      "subcategory": "专业方向及跨学科选修课",
+      "term": {
+        "year": "三",
+        "semester": "1"
+      },
+      "assessment": "-",
+      "required_type": "",
+      "notes": [],
+      "tags": [
+        "seminar"
+      ],
+      "source_pages": [
+        7
+      ]
+    },
+    {
+      "code": "B71S1060",
+      "name": "软件项目管理与实践(研讨)",
+      "credits": 2.0,
+      "hours": {
+        "lecture": 24.0,
+        "experiment": 0.0,
+        "discussion": 24.0,
+        "extracurricular": 0.0,
+        "weekly": "3"
+      },
+      "category": "专业相关课程",
+      "subcategory": "专业方向及跨学科选修课",
+      "term": {
+        "year": "三",
+        "semester": "1"
+      },
+      "assessment": "-",
+      "required_type": "",
+      "notes": [
+        "A组：软件理"
+      ],
+      "tags": [
+        "seminar",
+        "practice"
+      ],
+      "source_pages": [
+        7
+      ]
+    },
+    {
+      "code": "B71S1090",
+      "name": "软件缺陷定位与修复(全英文、研讨)",
+      "credits": 2.0,
+      "hours": {
+        "lecture": 24.0,
+        "experiment": 0.0,
+        "discussion": 24.0,
+        "extracurricular": 0.0,
+        "weekly": "3"
+      },
+      "category": "专业相关课程",
+      "subcategory": "专业方向及跨学科选修课",
+      "term": {
+        "year": "三",
+        "semester": "3"
+      },
+      "assessment": "-",
+      "required_type": "",
+      "notes": [
+        "论与方法"
+      ],
+      "tags": [
+        "english",
+        "seminar"
+      ],
+      "source_pages": [
+        7
+      ]
+    },
+    {
+      "code": "B71S1100",
+      "name": "软件智能化方法(研讨)",
+      "credits": 2.0,
+      "hours": {
+        "lecture": 24.0,
+        "experiment": 0.0,
+        "discussion": 24.0,
+        "extracurricular": 0.0,
+        "weekly": "3"
+      },
+      "category": "专业相关课程",
+      "subcategory": "专业方向及跨学科选修课",
+      "term": {
+        "year": "三",
+        "semester": "3"
+      },
+      "assessment": "-",
+      "required_type": "",
+      "notes": [],
+      "tags": [
+        "seminar"
+      ],
+      "source_pages": [
+        7
+      ]
+    },
+    {
+      "code": "B71S1130",
+      "name": "二进制代码分析（双语、研讨）",
+      "credits": 2.0,
+      "hours": {
+        "lecture": 24.0,
+        "experiment": 0.0,
+        "discussion": 24.0,
+        "extracurricular": 0.0,
+        "weekly": "3"
+      },
+      "category": "专业相关课程",
+      "subcategory": "专业方向及跨学科选修课",
+      "term": {
+        "year": "三",
+        "semester": "1"
+      },
+      "assessment": "-",
+      "required_type": "",
+      "notes": [],
+      "tags": [
+        "bilingual",
+        "seminar"
+      ],
+      "source_pages": [
+        7
+      ]
+    },
+    {
+      "code": "B09D1010",
+      "name": "高级数据结构(全英文、研讨)",
+      "credits": 2.0,
+      "hours": {
+        "lecture": 24.0,
+        "experiment": 0.0,
+        "discussion": 24.0,
+        "extracurricular": 0.0,
+        "weekly": "3"
+      },
+      "category": "专业相关课程",
+      "subcategory": "专业方向及跨学科选修课",
+      "term": {
+        "year": "二",
+        "semester": "3"
+      },
+      "assessment": "-",
+      "required_type": "",
+      "notes": [],
+      "tags": [
+        "english",
+        "seminar"
+      ],
+      "source_pages": [
+        7
+      ]
+    },
+    {
+      "code": "B09D1020",
+      "name": "大数据处理(双语、研讨)",
+      "credits": 2.0,
+      "hours": {
+        "lecture": 24.0,
+        "experiment": 0.0,
+        "discussion": 24.0,
+        "extracurricular": 0.0,
+        "weekly": "3"
+      },
+      "category": "专业相关课程",
+      "subcategory": "专业方向及跨学科选修课",
+      "term": {
+        "year": "三",
+        "semester": "1"
+      },
+      "assessment": "-",
+      "required_type": "",
+      "notes": [],
+      "tags": [
+        "bilingual",
+        "seminar"
+      ],
+      "source_pages": [
+        7
+      ]
+    },
+    {
+      "code": "B09D1030",
+      "name": "XML技术(双语、研讨)",
+      "credits": 2.0,
+      "hours": {
+        "lecture": 24.0,
+        "experiment": 0.0,
+        "discussion": 24.0,
+        "extracurricular": 0.0,
+        "weekly": "3"
+      },
+      "category": "专业相关课程",
+      "subcategory": "专业方向及跨学科选修课",
+      "term": {
+        "year": "三",
+        "semester": "3"
+      },
+      "assessment": "-",
+      "required_type": "",
+      "notes": [
+        "A组：软件系"
+      ],
+      "tags": [
+        "bilingual",
+        "seminar"
+      ],
+      "source_pages": [
+        7
+      ]
+    },
+    {
+      "code": "B09D1050",
+      "name": "信息检索(双语、研讨)",
+      "credits": 2.0,
+      "hours": {
+        "lecture": 24.0,
+        "experiment": 0.0,
+        "discussion": 24.0,
+        "extracurricular": 0.0,
+        "weekly": "3"
+      },
+      "category": "专业相关课程",
+      "subcategory": "专业方向及跨学科选修课",
+      "term": {
+        "year": "三",
+        "semester": "3"
+      },
+      "assessment": "-",
+      "required_type": "",
+      "notes": [
+        "统与数据处"
+      ],
+      "tags": [
+        "bilingual",
+        "seminar"
+      ],
+      "source_pages": [
+        7
+      ]
+    },
+    {
+      "code": "B09D1060",
+      "name": "数据仓库与数据挖掘(双语、研讨)",
+      "credits": 2.0,
+      "hours": {
+        "lecture": 24.0,
+        "experiment": 0.0,
+        "discussion": 24.0,
+        "extracurricular": 0.0,
+        "weekly": "3"
+      },
+      "category": "专业相关课程",
+      "subcategory": "专业方向及跨学科选修课",
+      "term": {
+        "year": "三",
+        "semester": "3"
+      },
+      "assessment": "-",
+      "required_type": "",
+      "notes": [
+        "理"
+      ],
+      "tags": [
+        "bilingual",
+        "seminar"
+      ],
+      "source_pages": [
+        7
+      ]
+    },
+    {
+      "code": "B71S1050",
+      "name": "IT系统管理(全英文、研讨)",
+      "credits": 2.0,
+      "hours": {
+        "lecture": 32.0,
+        "experiment": 0.0,
+        "discussion": 16.0,
+        "extracurricular": 0.0,
+        "weekly": "3"
+      },
+      "category": "专业相关课程",
+      "subcategory": "专业方向及跨学科选修课",
+      "term": {
+        "year": "三",
+        "semester": "1"
+      },
+      "assessment": "-",
+      "required_type": "",
+      "notes": [],
+      "tags": [
+        "english",
+        "seminar"
+      ],
+      "source_pages": [
+        7
+      ]
+    },
+    {
+      "code": "B71S1080",
+      "name": "分布式系统(全英文、研讨)",
+      "credits": 2.0,
+      "hours": {
+        "lecture": 24.0,
+        "experiment": 0.0,
+        "discussion": 24.0,
+        "extracurricular": 0.0,
+        "weekly": "3"
+      },
+      "category": "专业相关课程",
+      "subcategory": "专业方向及跨学科选修课",
+      "term": {
+        "year": "三",
+        "semester": "3"
+      },
+      "assessment": "-",
+      "required_type": "",
+      "notes": [],
+      "tags": [
+        "english",
+        "seminar"
+      ],
+      "source_pages": [
+        7
+      ]
+    },
+    {
+      "code": "B09H1010",
+      "name": "计算机接口技术（研讨）",
+      "credits": 2.0,
+      "hours": {
+        "lecture": 32.0,
+        "experiment": 0.0,
+        "discussion": 16.0,
+        "extracurricular": 0.0,
+        "weekly": "3"
+      },
+      "category": "专业相关课程",
+      "subcategory": "专业方向及跨学科选修课",
+      "term": {
+        "year": "三",
+        "semester": "1"
+      },
+      "assessment": "-",
+      "required_type": "",
+      "notes": [],
+      "tags": [
+        "seminar"
+      ],
+      "source_pages": [
+        7
+      ]
+    },
+    {
+      "code": "B09H1021",
+      "name": "嵌入式系统设计",
+      "credits": 2.0,
+      "hours": {
+        "lecture": 32.0,
+        "experiment": 16.0,
+        "discussion": 0.0,
+        "extracurricular": 0.0,
+        "weekly": "2"
+      },
+      "category": "专业相关课程",
+      "subcategory": "专业方向及跨学科选修课",
+      "term": {
+        "year": "三",
+        "semester": "1"
+      },
+      "assessment": "-",
+      "required_type": "",
+      "notes": [],
+      "tags": [],
+      "source_pages": [
+        7
+      ]
+    },
+    {
+      "code": "B09T1020",
+      "name": "组合数学(研讨)",
+      "credits": 2.0,
+      "hours": {
+        "lecture": 24.0,
+        "experiment": 0.0,
+        "discussion": 24.0,
+        "extracurricular": 0.0,
+        "weekly": "3"
+      },
+      "category": "专业相关课程",
+      "subcategory": "专业方向及跨学科选修课",
+      "term": {
+        "year": "二",
+        "semester": "3"
+      },
+      "assessment": "-",
+      "required_type": "",
+      "notes": [
+        "B组：计算理"
+      ],
+      "tags": [
+        "seminar"
+      ],
+      "source_pages": [
+        7
+      ]
+    },
+    {
+      "code": "B09T1030",
+      "name": "运筹学(研讨)",
+      "credits": 2.0,
+      "hours": {
+        "lecture": 24.0,
+        "experiment": 0.0,
+        "discussion": 24.0,
+        "extracurricular": 0.0,
+        "weekly": "3"
+      },
+      "category": "专业相关课程",
+      "subcategory": "专业方向及跨学科选修课",
+      "term": {
+        "year": "二",
+        "semester": "3"
+      },
+      "assessment": "-",
+      "required_type": "",
+      "notes": [
+        "论、系统结构"
+      ],
+      "tags": [
+        "seminar"
+      ],
+      "source_pages": [
+        7
+      ]
+    },
+    {
+      "code": "B09T1040",
+      "name": "量子信息处理与几何(研讨)",
+      "credits": 2.0,
+      "hours": {
+        "lecture": 24.0,
+        "experiment": 0.0,
+        "discussion": 24.0,
+        "extracurricular": 0.0,
+        "weekly": "3"
+      },
+      "category": "专业相关课程",
+      "subcategory": "专业方向及跨学科选修课",
+      "term": {
+        "year": "二",
+        "semester": "3"
+      },
+      "assessment": "-",
+      "required_type": "",
+      "notes": [
+        "等"
+      ],
+      "tags": [
+        "seminar"
+      ],
+      "source_pages": [
+        7
+      ]
+    },
+    {
+      "code": "B09T1050",
+      "name": "可计算性理论",
+      "credits": 2.0,
+      "hours": {
+        "lecture": 32.0,
+        "experiment": 0.0,
+        "discussion": 0.0,
+        "extracurricular": 0.0,
+        "weekly": "2"
+      },
+      "category": "专业相关课程",
+      "subcategory": "专业方向及跨学科选修课",
+      "term": {
+        "year": "三",
+        "semester": "1"
+      },
+      "assessment": "-",
+      "required_type": "",
+      "notes": [],
+      "tags": [],
+      "source_pages": [
+        7
+      ]
+    },
+    {
+      "code": "B09T1070",
+      "name": "计算机与社会(全英文、研讨)",
+      "credits": 2.0,
+      "hours": {
+        "lecture": 32.0,
+        "experiment": 0.0,
+        "discussion": 16.0,
+        "extracurricular": 0.0,
+        "weekly": "3"
+      },
+      "category": "专业相关课程",
+      "subcategory": "专业方向及跨学科选修课",
+      "term": {
+        "year": "三",
+        "semester": "1"
+      },
+      "assessment": "-",
+      "required_type": "",
+      "notes": [],
+      "tags": [
+        "english",
+        "seminar"
+      ],
+      "source_pages": [
+        7
+      ]
+    },
+    {
+      "code": "B09N1020",
+      "name": "物联网导论(研讨)",
+      "credits": 2.0,
+      "hours": {
+        "lecture": 24.0,
+        "experiment": 0.0,
+        "discussion": 24.0,
+        "extracurricular": 0.0,
+        "weekly": "3"
+      },
+      "category": "专业相关课程",
+      "subcategory": "专业方向及跨学科选修课",
+      "term": {
+        "year": "二",
+        "semester": "3"
+      },
+      "assessment": "-",
+      "required_type": "",
+      "notes": [],
+      "tags": [
+        "seminar"
+      ],
+      "source_pages": [
+        7
+      ]
+    },
+    {
+      "code": "B09N1030",
+      "name": "分布计算新技术(研讨)",
+      "credits": 2.0,
+      "hours": {
+        "lecture": 24.0,
+        "experiment": 0.0,
+        "discussion": 24.0,
+        "extracurricular": 0.0,
+        "weekly": "3"
+      },
+      "category": "专业相关课程",
+      "subcategory": "专业方向及跨学科选修课",
+      "term": {
+        "year": "三",
+        "semester": "1"
+      },
+      "assessment": "-",
+      "required_type": "",
+      "notes": [],
+      "tags": [
+        "seminar"
+      ],
+      "source_pages": [
+        7
+      ]
+    },
+    {
+      "code": "B09N1040",
+      "name": "网络与信息安全(全英文、研讨)",
+      "credits": 2.0,
+      "hours": {
+        "lecture": 32.0,
+        "experiment": 0.0,
+        "discussion": 16.0,
+        "extracurricular": 0.0,
+        "weekly": "3"
+      },
+      "category": "专业相关课程",
+      "subcategory": "专业方向及跨学科选修课",
+      "term": {
+        "year": "三",
+        "semester": "3"
+      },
+      "assessment": "-",
+      "required_type": "",
+      "notes": [],
+      "tags": [
+        "english",
+        "seminar"
+      ],
+      "source_pages": [
+        7
+      ]
+    },
+    {
+      "code": "B09N1041",
+      "name": "网络与信息安全(研讨)",
+      "credits": 2.0,
+      "hours": {
+        "lecture": 24.0,
+        "experiment": 0.0,
+        "discussion": 24.0,
+        "extracurricular": 0.0,
+        "weekly": "3"
+      },
+      "category": "专业相关课程",
+      "subcategory": "专业方向及跨学科选修课",
+      "term": {
+        "year": "三",
+        "semester": "3"
+      },
+      "assessment": "-",
+      "required_type": "",
+      "notes": [],
+      "tags": [
+        "seminar"
+      ],
+      "source_pages": [
+        7
+      ]
+    },
+    {
+      "code": "B09N1070",
+      "name": "移动互联网导论(研讨)",
+      "credits": 2.0,
+      "hours": {
+        "lecture": 24.0,
+        "experiment": 0.0,
+        "discussion": 24.0,
+        "extracurricular": 0.0,
+        "weekly": "3"
+      },
+      "category": "专业相关课程",
+      "subcategory": "专业方向及跨学科选修课",
+      "term": {
+        "year": "三",
+        "semester": "3"
+      },
+      "assessment": "-",
+      "required_type": "",
+      "notes": [],
+      "tags": [
+        "seminar"
+      ],
+      "source_pages": [
+        7
+      ]
+    },
+    {
+      "code": "B09N1080",
+      "name": "数据中心网络(全英文、研讨)",
+      "credits": 2.0,
+      "hours": {
+        "lecture": 24.0,
+        "experiment": 0.0,
+        "discussion": 24.0,
+        "extracurricular": 0.0,
+        "weekly": "3"
+      },
+      "category": "专业相关课程",
+      "subcategory": "专业方向及跨学科选修课",
+      "term": {
+        "year": "三",
+        "semester": "3"
+      },
+      "assessment": "-",
+      "required_type": "",
+      "notes": [],
+      "tags": [
+        "english",
+        "seminar"
+      ],
+      "source_pages": [
+        7
+      ]
+    },
+    {
+      "code": "B71N1010",
+      "name": "计算机网络及应用(研讨)",
+      "credits": 2.0,
+      "hours": {
+        "lecture": 24.0,
+        "experiment": 0.0,
+        "discussion": 24.0,
+        "extracurricular": 0.0,
+        "weekly": "3"
+      },
+      "category": "专业相关课程",
+      "subcategory": "专业方向及跨学科选修课",
+      "term": {
+        "year": "二",
+        "semester": "3"
+      },
+      "assessment": "-",
+      "required_type": "",
+      "notes": [],
+      "tags": [
+        "seminar"
+      ],
+      "source_pages": [
+        7
+      ]
+    },
+    {
+      "code": "B09G1030",
+      "name": "计算机图形学(研讨)",
+      "credits": 2.0,
+      "hours": {
+        "lecture": 24.0,
+        "experiment": 0.0,
+        "discussion": 24.0,
+        "extracurricular": 0.0,
+        "weekly": "3"
+      },
+      "category": "专业相关课程",
+      "subcategory": "专业方向及跨学科选修课",
+      "term": {
+        "year": "三",
+        "semester": "1"
+      },
+      "assessment": "-",
+      "required_type": "",
+      "notes": [],
+      "tags": [
+        "seminar"
+      ],
+      "source_pages": [
+        7
+      ]
+    },
+    {
+      "code": "B09G1040",
+      "name": "多媒体技术(研讨)",
+      "credits": 2.0,
+      "hours": {
+        "lecture": 24.0,
+        "experiment": 0.0,
+        "discussion": 24.0,
+        "extracurricular": 0.0,
+        "weekly": "3"
+      },
+      "category": "专业相关课程",
+      "subcategory": "专业方向及跨学科选修课",
+      "term": {
+        "year": "三",
+        "semester": "1"
+      },
+      "assessment": "-",
+      "required_type": "",
+      "notes": [],
+      "tags": [
+        "seminar"
+      ],
+      "source_pages": [
+        7
+      ]
+    },
+    {
+      "code": "B09G1051",
+      "name": "机器视觉与应用(双语、研讨)",
+      "credits": 2.0,
+      "hours": {
+        "lecture": 24.0,
+        "experiment": 0.0,
+        "discussion": 24.0,
+        "extracurricular": 0.0,
+        "weekly": "3"
+      },
+      "category": "专业相关课程",
+      "subcategory": "专业方向及跨学科选修课",
+      "term": {
+        "year": "三",
+        "semester": "3"
+      },
+      "assessment": "-",
+      "required_type": "",
+      "notes": [],
+      "tags": [
+        "bilingual",
+        "seminar"
+      ],
+      "source_pages": [
+        7
+      ]
+    },
+    {
+      "code": "B09G1052",
+      "name": "机器视觉与应用(全英文、研讨)",
+      "credits": 2.0,
+      "hours": {
+        "lecture": 24.0,
+        "experiment": 0.0,
+        "discussion": 24.0,
+        "extracurricular": 0.0,
+        "weekly": "3"
+      },
+      "category": "专业相关课程",
+      "subcategory": "专业方向及跨学科选修课",
+      "term": {
+        "year": "二",
+        "semester": "4"
+      },
+      "assessment": "-",
+      "required_type": "",
+      "notes": [
+        "B组：图形与"
+      ],
+      "tags": [
+        "english",
+        "seminar"
+      ],
+      "source_pages": [
+        7
+      ]
+    },
+    {
+      "code": "B09G1060",
+      "name": "语音信息处理(研讨)",
+      "credits": 2.0,
+      "hours": {
+        "lecture": 24.0,
+        "experiment": 0.0,
+        "discussion": 24.0,
+        "extracurricular": 0.0,
+        "weekly": "3"
+      },
+      "category": "专业相关课程",
+      "subcategory": "专业方向及跨学科选修课",
+      "term": {
+        "year": "三",
+        "semester": "1"
+      },
+      "assessment": "-",
+      "required_type": "",
+      "notes": [
+        "图像处理"
+      ],
+      "tags": [
+        "seminar"
+      ],
+      "source_pages": [
+        7
+      ]
+    },
+    {
+      "code": "B58A1040",
+      "name": "深度学习与应用(研讨)",
+      "credits": 2.0,
+      "hours": {
+        "lecture": 24.0,
+        "experiment": 0.0,
+        "discussion": 24.0,
+        "extracurricular": 0.0,
+        "weekly": "3"
+      },
+      "category": "专业相关课程",
+      "subcategory": "专业方向及跨学科选修课",
+      "term": {
+        "year": "三",
+        "semester": "1"
+      },
+      "assessment": "-",
+      "required_type": "",
+      "notes": [],
+      "tags": [
+        "seminar"
+      ],
+      "source_pages": [
+        7
+      ]
+    },
+    {
+      "code": "B71G1070",
+      "name": "数字图像处理(研讨)",
+      "credits": 2.0,
+      "hours": {
+        "lecture": 24.0,
+        "experiment": 0.0,
+        "discussion": 24.0,
+        "extracurricular": 0.0,
+        "weekly": "3"
+      },
+      "category": "专业相关课程",
+      "subcategory": "专业方向及跨学科选修课",
+      "term": {
+        "year": "三",
+        "semester": "1"
+      },
+      "assessment": "-",
+      "required_type": "",
+      "notes": [],
+      "tags": [
+        "seminar"
+      ],
+      "source_pages": [
+        7
+      ]
+    },
+    {
+      "code": "B71G1080",
+      "name": "信号处理导论",
+      "credits": 2.0,
+      "hours": {
+        "lecture": 32.0,
+        "experiment": 0.0,
+        "discussion": 0.0,
+        "extracurricular": 0.0,
+        "weekly": "2"
+      },
+      "category": "专业相关课程",
+      "subcategory": "专业方向及跨学科选修课",
+      "term": {
+        "year": "二",
+        "semester": "3"
+      },
+      "assessment": "-",
+      "required_type": "",
+      "notes": [],
+      "tags": [],
+      "source_pages": [
+        7
+      ]
+    },
+    {
+      "code": "B09A1110",
+      "name": "机器学习(研讨)",
+      "credits": 2.0,
+      "hours": {
+        "lecture": 24.0,
+        "experiment": 0.0,
+        "discussion": 24.0,
+        "extracurricular": 0.0,
+        "weekly": "3"
+      },
+      "category": "专业相关课程",
+      "subcategory": "专业方向及跨学科选修课",
+      "term": {
+        "year": "三",
+        "semester": "1"
+      },
+      "assessment": "-",
+      "required_type": "",
+      "notes": [],
+      "tags": [
+        "seminar"
+      ],
+      "source_pages": [
+        7
+      ]
+    },
+    {
+      "code": "B09A1120",
+      "name": "人工智能(研讨)",
+      "credits": 2.0,
+      "hours": {
+        "lecture": 24.0,
+        "experiment": 0.0,
+        "discussion": 24.0,
+        "extracurricular": 0.0,
+        "weekly": "3"
+      },
+      "category": "专业相关课程",
+      "subcategory": "专业方向及跨学科选修课",
+      "term": {
+        "year": "三",
+        "semester": "1"
+      },
+      "assessment": "-",
+      "required_type": "",
+      "notes": [],
+      "tags": [
+        "seminar"
+      ],
+      "source_pages": [
+        7
+      ]
+    },
+    {
+      "code": "B09A1130",
+      "name": "模式识别(全英文、研讨)",
+      "credits": 2.0,
+      "hours": {
+        "lecture": 32.0,
+        "experiment": 0.0,
+        "discussion": 16.0,
+        "extracurricular": 0.0,
+        "weekly": "3"
+      },
+      "category": "专业相关课程",
+      "subcategory": "专业方向及跨学科选修课",
+      "term": {
+        "year": "三",
+        "semester": "1"
+      },
+      "assessment": "-",
+      "required_type": "",
+      "notes": [],
+      "tags": [
+        "english",
+        "seminar"
+      ],
+      "source_pages": [
+        7
+      ]
+    },
+    {
+      "code": "B58A1020",
+      "name": "概率图模型(双语)",
+      "credits": 2.0,
+      "hours": {
+        "lecture": 32.0,
+        "experiment": 0.0,
+        "discussion": 0.0,
+        "extracurricular": 0.0,
+        "weekly": "2"
+      },
+      "category": "专业相关课程",
+      "subcategory": "专业方向及跨学科选修课",
+      "term": {
+        "year": "二",
+        "semester": "3"
+      },
+      "assessment": "-",
+      "required_type": "",
+      "notes": [
+        "B组：人工智"
+      ],
+      "tags": [
+        "bilingual"
+      ],
+      "source_pages": [
+        7
+      ]
+    },
+    {
+      "code": "B58A1060",
+      "name": "强化学习(双语)",
+      "credits": 2.0,
+      "hours": {
+        "lecture": 32.0,
+        "experiment": 0.0,
+        "discussion": 0.0,
+        "extracurricular": 0.0,
+        "weekly": "2"
+      },
+      "category": "专业相关课程",
+      "subcategory": "专业方向及跨学科选修课",
+      "term": {
+        "year": "三",
+        "semester": "3"
+      },
+      "assessment": "-",
+      "required_type": "",
+      "notes": [
+        "能及应用"
+      ],
+      "tags": [
+        "bilingual"
+      ],
+      "source_pages": [
+        7
+      ]
+    },
+    {
+      "code": "B58A1090",
+      "name": "分布式智能与社会网络(研讨)",
+      "credits": 2.0,
+      "hours": {
+        "lecture": 24.0,
+        "experiment": 0.0,
+        "discussion": 24.0,
+        "extracurricular": 0.0,
+        "weekly": "3"
+      },
+      "category": "专业相关课程",
+      "subcategory": "专业方向及跨学科选修课",
+      "term": {
+        "year": "三",
+        "semester": "3"
+      },
+      "assessment": "-",
+      "required_type": "",
+      "notes": [],
+      "tags": [
+        "seminar"
+      ],
+      "source_pages": [
+        7
+      ]
+    },
+    {
+      "code": "B58A1101",
+      "name": "知识图谱及应用(全英文、研讨)",
+      "credits": 2.0,
+      "hours": {
+        "lecture": 24.0,
+        "experiment": 0.0,
+        "discussion": 24.0,
+        "extracurricular": 0.0,
+        "weekly": "3"
+      },
+      "category": "专业相关课程",
+      "subcategory": "专业方向及跨学科选修课",
+      "term": {
+        "year": "二",
+        "semester": "4"
+      },
+      "assessment": "-",
+      "required_type": "",
+      "notes": [],
+      "tags": [
+        "english",
+        "seminar"
+      ],
+      "source_pages": [
+        7
+      ]
+    },
+    {
+      "code": "B58A1170",
+      "name": "知识表示与推理(全英文、研讨)",
+      "credits": 2.0,
+      "hours": {
+        "lecture": 32.0,
+        "experiment": 0.0,
+        "discussion": 16.0,
+        "extracurricular": 0.0,
+        "weekly": "3"
+      },
+      "category": "专业相关课程",
+      "subcategory": "专业方向及跨学科选修课",
+      "term": {
+        "year": "三",
+        "semester": "1"
+      },
+      "assessment": "-",
+      "required_type": "",
+      "notes": [],
+      "tags": [
+        "english",
+        "seminar"
+      ],
+      "source_pages": [
+        7
+      ]
+    },
+    {
+      "code": "B09D1070",
+      "name": "实用数据库系统实践(校企)",
+      "credits": 1.0,
+      "hours": {
+        "lecture": 8.0,
+        "experiment": 24.0,
+        "discussion": 0.0,
+        "extracurricular": 0.0,
+        "weekly": "2"
+      },
+      "category": "集中实践环节（含课外实践）&短学期课程",
+      "subcategory": null,
+      "term": {
+        "year": "三",
+        "semester": "3"
+      },
+      "assessment": "-",
+      "required_type": "",
+      "notes": [],
+      "tags": [
+        "practice",
+        "enterprise"
+      ],
+      "source_pages": [
+        8
+      ]
+    },
+    {
+      "code": "B09H1030",
+      "name": "计算机组成原理专题实践",
+      "credits": 1.0,
+      "hours": {
+        "lecture": 8.0,
+        "experiment": 24.0,
+        "discussion": 0.0,
+        "extracurricular": 0.0,
+        "weekly": "2"
+      },
+      "category": "集中实践环节（含课外实践）&短学期课程",
+      "subcategory": null,
+      "term": {
+        "year": "二",
+        "semester": "3"
+      },
+      "assessment": "-",
+      "required_type": "",
+      "notes": [],
+      "tags": [
+        "practice"
+      ],
+      "source_pages": [
+        8
+      ]
+    },
+    {
+      "code": "B09H1040",
+      "name": "操作系统专题实践",
+      "credits": 1.0,
+      "hours": {
+        "lecture": 8.0,
+        "experiment": 24.0,
+        "discussion": 0.0,
+        "extracurricular": 0.0,
+        "weekly": "2"
+      },
+      "category": "集中实践环节（含课外实践）&短学期课程",
+      "subcategory": null,
+      "term": {
+        "year": "三",
+        "semester": "1"
+      },
+      "assessment": "-",
+      "required_type": "",
+      "notes": [
+        "任选3门及以"
+      ],
+      "tags": [
+        "practice"
+      ],
+      "source_pages": [
+        8
+      ]
+    },
+    {
+      "code": "B09N1090",
+      "name": "计算机网络专题实践",
+      "credits": 1.0,
+      "hours": {
+        "lecture": 8.0,
+        "experiment": 24.0,
+        "discussion": 0.0,
+        "extracurricular": 0.0,
+        "weekly": "2"
+      },
+      "category": "集中实践环节（含课外实践）&短学期课程",
+      "subcategory": null,
+      "term": {
+        "year": "三",
+        "semester": "3"
+      },
+      "assessment": "-",
+      "required_type": "",
+      "notes": [
+        "上"
+      ],
+      "tags": [
+        "practice"
+      ],
+      "source_pages": [
+        8
+      ]
+    },
+    {
+      "code": "B09T1060",
+      "name": "数据结构与算法专题实践",
+      "credits": 1.0,
+      "hours": {
+        "lecture": 8.0,
+        "experiment": 24.0,
+        "discussion": 0.0,
+        "extracurricular": 0.0,
+        "weekly": "2"
+      },
+      "category": "集中实践环节（含课外实践）&短学期课程",
+      "subcategory": null,
+      "term": {
+        "year": "三",
+        "semester": "1"
+      },
+      "assessment": "-",
+      "required_type": "",
+      "notes": [],
+      "tags": [
+        "practice"
+      ],
+      "source_pages": [
+        8
+      ]
+    },
+    {
+      "code": "B71S1120",
+      "name": "编译原理专题实践",
+      "credits": 1.0,
+      "hours": {
+        "lecture": 8.0,
+        "experiment": 24.0,
+        "discussion": 0.0,
+        "extracurricular": 0.0,
+        "weekly": "2"
+      },
+      "category": "集中实践环节（含课外实践）&短学期课程",
+      "subcategory": null,
+      "term": {
+        "year": "三",
+        "semester": "3"
+      },
+      "assessment": "-",
+      "required_type": "",
+      "notes": [],
+      "tags": [
+        "practice"
+      ],
+      "source_pages": [
+        8
+      ]
+    },
+    {
+      "code": "B71L0010",
+      "name": "劳动教育与实践",
+      "credits": 1.0,
+      "hours": {
+        "lecture": null,
+        "experiment": null,
+        "discussion": null,
+        "extracurricular": null,
+        "weekly": "3"
+      },
+      "category": "集中实践环节（含课外实践）&短学期课程",
+      "subcategory": null,
+      "term": {
+        "year": null,
+        "semester": null
+      },
+      "assessment": "",
+      "required_type": "",
+      "notes": [],
+      "tags": [
+        "practice"
+      ],
+      "source_pages": [
+        8
+      ]
+    },
+    {
+      "code": "B71P0010",
+      "name": "社会实践",
+      "credits": 1.0,
+      "hours": {
+        "lecture": null,
+        "experiment": null,
+        "discussion": null,
+        "extracurricular": null,
+        "weekly": "3"
+      },
+      "category": "集中实践环节（含课外实践）&短学期课程",
+      "subcategory": null,
+      "term": {
+        "year": null,
+        "semester": null
+      },
+      "assessment": "-",
+      "required_type": "",
+      "notes": [],
+      "tags": [
+        "practice"
+      ],
+      "source_pages": [
+        8
+      ]
+    },
+    {
+      "code": "B71P0020",
+      "name": "文化素质教育实践",
+      "credits": 1.0,
+      "hours": {
+        "lecture": null,
+        "experiment": null,
+        "discussion": null,
+        "extracurricular": null,
+        "weekly": "3"
+      },
+      "category": "集中实践环节（含课外实践）&短学期课程",
+      "subcategory": null,
+      "term": {
+        "year": null,
+        "semester": null
+      },
+      "assessment": "-",
+      "required_type": "",
+      "notes": [],
+      "tags": [
+        "practice"
+      ],
+      "source_pages": [
+        8
+      ]
+    },
+    {
+      "code": "B71P0030",
+      "name": "大学生课外研学",
+      "credits": 2.0,
+      "hours": {
+        "lecture": null,
+        "experiment": null,
+        "discussion": null,
+        "extracurricular": null,
+        "weekly": "3"
+      },
+      "category": "集中实践环节（含课外实践）&短学期课程",
+      "subcategory": null,
+      "term": {
+        "year": null,
+        "semester": null
+      },
+      "assessment": "-",
+      "required_type": "",
+      "notes": [],
+      "tags": [],
+      "source_pages": [
+        8
+      ]
+    },
+    {
+      "code": "B71P0051",
+      "name": "毕业设计(校企)",
+      "credits": 8.0,
+      "hours": {
+        "lecture": 0.0,
+        "experiment": 0.0,
+        "discussion": 0.0,
+        "extracurricular": 0.0,
+        "weekly": "16"
+      },
+      "category": "集中实践环节（含课外实践）&短学期课程",
+      "subcategory": null,
+      "term": {
+        "year": "四",
+        "semester": "3"
+      },
+      "assessment": "-",
+      "required_type": "",
+      "notes": [],
+      "tags": [
+        "practice",
+        "enterprise"
+      ],
+      "source_pages": [
+        8
+      ]
+    },
+    {
+      "code": "B71P0070",
+      "name": "毕业实习(校企)",
+      "credits": 6.0,
+      "hours": {
+        "lecture": 0.0,
+        "experiment": 0.0,
+        "discussion": 0.0,
+        "extracurricular": 0.0,
+        "weekly": "24"
+      },
+      "category": "集中实践环节（含课外实践）&短学期课程",
+      "subcategory": null,
+      "term": {
+        "year": "四",
+        "semester": "1"
+      },
+      "assessment": "-",
+      "required_type": "",
+      "notes": [],
+      "tags": [
+        "practice",
+        "enterprise"
+      ],
+      "source_pages": [
+        8
+      ]
+    },
+    {
+      "code": "B71P0040",
+      "name": "专业技能实训(校企)",
+      "credits": 2.0,
+      "hours": {
+        "lecture": 0.0,
+        "experiment": 0.0,
+        "discussion": 0.0,
+        "extracurricular": 0.0,
+        "weekly": "4"
+      },
+      "category": "集中实践环节（含课外实践）&短学期课程",
+      "subcategory": null,
+      "term": {
+        "year": "二",
+        "semester": "4"
+      },
+      "assessment": "-",
+      "required_type": "",
+      "notes": [],
+      "tags": [
+        "practice",
+        "enterprise"
+      ],
+      "source_pages": [
+        8
+      ]
+    },
+    {
+      "code": "BJSL0110",
+      "name": "领导力素养(校企)",
+      "credits": 2.0,
+      "hours": {
+        "lecture": 24.0,
+        "experiment": 0.0,
+        "discussion": 24.0,
+        "extracurricular": 0.0,
+        "weekly": "12"
+      },
+      "category": "集中实践环节（含课外实践）&短学期课程",
+      "subcategory": null,
+      "term": {
+        "year": "三",
+        "semester": "3"
+      },
+      "assessment": "-",
+      "required_type": "",
+      "notes": [],
+      "tags": [
+        "enterprise"
+      ],
+      "source_pages": [
+        8
+      ]
+    },
+    {
+      "code": "B84M0200",
+      "name": "数字逻辑电路实验C",
+      "credits": 1.0,
+      "hours": {
+        "lecture": 32.0,
+        "experiment": 32.0,
+        "discussion": 0.0,
+        "extracurricular": 32.0,
+        "weekly": "3"
+      },
+      "category": "集中实践环节（含课外实践）&短学期课程",
+      "subcategory": null,
+      "term": {
+        "year": "一",
+        "semester": "3"
+      },
+      "assessment": "-",
+      "required_type": "",
+      "notes": [],
+      "tags": [
+        "practice"
+      ],
+      "source_pages": [
+        8
+      ]
+    },
+    {
+      "code": "BJSL0090",
+      "name": "语言课程设计",
+      "credits": 2.0,
+      "hours": {
+        "lecture": 0.0,
+        "experiment": 0.0,
+        "discussion": 0.0,
+        "extracurricular": 0.0,
+        "weekly": "4"
+      },
+      "category": "集中实践环节（含课外实践）&短学期课程",
+      "subcategory": null,
+      "term": {
+        "year": "一",
+        "semester": "4"
+      },
+      "assessment": "-",
+      "required_type": "",
+      "notes": [],
+      "tags": [],
+      "source_pages": [
+        8
+      ]
+    },
+    {
+      "code": "B85M0020",
+      "name": "军训",
+      "credits": 2.0,
+      "hours": {
+        "lecture": 0.0,
+        "experiment": 0.0,
+        "discussion": 0.0,
+        "extracurricular": 0.0,
+        "weekly": "3"
+      },
+      "category": "集中实践环节（含课外实践）&短学期课程",
+      "subcategory": null,
+      "term": {
+        "year": "一",
+        "semester": "1"
+      },
+      "assessment": "-",
+      "required_type": "",
+      "notes": [],
+      "tags": [
+        "practice"
+      ],
+      "source_pages": [
+        8
+      ]
+    },
+    {
+      "code": "BJSL0100",
+      "name": "专业阅读与写作(研讨)",
+      "credits": 2.0,
+      "hours": {
+        "lecture": 24.0,
+        "experiment": 0.0,
+        "discussion": 24.0,
+        "extracurricular": 0.0,
+        "weekly": "12"
+      },
+      "category": "集中实践环节（含课外实践）&短学期课程",
+      "subcategory": null,
+      "term": {
+        "year": "一",
+        "semester": "4"
+      },
+      "assessment": "-",
+      "required_type": "",
+      "notes": [],
+      "tags": [
+        "seminar"
+      ],
+      "source_pages": [
+        8
+      ]
+    },
+    {
+      "code": "BJSL0101",
+      "name": "专业阅读与写作(全英文、研讨)",
+      "credits": 2.0,
+      "hours": {
+        "lecture": 24.0,
+        "experiment": 0.0,
+        "discussion": 24.0,
+        "extracurricular": 0.0,
+        "weekly": "12"
+      },
+      "category": "集中实践环节（含课外实践）&短学期课程",
+      "subcategory": null,
+      "term": {
+        "year": "一",
+        "semester": "4"
+      },
+      "assessment": "-",
+      "required_type": "",
+      "notes": [],
+      "tags": [
+        "english",
+        "seminar"
+      ],
+      "source_pages": [
+        8
+      ]
+    }
+  ],
+  "requirements": [
+    {
+      "id": "sishi_choose_one",
+      "type": "choose_one_of",
+      "title": "四史四选一",
+      "course_codes": [
+        "B13M0020",
+        "B15M1002",
+        "B15M1001",
+        "B13M0030"
+      ],
+      "course_names": [
+        "新中国史",
+        "改革开放史",
+        "中共党史",
+        "社会主义发展史"
+      ],
+      "groups": [],
+      "min_courses": null,
+      "min_credits": null,
+      "tag": null,
+      "notes": [],
+      "source_text": "四史四选一"
+    },
+    {
+      "id": "os_choose_one",
+      "type": "choose_one_of",
+      "title": "操作系统二选一",
+      "course_codes": [
+        "BJSL0080",
+        "BJSL0081"
+      ],
+      "course_names": [
+        "操作系统(双语)",
+        "操作系统(全英文)"
+      ],
+      "groups": [],
+      "min_courses": null,
+      "min_credits": null,
+      "tag": null,
+      "notes": [],
+      "source_text": "操作系统二选一"
+    },
+    {
+      "id": "uml_choose_one",
+      "type": "choose_one_of",
+      "title": "UML 二选一",
+      "course_codes": [
+        "B71S0010",
+        "B71S0011"
+      ],
+      "course_names": [
+        "软件建模与UML(双语)",
+        "软件建模与UML(全英文)"
+      ],
+      "groups": [],
+      "min_courses": null,
+      "min_credits": null,
+      "tag": null,
+      "notes": [],
+      "source_text": "UML 二选一"
+    },
+    {
+      "id": "compiler_choose_one",
+      "type": "choose_one_of",
+      "title": "编译原理二选一",
+      "course_codes": [
+        "B71S0030",
+        "B71S0031"
+      ],
+      "course_names": [
+        "编译原理(双语)",
+        "编译原理(全英文)"
+      ],
+      "groups": [],
+      "min_courses": null,
+      "min_credits": null,
+      "tag": null,
+      "notes": [],
+      "source_text": "编译原理二选一"
+    },
+    {
+      "id": "db_choose_one",
+      "type": "choose_one_of",
+      "title": "数据库原理二选一",
+      "course_codes": [
+        "B09D0010",
+        "B09D0011"
+      ],
+      "course_names": [
+        "数据库原理(双语)",
+        "数据库原理(全英文)"
+      ],
+      "groups": [],
+      "min_courses": null,
+      "min_credits": null,
+      "tag": null,
+      "notes": [],
+      "source_text": "数据库原理二选一"
+    },
+    {
+      "id": "java_choose_one",
+      "type": "choose_one_of",
+      "title": "Java 二选一",
+      "course_codes": [
+        "B71S1010",
+        "B71S1011"
+      ],
+      "course_names": [
+        "Java程序设计(双语)",
+        "Java程序设计(全英文)"
+      ],
+      "groups": [],
+      "min_courses": null,
+      "min_credits": null,
+      "tag": null,
+      "notes": [],
+      "source_text": "Java 二选一"
+    },
+    {
+      "id": "reading_choose_one",
+      "type": "choose_one_of",
+      "title": "专业阅读二选一",
+      "course_codes": [
+        "BJSL0100",
+        "BJSL0101"
+      ],
+      "course_names": [
+        "专业阅读与写作(研讨)",
+        "专业阅读与写作(全英文、研讨)"
+      ],
+      "groups": [],
+      "min_courses": null,
+      "min_credits": null,
+      "tag": null,
+      "notes": [],
+      "source_text": "专业阅读二选一"
+    },
+    {
+      "id": "practice_choose_three",
+      "type": "choose_n_of",
+      "title": "实践任选3门",
+      "course_codes": [
+        "B09D1070",
+        "B09T1060",
+        "B09H1040",
+        "B09H1030",
+        "B71S1120",
+        "B09N1090"
+      ],
+      "course_names": [
+        "实用数据库系统实践(校企)",
+        "数据结构与算法专题实践",
+        "操作系统专题实践",
+        "计算机组成原理专题实践",
+        "编译原理专题实践",
+        "计算机网络专题实践"
+      ],
+      "groups": [],
+      "min_courses": 3,
+      "min_credits": null,
+      "tag": null,
+      "notes": [],
+      "source_text": "实践任选3门"
+    },
+    {
+      "id": "cross_disciplinary_choose_two",
+      "type": "choose_n_of",
+      "title": "跨学科选修2门",
+      "course_codes": [
+        "B0812130",
+        "B1604101",
+        "B0812120",
+        "B58A1180",
+        "B07M4030",
+        "B2204570",
+        "B1450640"
+      ],
+      "course_names": [
+        "感知与人机交互(双语)",
+        "能源互联网信息技术（研讨）",
+        "机器人软件工程",
+        "感知与人机交互(全英文、研讨)",
+        "数学建模与数学实验",
+        "虚拟现实与数据可视化(双语、研讨)(外系)",
+        "互联网金融(双语)"
+      ],
+      "groups": [],
+      "min_courses": 2,
+      "min_credits": null,
+      "tag": null,
+      "notes": [],
+      "source_text": "跨学科选修2门"
+    },
+    {
+      "id": "group_a_direction",
+      "type": "nested_group_choice",
+      "title": "A组方向",
+      "course_codes": [],
+      "course_names": [],
+      "groups": [
+        {
+          "id": "group_a_software_theory",
+          "title": "A组：软件理论与方法",
+          "course_codes": [
+            "B71S1090",
+            "B71S1130",
+            "B71S1060",
+            "B71S1040",
+            "B71S1020",
+            "B71S1100"
+          ],
+          "course_names": [
+            "软件缺陷定位与修复(全英文、研讨)",
+            "二进制代码分析（双语、研讨）",
+            "软件项目管理与实践(研讨)",
+            "Java设计模式(研讨)",
+            "Python编程",
+            "软件智能化方法(研讨)"
+          ],
+          "min_courses": 2,
+          "min_credits": null
+        },
+        {
+          "id": "group_a_software_systems",
+          "title": "A组：软件系统与数据处理",
+          "course_codes": [
+            "B09D1030",
+            "B71S1050",
+            "B09D1020",
+            "B09D1010",
+            "B71S1080",
+            "B09D1060",
+            "B09D1050"
+          ],
+          "course_names": [
+            "XML技术(双语、研讨)",
+            "IT系统管理(全英文、研讨)",
+            "大数据处理(双语、研讨)",
+            "高级数据结构(全英文、研讨)",
+            "分布式系统(全英文、研讨)",
+            "数据仓库与数据挖掘(双语、研讨)",
+            "信息检索(双语、研讨)"
+          ],
+          "min_courses": 2,
+          "min_credits": null
+        }
+      ],
+      "min_courses": 2,
+      "min_credits": null,
+      "tag": null,
+      "notes": [
+        "在A组2个方向中任选其一，且选修2门及以上"
+      ],
+      "source_text": "A组方向"
+    },
+    {
+      "id": "group_b_choose_four",
+      "type": "choose_n_of",
+      "title": "B组4门",
+      "course_codes": [
+        "B09T1020",
+        "B09T1070",
+        "B09T1050",
+        "B09H1021",
+        "B09H1010",
+        "B09T1040",
+        "B09T1030",
+        "B09N1040",
+        "B09N1030",
+        "B71N1010",
+        "B09N1020",
+        "B09N1080",
+        "B09N1070",
+        "B09N1041",
+        "B09G1051",
+        "B71G1070",
+        "B58A1040",
+        "B09G1060",
+        "B09G1040",
+        "B09G1030",
+        "B09G1052",
+        "B71G1080",
+        "B58A1060",
+        "B58A1170",
+        "B09A1130",
+        "B09A1120",
+        "B09A1110",
+        "B58A1101",
+        "B58A1020",
+        "B58A1090"
+      ],
+      "course_names": [
+        "组合数学(研讨)",
+        "计算机与社会(全英文、研讨)",
+        "可计算性理论",
+        "嵌入式系统设计",
+        "计算机接口技术（研讨）",
+        "量子信息处理与几何(研讨)",
+        "运筹学(研讨)",
+        "网络与信息安全(全英文、研讨)",
+        "分布计算新技术(研讨)",
+        "计算机网络及应用(研讨)",
+        "物联网导论(研讨)",
+        "数据中心网络(全英文、研讨)",
+        "移动互联网导论(研讨)",
+        "网络与信息安全(研讨)",
+        "机器视觉与应用(双语、研讨)",
+        "数字图像处理(研讨)",
+        "深度学习与应用(研讨)",
+        "语音信息处理(研讨)",
+        "多媒体技术(研讨)",
+        "计算机图形学(研讨)",
+        "机器视觉与应用(全英文、研讨)",
+        "信号处理导论",
+        "强化学习(双语)",
+        "知识表示与推理(全英文、研讨)",
+        "模式识别(全英文、研讨)",
+        "人工智能(研讨)",
+        "机器学习(研讨)",
+        "知识图谱及应用(全英文、研讨)",
+        "概率图模型(双语)",
+        "分布式智能与社会网络(研讨)"
+      ],
+      "groups": [],
+      "min_courses": 4,
+      "min_credits": null,
+      "tag": null,
+      "notes": [],
+      "source_text": "B组4门"
+    },
+    {
+      "id": "seminar_min_12_credits",
+      "type": "min_credits_from_group",
+      "title": "研讨课>=12学分",
+      "course_codes": [],
+      "course_names": [],
+      "groups": [],
+      "min_courses": null,
+      "min_credits": 12.0,
+      "tag": "seminar",
+      "notes": [
+        "研讨课学分>=12"
+      ],
+      "source_text": "研讨课>=12学分"
+    },
+    {
+      "id": "english_min_two_or_four_credits",
+      "type": "tag_credit_requirement",
+      "title": "全英文课程>=2门或>=4学分",
+      "course_codes": [],
+      "course_names": [],
+      "groups": [],
+      "min_courses": 2,
+      "min_credits": 4.0,
+      "tag": "english",
+      "notes": [
+        "全英文课程至少2门或4学分"
+      ],
+      "source_text": "全英文课程>=2门或>=4学分"
+    }
+  ],
+  "semester_plan": [
+    {
+      "academic_year": "第一学年",
+      "semester": "第1学期",
+      "courses": [
+        {
+          "code": "B07M1050",
+          "name": "工科数学分析I",
+          "credits": 6.0,
+          "required_type": "必修",
+          "note_ref": null
+        },
+        {
+          "code": "B07M2040",
+          "name": "线性代数",
+          "credits": 4.0,
+          "required_type": "必修",
+          "note_ref": null
+        },
+        {
+          "code": "B15M0030",
+          "name": "中国近现代史纲要",
+          "credits": 3.0,
+          "required_type": "必修",
+          "note_ref": null
+        },
+        {
+          "code": "B15M0060",
+          "name": "军事理论",
+          "credits": 2.0,
+          "required_type": "必修",
+          "note_ref": null
+        },
+        {
+          "code": "B15M0070",
+          "name": "形势与政策(1)",
+          "credits": 0.25,
+          "required_type": "必修",
+          "note_ref": null
+        },
+        {
+          "code": "B15M0190",
+          "name": "思想道德与法治",
+          "credits": 3.0,
+          "required_type": "必修",
+          "note_ref": null
+        },
+        {
+          "code": "B18M0010",
+          "name": "体育I",
+          "credits": 0.5,
+          "required_type": "必修",
+          "note_ref": null
+        },
+        {
+          "code": "B85M0020",
+          "name": "军训",
+          "credits": 2.0,
+          "required_type": "必修",
+          "note_ref": null
+        },
+        {
+          "code": "BJSL0010",
+          "name": "计算机大类新生研讨",
+          "credits": 1.0,
+          "required_type": "必修",
+          "note_ref": null
+        },
+        {
+          "code": "BJSL0020",
+          "name": "程序设计基础及语言I(双语)",
+          "credits": 2.0,
+          "required_type": "必修",
+          "note_ref": null
+        },
+        {
+          "code": "B17M0010",
+          "name": "大学英语II",
+          "credits": 2.0,
+          "required_type": "必修",
+          "note_ref": "3"
+        },
+        {
+          "code": "B17M0020",
+          "name": "大学英语III",
+          "credits": 2.0,
+          "required_type": "必修",
+          "note_ref": "4"
+        },
+        {
+          "code": "B17M0030",
+          "name": "大学英语IV",
+          "credits": 2.0,
+          "required_type": "必修",
+          "note_ref": "6"
+        }
+      ],
+      "required_credits": 25.75
+    },
+    {
+      "academic_year": "第一学年",
+      "semester": "第2学期",
+      "courses": [],
+      "required_credits": 0.0
+    },
+    {
+      "academic_year": "第一学年",
+      "semester": "第3学期",
+      "courses": [
+        {
+          "code": "B07M1060",
+          "name": "工科数学分析II",
+          "credits": 6.0,
+          "required_type": "必修",
+          "note_ref": null
+        },
+        {
+          "code": "B10M0140",
+          "name": "大学物理实验(理工)I",
+          "credits": 1.0,
+          "required_type": "必修",
+          "note_ref": null
+        },
+        {
+          "code": "B10M0240",
+          "name": "大学物理(B)Ⅰ",
+          "credits": 3.0,
+          "required_type": "必修",
+          "note_ref": null
+        },
+        {
+          "code": "B15M0080",
+          "name": "形势与政策(2)",
+          "credits": 0.25,
+          "required_type": "必修",
+          "note_ref": null
+        },
+        {
+          "code": "B18M0020",
+          "name": "体育II",
+          "credits": 0.5,
+          "required_type": "必修",
+          "note_ref": null
+        },
+        {
+          "code": "B84M0200",
+          "name": "数字逻辑电路实验C",
+          "credits": 1.0,
+          "required_type": "必修",
+          "note_ref": null
+        },
+        {
+          "code": "BJSL0030",
+          "name": "程序设计基础及语言II(双语)",
+          "credits": 2.0,
+          "required_type": "必修",
+          "note_ref": null
+        },
+        {
+          "code": "BJSL0041",
+          "name": "离散数学(双语)",
+          "credits": 4.0,
+          "required_type": "必修",
+          "note_ref": null
+        },
+        {
+          "code": "BJSL0050",
+          "name": "数字逻辑电路",
+          "credits": 3.0,
+          "required_type": "必修",
+          "note_ref": null
+        },
+        {
+          "code": "B17M0020",
+          "name": "大学英语III",
+          "credits": 2.0,
+          "required_type": "必修",
+          "note_ref": "3"
+        },
+        {
+          "code": "B17M0030",
+          "name": "大学英语IV",
+          "credits": 2.0,
+          "required_type": "必修",
+          "note_ref": "4"
+        },
+        {
+          "code": "B17M0040",
+          "name": "大学英语高级课程1",
+          "credits": 2.0,
+          "required_type": "必修",
+          "note_ref": "6"
+        }
+      ],
+      "required_credits": 22.75
+    },
+    {
+      "academic_year": "第一学年",
+      "semester": "第4学期",
+      "courses": [
+        {
+          "code": "BJSL0090",
+          "name": "语言课程设计",
+          "credits": 2.0,
+          "required_type": "必修",
+          "note_ref": null
+        },
+        {
+          "code": "BJSL0100",
+          "name": "专业阅读与写作(研讨)",
+          "credits": 2.0,
+          "required_type": "必修",
+          "note_ref": null
+        },
+        {
+          "code": "BJSL0101",
+          "name": "专业阅读与写作(全英文、研讨)",
+          "credits": 2.0,
+          "required_type": "必修",
+          "note_ref": null
+        }
+      ],
+      "required_credits": 4.0
+    },
+    {
+      "academic_year": "第二学年",
+      "semester": "第1学期",
+      "courses": [
+        {
+          "code": "B13M0020",
+          "name": "新中国史",
+          "credits": 1.0,
+          "required_type": "限选",
+          "note_ref": null
+        },
+        {
+          "code": "B13M0030",
+          "name": "社会主义发展史",
+          "credits": 1.0,
+          "required_type": "限选",
+          "note_ref": null
+        },
+        {
+          "code": "B15M1001",
+          "name": "中共党史",
+          "credits": 1.0,
+          "required_type": "限选",
+          "note_ref": null
+        },
+        {
+          "code": "B15M1002",
+          "name": "改革开放史",
+          "credits": 1.0,
+          "required_type": "限选",
+          "note_ref": null
+        },
+        {
+          "code": "B71S1010",
+          "name": "Java程序设计(双语)",
+          "credits": 3.0,
+          "required_type": "限选",
+          "note_ref": null
+        },
+        {
+          "code": "B71S1011",
+          "name": "Java程序设计(全英文)",
+          "credits": 3.0,
+          "required_type": "限选",
+          "note_ref": null
+        },
+        {
+          "code": "B07M4010",
+          "name": "复变函数",
+          "credits": 2.0,
+          "required_type": "必修",
+          "note_ref": null
+        },
+        {
+          "code": "B10M0150",
+          "name": "大学物理实验(理工)II",
+          "credits": 1.0,
+          "required_type": "必修",
+          "note_ref": null
+        },
+        {
+          "code": "B10M0250",
+          "name": "大学物理(B)Ⅱ",
+          "credits": 3.0,
+          "required_type": "必修",
+          "note_ref": null
+        },
+        {
+          "code": "B15M0010",
+          "name": "马克思主义基本原理概论",
+          "credits": 3.0,
+          "required_type": "必修",
+          "note_ref": null
+        },
+        {
+          "code": "B15M0090",
+          "name": "形势与政策(3)",
+          "credits": 0.25,
+          "required_type": "必修",
+          "note_ref": null
+        },
+        {
+          "code": "B18M0030",
+          "name": "体育III",
+          "credits": 0.5,
+          "required_type": "必修",
+          "note_ref": null
+        },
+        {
+          "code": "BJSL0060",
+          "name": "数据结构(双语)",
+          "credits": 4.0,
+          "required_type": "必修",
+          "note_ref": null
+        },
+        {
+          "code": "BJSL0070",
+          "name": "计算机组成原理",
+          "credits": 4.0,
+          "required_type": "必修",
+          "note_ref": null
+        },
+        {
+          "code": "B17M0030",
+          "name": "大学英语IV",
+          "credits": 2.0,
+          "required_type": "必修",
+          "note_ref": "2"
+        },
+        {
+          "code": "B17M0040",
+          "name": "大学英语高级课程1",
+          "credits": 2.0,
+          "required_type": "必修",
+          "note_ref": "5"
+        },
+        {
+          "code": "B17M0050",
+          "name": "大学英语高级课程2",
+          "credits": 2.0,
+          "required_type": "必修",
+          "note_ref": "7"
+        },
+        {
+          "code": "B71S0010",
+          "name": "软件建模与UML(双语)",
+          "credits": 3.0,
+          "required_type": "必修",
+          "note_ref": null
+        },
+        {
+          "code": "B71S0011",
+          "name": "软件建模与UML(全英文)",
+          "credits": 3.0,
+          "required_type": "必修",
+          "note_ref": null
+        },
+        {
+          "code": "B71S1020",
+          "name": "Python编程",
+          "credits": 2.0,
+          "required_type": "任选",
+          "note_ref": "15"
+        }
+      ],
+      "required_credits": 25.75
+    },
+    {
+      "academic_year": "第二学年",
+      "semester": "第2学期",
+      "courses": [],
+      "required_credits": 0.0
+    },
+    {
+      "academic_year": "第二学年",
+      "semester": "第3学期",
+      "courses": [
+        {
+          "code": "B13M0020",
+          "name": "新中国史",
+          "credits": 1.0,
+          "required_type": "限选",
+          "note_ref": null
+        },
+        {
+          "code": "B13M0030",
+          "name": "社会主义发展史",
+          "credits": 1.0,
+          "required_type": "限选",
+          "note_ref": null
+        },
+        {
+          "code": "B15M1001",
+          "name": "中共党史",
+          "credits": 1.0,
+          "required_type": "限选",
+          "note_ref": null
+        },
+        {
+          "code": "B15M1002",
+          "name": "改革开放史",
+          "credits": 1.0,
+          "required_type": "限选",
+          "note_ref": null
+        },
+        {
+          "code": "B07M3010",
+          "name": "概率论与数理统计",
+          "credits": 3.0,
+          "required_type": "必修",
+          "note_ref": null
+        },
+        {
+          "code": "B09T0010",
+          "name": "算法设计与分析",
+          "credits": 3.0,
+          "required_type": "必修",
+          "note_ref": null
+        },
+        {
+          "code": "B15M0100",
+          "name": "形势与政策(4)",
+          "credits": 0.25,
+          "required_type": "必修",
+          "note_ref": null
+        },
+        {
+          "code": "B15M0160",
+          "name": "毛泽东思想和中国特色社会主义理论体系概论",
+          "credits": 3.0,
+          "required_type": "必修",
+          "note_ref": null
+        },
+        {
+          "code": "B15M2001",
+          "name": "习近平新时代中国特色社会主义思想概论",
+          "credits": 3.0,
+          "required_type": "必修",
+          "note_ref": null
+        },
+        {
+          "code": "B18M0040",
+          "name": "体育IV",
+          "credits": 0.5,
+          "required_type": "必修",
+          "note_ref": null
+        },
+        {
+          "code": "B71S0020",
+          "name": "软件工程导论(双语)",
+          "credits": 3.0,
+          "required_type": "必修",
+          "note_ref": null
+        },
+        {
+          "code": "BJSL0080",
+          "name": "操作系统(双语)",
+          "credits": 4.0,
+          "required_type": "必修",
+          "note_ref": null
+        },
+        {
+          "code": "BJSL0081",
+          "name": "操作系统(全英文)",
+          "credits": 4.0,
+          "required_type": "必修",
+          "note_ref": null
+        },
+        {
+          "code": "B07M4030",
+          "name": "数学建模与数学实验",
+          "credits": 2.0,
+          "required_type": "任选",
+          "note_ref": "14"
+        },
+        {
+          "code": "B09D1010",
+          "name": "高级数据结构(全英文、研讨)",
+          "credits": 2.0,
+          "required_type": "任选",
+          "note_ref": "16"
+        },
+        {
+          "code": "B09H1030",
+          "name": "计算机组成原理专题实践",
+          "credits": 1.0,
+          "required_type": "任选",
+          "note_ref": "22"
+        },
+        {
+          "code": "B09N1020",
+          "name": "物联网导论(研讨)",
+          "credits": 2.0,
+          "required_type": "任选",
+          "note_ref": null
+        },
+        {
+          "code": "B71N1010",
+          "name": "计算机网络及应用(研讨)",
+          "credits": 2.0,
+          "required_type": "任选",
+          "note_ref": null
+        },
+        {
+          "code": "B09T1020",
+          "name": "组合数学(研讨)",
+          "credits": 2.0,
+          "required_type": "任选",
+          "note_ref": null
+        },
+        {
+          "code": "B09T1030",
+          "name": "运筹学(研讨)",
+          "credits": 2.0,
+          "required_type": "任选",
+          "note_ref": "17"
+        },
+        {
+          "code": "B09T1040",
+          "name": "量子信息处理与几何(研讨)",
+          "credits": 2.0,
+          "required_type": "任选",
+          "note_ref": null
+        },
+        {
+          "code": "B58A1020",
+          "name": "概率图模型(双语)",
+          "credits": 2.0,
+          "required_type": "任选",
+          "note_ref": "20"
+        },
+        {
+          "code": "B71G1080",
+          "name": "信号处理导论",
+          "credits": 2.0,
+          "required_type": "任选",
+          "note_ref": "19"
+        }
+      ],
+      "required_credits": 19.75
+    },
+    {
+      "academic_year": "第二学年",
+      "semester": "第4学期",
+      "courses": [
+        {
+          "code": "B71P0040",
+          "name": "专业技能实训(校企)",
+          "credits": 2.0,
+          "required_type": "必修",
+          "note_ref": null
+        },
+        {
+          "code": "B09G1052",
+          "name": "机器视觉与应用(全英文、研讨)",
+          "credits": 2.0,
+          "required_type": "任选",
+          "note_ref": "19"
+        },
+        {
+          "code": "B58A1101",
+          "name": "知识图谱及应用(全英文、研讨)",
+          "credits": 2.0,
+          "required_type": "任选",
+          "note_ref": "20"
+        },
+        {
+          "code": "B58A1180",
+          "name": "感知与人机交互(全英文、研讨)",
+          "credits": 2.0,
+          "required_type": "任选",
+          "note_ref": "14"
+        }
+      ],
+      "required_credits": 2.0
+    },
+    {
+      "academic_year": "第三学年",
+      "semester": "第1学期",
+      "courses": [
+        {
+          "code": "B09D0010",
+          "name": "数据库原理(双语)",
+          "credits": 3.0,
+          "required_type": "必修",
+          "note_ref": null
+        },
+        {
+          "code": "B09D0011",
+          "name": "数据库原理(全英文)",
+          "credits": 3.0,
+          "required_type": "必修",
+          "note_ref": null
+        },
+        {
+          "code": "B15M0110",
+          "name": "形势与政策(5)",
+          "credits": 0.25,
+          "required_type": "必修",
+          "note_ref": null
+        },
+        {
+          "code": "B18M0050",
+          "name": "体育V",
+          "credits": 0.0,
+          "required_type": "必修",
+          "note_ref": null
+        },
+        {
+          "code": "B71S0040",
+          "name": "软件设计与体系结构",
+          "credits": 4.0,
+          "required_type": "必修",
+          "note_ref": null
+        },
+        {
+          "code": "B71S0030",
+          "name": "编译原理(双语)",
+          "credits": 4.0,
+          "required_type": "必修",
+          "note_ref": null
+        },
+        {
+          "code": "B71S0031",
+          "name": "编译原理(全英文)",
+          "credits": 4.0,
+          "required_type": "必修",
+          "note_ref": null
+        },
+        {
+          "code": "B0812120",
+          "name": "机器人软件工程",
+          "credits": 2.0,
+          "required_type": "任选",
+          "note_ref": null
+        },
+        {
+          "code": "B1604101",
+          "name": "能源互联网信息技术（研讨）",
+          "credits": 2.0,
+          "required_type": "任选",
+          "note_ref": null
+        },
+        {
+          "code": "B09A1110",
+          "name": "机器学习(研讨)",
+          "credits": 2.0,
+          "required_type": "任选",
+          "note_ref": null
+        },
+        {
+          "code": "B09A1120",
+          "name": "人工智能(研讨)",
+          "credits": 2.0,
+          "required_type": "任选",
+          "note_ref": null
+        },
+        {
+          "code": "B09A1130",
+          "name": "模式识别(全英文、研讨)",
+          "credits": 2.0,
+          "required_type": "任选",
+          "note_ref": null
+        },
+        {
+          "code": "B58A1170",
+          "name": "知识表示与推理(全英文、研讨)",
+          "credits": 2.0,
+          "required_type": "任选",
+          "note_ref": null
+        },
+        {
+          "code": "B09D1020",
+          "name": "大数据处理(双语、研讨)",
+          "credits": 2.0,
+          "required_type": "任选",
+          "note_ref": null
+        },
+        {
+          "code": "B71S1050",
+          "name": "IT系统管理(全英文、研讨)",
+          "credits": 2.0,
+          "required_type": "任选",
+          "note_ref": null
+        },
+        {
+          "code": "B09G1030",
+          "name": "计算机图形学(研讨)",
+          "credits": 2.0,
+          "required_type": "任选",
+          "note_ref": null
+        },
+        {
+          "code": "B09G1040",
+          "name": "多媒体技术(研讨)",
+          "credits": 2.0,
+          "required_type": "任选",
+          "note_ref": null
+        },
+        {
+          "code": "B09G1060",
+          "name": "语音信息处理(研讨)",
+          "credits": 2.0,
+          "required_type": "任选",
+          "note_ref": "19"
+        },
+        {
+          "code": "B58A1040",
+          "name": "深度学习与应用(研讨)",
+          "credits": 2.0,
+          "required_type": "任选",
+          "note_ref": null
+        },
+        {
+          "code": "B71G1070",
+          "name": "数字图像处理(研讨)",
+          "credits": 2.0,
+          "required_type": "任选",
+          "note_ref": null
+        },
+        {
+          "code": "B09H1010",
+          "name": "计算机接口技术（研讨）",
+          "credits": 2.0,
+          "required_type": "任选",
+          "note_ref": null
+        },
+        {
+          "code": "B09H1021",
+          "name": "嵌入式系统设计",
+          "credits": 2.0,
+          "required_type": "任选",
+          "note_ref": null
+        },
+        {
+          "code": "B09T1050",
+          "name": "可计算性理论",
+          "credits": 2.0,
+          "required_type": "任选",
+          "note_ref": null
+        },
+        {
+          "code": "B09T1070",
+          "name": "计算机与社会(全英文、研讨)",
+          "credits": 2.0,
+          "required_type": "任选",
+          "note_ref": null
+        },
+        {
+          "code": "B09H1040",
+          "name": "操作系统专题实践",
+          "credits": 1.0,
+          "required_type": "任选",
+          "note_ref": null
+        },
+        {
+          "code": "B09T1060",
+          "name": "数据结构与算法专题实践",
+          "credits": 1.0,
+          "required_type": "任选",
+          "note_ref": null
+        },
+        {
+          "code": "B09N1030",
+          "name": "分布计算新技术(研讨)",
+          "credits": 2.0,
+          "required_type": "任选",
+          "note_ref": "18"
+        },
+        {
+          "code": "B71S1040",
+          "name": "Java设计模式(研讨)",
+          "credits": 2.0,
+          "required_type": "任选",
+          "note_ref": null
+        },
+        {
+          "code": "B71S1060",
+          "name": "软件项目管理与实践(研讨)",
+          "credits": 2.0,
+          "required_type": "任选",
+          "note_ref": "15"
+        },
+        {
+          "code": "B71S1130",
+          "name": "二进制代码分析（双语、研讨）",
+          "credits": 2.0,
+          "required_type": "任选",
+          "note_ref": null
+        }
+      ],
+      "required_credits": 18.25
+    },
+    {
+      "academic_year": "第三学年",
+      "semester": "第2学期",
+      "courses": [],
+      "required_credits": 0.0
+    },
+    {
+      "academic_year": "第三学年",
+      "semester": "第3学期",
+      "courses": [
+        {
+          "code": "B09T1010",
+          "name": "IT新技术讲座(校企)",
+          "credits": 0.5,
+          "required_type": "限选",
+          "note_ref": "13"
+        },
+        {
+          "code": "B15M0120",
+          "name": "形势与政策(6)",
+          "credits": 0.25,
+          "required_type": "必修",
+          "note_ref": null
+        },
+        {
+          "code": "B18M0050",
+          "name": "体育V",
+          "credits": 0.5,
+          "required_type": "必修",
+          "note_ref": null
+        },
+        {
+          "code": "B71P0010",
+          "name": "社会实践",
+          "credits": 1.0,
+          "required_type": "必修",
+          "note_ref": null
+        },
+        {
+          "code": "B71S0050",
+          "name": "软件质量保障",
+          "credits": 3.0,
+          "required_type": "必修",
+          "note_ref": null
+        },
+        {
+          "code": "B88M0010",
+          "name": "就业导论",
+          "credits": 0.5,
+          "required_type": "必修",
+          "note_ref": null
+        },
+        {
+          "code": "BJSL0110",
+          "name": "领导力素养(校企)",
+          "credits": 2.0,
+          "required_type": "必修",
+          "note_ref": null
+        },
+        {
+          "code": "B0812130",
+          "name": "感知与人机交互(双语)",
+          "credits": 2.0,
+          "required_type": "任选",
+          "note_ref": null
+        },
+        {
+          "code": "B1450640",
+          "name": "互联网金融(双语)",
+          "credits": 2.0,
+          "required_type": "任选",
+          "note_ref": "14"
+        },
+        {
+          "code": "B2204570",
+          "name": "虚拟现实与数据可视化(双语、研讨)(外系)",
+          "credits": 2.0,
+          "required_type": "任选",
+          "note_ref": null
+        },
+        {
+          "code": "B09D1030",
+          "name": "XML技术(双语、研讨)",
+          "credits": 2.0,
+          "required_type": "任选",
+          "note_ref": null
+        },
+        {
+          "code": "B09D1050",
+          "name": "信息检索(双语、研讨)",
+          "credits": 2.0,
+          "required_type": "任选",
+          "note_ref": null
+        },
+        {
+          "code": "B09D1060",
+          "name": "数据仓库与数据挖掘(双语、研讨)",
+          "credits": 2.0,
+          "required_type": "任选",
+          "note_ref": null
+        },
+        {
+          "code": "B71S1080",
+          "name": "分布式系统(全英文、研讨)",
+          "credits": 2.0,
+          "required_type": "任选",
+          "note_ref": null
+        },
+        {
+          "code": "B09D1070",
+          "name": "实用数据库系统实践(校企)",
+          "credits": 1.0,
+          "required_type": "任选",
+          "note_ref": null
+        },
+        {
+          "code": "B09N1090",
+          "name": "计算机网络专题实践",
+          "credits": 1.0,
+          "required_type": "任选",
+          "note_ref": null
+        },
+        {
+          "code": "B71S1120",
+          "name": "编译原理专题实践",
+          "credits": 1.0,
+          "required_type": "任选",
+          "note_ref": "22"
+        },
+        {
+          "code": "B09G1051",
+          "name": "机器视觉与应用(双语、研讨)",
+          "credits": 2.0,
+          "required_type": "任选",
+          "note_ref": "19"
+        },
+        {
+          "code": "B09N1040",
+          "name": "网络与信息安全(全英文、研讨)",
+          "credits": 2.0,
+          "required_type": "任选",
+          "note_ref": null
+        },
+        {
+          "code": "B09N1041",
+          "name": "网络与信息安全(研讨)",
+          "credits": 2.0,
+          "required_type": "任选",
+          "note_ref": null
+        },
+        {
+          "code": "B09N1070",
+          "name": "移动互联网导论(研讨)",
+          "credits": 2.0,
+          "required_type": "任选",
+          "note_ref": null
+        },
+        {
+          "code": "B09N1080",
+          "name": "数据中心网络(全英文、研讨)",
+          "credits": 2.0,
+          "required_type": "任选",
+          "note_ref": null
+        },
+        {
+          "code": "B58A1060",
+          "name": "强化学习(双语)",
+          "credits": 2.0,
+          "required_type": "任选",
+          "note_ref": null
+        },
+        {
+          "code": "B58A1090",
+          "name": "分布式智能与社会网络(研讨)",
+          "credits": 2.0,
+          "required_type": "任选",
+          "note_ref": null
+        },
+        {
+          "code": "B71S1090",
+          "name": "软件缺陷定位与修复(全英文、研讨)",
+          "credits": 2.0,
+          "required_type": "任选",
+          "note_ref": null
+        },
+        {
+          "code": "B71S1100",
+          "name": "软件智能化方法(研讨)",
+          "credits": 2.0,
+          "required_type": "任选",
+          "note_ref": null
+        }
+      ],
+      "required_credits": 7.25
+    },
+    {
+      "academic_year": "第三学年",
+      "semester": "第4学期",
+      "courses": [],
+      "required_credits": 0.0
+    },
+    {
+      "academic_year": "第四学年",
+      "semester": "第1学期",
+      "courses": [
+        {
+          "code": "B15M0130",
+          "name": "形势与政策(7)",
+          "credits": 0.25,
+          "required_type": "必修",
+          "note_ref": null
+        },
+        {
+          "code": "B18M0060",
+          "name": "体育VI",
+          "credits": 0.5,
+          "required_type": "必修",
+          "note_ref": null
+        },
+        {
+          "code": "B71P0070",
+          "name": "毕业实习(校企)",
+          "credits": 6.0,
+          "required_type": "必修",
+          "note_ref": null
+        }
+      ],
+      "required_credits": 6.75
+    },
+    {
+      "academic_year": "第四学年",
+      "semester": "第2学期",
+      "courses": [],
+      "required_credits": 0.0
+    },
+    {
+      "academic_year": "第四学年",
+      "semester": "第3学期",
+      "courses": [
+        {
+          "code": "B15M0140",
+          "name": "形势与政策(8)",
+          "credits": 0.25,
+          "required_type": "必修",
+          "note_ref": null
+        },
+        {
+          "code": "B71P0020",
+          "name": "文化素质教育实践",
+          "credits": 1.0,
+          "required_type": "必修",
+          "note_ref": null
+        },
+        {
+          "code": "B71P0030",
+          "name": "大学生课外研学",
+          "credits": 2.0,
+          "required_type": "必修",
+          "note_ref": null
+        },
+        {
+          "code": "B71P0051",
+          "name": "毕业设计(校企)",
+          "credits": 8.0,
+          "required_type": "必修",
+          "note_ref": null
+        }
+      ],
+      "required_credits": 11.25
+    },
+    {
+      "academic_year": "第四学年",
+      "semester": "第4学期",
+      "courses": [
+        {
+          "code": "B00TL150",
+          "name": "美育类通识选修课(2学分)",
+          "credits": 2.0,
+          "required_type": "",
+          "note_ref": null
+        },
+        {
+          "code": "B00TL080",
+          "name": "人文社科类通识选修课(2学分)",
+          "credits": 2.0,
+          "required_type": "",
+          "note_ref": null
+        },
+        {
+          "code": "B71L0010",
+          "name": "劳动教育与实践",
+          "credits": 1.0,
+          "required_type": "",
+          "note_ref": null
+        },
+        {
+          "code": "B00TL090",
+          "name": "创新创业类通识选修课(2学分)",
+          "credits": 2.0,
+          "required_type": "",
+          "note_ref": null
+        },
+        {
+          "code": "B00TL100",
+          "name": "心理健康教育类通识选修课(2学分)",
+          "credits": 2.0,
+          "required_type": "",
+          "note_ref": null
+        }
+      ],
+      "required_credits": 0.0
+    }
+  ],
+  "warnings": [],
+  "provenance": {
+    "source_pdf": "2022级软件工程专业培养方案.pdf",
+    "extractor_version": "0.1.0",
+    "llm_model": null
+  }
+}

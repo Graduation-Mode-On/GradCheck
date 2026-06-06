@@ -118,5 +118,17 @@ async function logout() {
         </div>
       </form>
     </section>
+
+    <RouterLink
+      to="/graduation-gift"
+      data-testid="profile-graduation-gift"
+      class="mt-4 block rounded-3xl bg-white p-5 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md"
+    >
+      <p class="text-sm font-semibold text-[var(--tommy-primary)]">个人专属</p>
+      <h2 class="mt-1 text-xl font-bold text-[var(--tommy-text)]">毕业礼包</h2>
+      <p class="mt-2 text-sm leading-6 text-[var(--tommy-text-secondary)]">
+        当毕业要求满足后，在这里查看毕业指南、材料准备和离校事项。
+      </p>
+    </RouterLink>
   </AppShell>
 </template>

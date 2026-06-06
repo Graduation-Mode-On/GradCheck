@@ -1,0 +1,194 @@
+import { VueQueryPlugin } from "@tanstack/vue-query";
+import { flushPromises, mount, RouterLinkStub } from "@vue/test-utils";
+import { beforeEach, describe, expect, it, vi } from "vitest";
+
+import LecturePracticePage from "./LecturePracticePage.vue";
+
+const mocks = vi.hoisted(() => ({
+  token: null as string | null,
+  replace: vi.fn(),
+  getLecturePracticeProgress: vi.fn(),
+  updateLecturePracticeProgress: vi.fn()
+}));
+
+vi.mock("vue-router", () => ({
+  useRouter: () => ({ replace: mocks.replace }),
+  RouterLink: RouterLinkStub
+}));
+
+vi.mock("../lib/api", async () => {
+  const actual = await vi.importActual<typeof import("../lib/api")>("../lib/api");
+  return {
+    ...actual,
+    getToken: () => mocks.token,
+    getLecturePracticeProgress: mocks.getLecturePracticeProgress,
+    updateLecturePracticeProgress: mocks.updateLecturePracticeProgress
+  };
+});
+
+function mountPage() {
+  return mount(LecturePracticePage, {
+    global: {
+      plugins: [VueQueryPlugin],
+      stubs: { RouterLink: RouterLinkStub }
+    }
+  });
+}
+
+describe("LecturePracticePage", () => {
+  beforeEach(() => {
+    vi.useRealTimers();
+    mocks.token = null;
+    mocks.replace.mockClear();
+    mocks.getLecturePracticeProgress.mockReset();
+    mocks.updateLecturePracticeProgress.mockReset();
+    mocks.getLecturePracticeProgress.mockResolvedValue({
+      progress: {
+        humanLectureCount: 0,
+        bookReportCount: 0,
+        socialPracticeCredits: "1.00",
+        socialPracticeCourseCount: 0
+      }
+    });
+    mocks.updateLecturePracticeProgress.mockResolvedValue({
+      progress: {
+        humanLectureCount: 1,
+        bookReportCount: 0,
+        socialPracticeCredits: "1.00",
+        socialPracticeCourseCount: 0
+      }
+    });
+  });
+
+  it("redirects unauthenticated users to login", () => {
+    mountPage();
+
+    expect(mocks.replace).toHaveBeenCalledWith("/login");
+  });
+
+  it("renders lecture practice requirements and social practice excellence state", async () => {
+    mocks.token = "token";
+    const wrapper = mountPage();
+
+    await flushPromises();
+
+    expect(wrapper.text()).toContain("讲座实践");
+    expect(wrapper.text()).toContain("人文讲座");
+    expect(wrapper.text()).toContain("8");
+    expect(wrapper.text()).toContain("读书报告");
+    expect(wrapper.text()).toContain("2");
+    expect(wrapper.text()).toContain("社会实践学分");
+    expect(wrapper.text()).toContain("学分");
+    expect(wrapper.text()).toContain("距优秀还差 2 学分");
+    expect(wrapper.text()).toContain("社会实践公开课");
+  });
+
+  it("increments count via +1 button and auto-saves", async () => {
+    mocks.token = "token";
+    const wrapper = mountPage();
+
+    await flushPromises();
+
+    await wrapper.get('[data-testid="progress-humanLectureCount-increment"]').trigger("click");
+    await flushPromises();
+
+    expect(mocks.updateLecturePracticeProgress).toHaveBeenCalledWith(
+      expect.objectContaining({ humanLectureCount: 1 })
+    );
+  });
+
+  it("decrements count via -1 button and auto-saves", async () => {
+    mocks.token = "token";
+    mocks.getLecturePracticeProgress.mockResolvedValue({
+      progress: {
+        humanLectureCount: 5,
+        bookReportCount: 0,
+        socialPracticeCredits: "1.00",
+        socialPracticeCourseCount: 0
+      }
+    });
+    const wrapper = mountPage();
+
+    await flushPromises();
+
+    await wrapper.get('[data-testid="progress-humanLectureCount-decrement"]').trigger("click");
+    await flushPromises();
+
+    expect(mocks.updateLecturePracticeProgress).toHaveBeenCalledWith(
+      expect.objectContaining({ humanLectureCount: 4 })
+    );
+  });
+
+  it("shows a temporary saved state after auto-saving", async () => {
+    vi.useFakeTimers();
+    mocks.token = "token";
+    const wrapper = mountPage();
+
+    await flushPromises();
+    await wrapper.get('[data-testid="progress-humanLectureCount-increment"]').trigger("click");
+    await flushPromises();
+
+    expect(wrapper.text()).toContain("已保存");
+
+    vi.advanceTimersByTime(1000);
+    await flushPromises();
+
+    expect(wrapper.text()).not.toContain("已保存");
+    vi.useRealTimers();
+  });
+
+  it("adjusts social practice credits in 0.1 increments", async () => {
+    mocks.token = "token";
+    mocks.getLecturePracticeProgress.mockResolvedValue({
+      progress: {
+        humanLectureCount: 0,
+        bookReportCount: 0,
+        socialPracticeCredits: "0.00",
+        socialPracticeCourseCount: 0
+      }
+    });
+    mocks.updateLecturePracticeProgress.mockResolvedValue({
+      progress: {
+        humanLectureCount: 0,
+        bookReportCount: 0,
+        socialPracticeCredits: "0.10",
+        socialPracticeCourseCount: 0
+      }
+    });
+    const wrapper = mountPage();
+
+    await flushPromises();
+
+    expect(wrapper.get('[data-testid="progress-socialPracticeCredits-increment"]').text()).toBe("+0.1");
+    expect(wrapper.get('[data-testid="progress-socialPracticeCredits-decrement"]').text()).toBe("-0.1");
+
+    await wrapper.get('[data-testid="progress-socialPracticeCredits-increment"]').trigger("click");
+    await flushPromises();
+
+    expect(mocks.updateLecturePracticeProgress).toHaveBeenCalledWith(
+      expect.objectContaining({ socialPracticeCredits: "0.10" })
+    );
+  });
+
+  it("toggles social practice course completion", async () => {
+    mocks.token = "token";
+    mocks.updateLecturePracticeProgress.mockResolvedValue({
+      progress: {
+        humanLectureCount: 0,
+        bookReportCount: 0,
+        socialPracticeCredits: "1.00",
+        socialPracticeCourseCount: 1
+      }
+    });
+    const wrapper = mountPage();
+
+    await flushPromises();
+
+    await wrapper.get('[data-testid="progress-socialPracticeCourseCount-toggle"]').trigger("click");
+    await flushPromises();
+
+    expect(mocks.updateLecturePracticeProgress).toHaveBeenCalledWith(
+      expect.objectContaining({ socialPracticeCourseCount: 1 })
+    );
+  });
+});

@@ -46,4 +46,22 @@ describe("ProfilePage", () => {
 
     expect(wrapper.get('[data-testid="profile-logout"]').text()).toBe("退出登录");
   });
+
+  it("shows the graduation gift entry on the personal profile page", () => {
+    const wrapper = mount(ProfilePage, {
+      global: {
+        plugins: [VueQueryPlugin],
+        stubs: {
+          RouterLink: RouterLinkStub
+        }
+      }
+    });
+
+    const giftEntry = wrapper
+      .findAllComponents(RouterLinkStub)
+      .find((entry) => entry.attributes("data-testid") === "profile-graduation-gift");
+
+    expect(giftEntry?.text()).toContain("毕业礼包");
+    expect(giftEntry?.props("to")).toBe("/graduation-gift");
+  });
 });

@@ -1,12 +1,18 @@
 import { createRouter, createWebHistory } from "vue-router";
 
+import CustomRequirementsPage from "./pages/CustomRequirementsPage.vue";
+import GpaPage from "./pages/GpaPage.vue";
 import HomePage from "./pages/HomePage.vue";
+import LecturePracticePage from "./pages/LecturePracticePage.vue";
 import LoginPage from "./pages/LoginPage.vue";
 import NewsPage from "./pages/NewsPage.vue";
 import PlaceholderPage from "./pages/PlaceholderPage.vue";
 import PlazaPage from "./pages/PlazaPage.vue";
+import PlansPage from "./pages/PlansPage.vue";
 import ProfilePage from "./pages/ProfilePage.vue";
 import SportsPage from "./pages/SportsPage.vue";
+import SrtpPage from "./pages/SrtpPage.vue";
+import VolunteerPage from "./pages/VolunteerPage.vue";
 
 export const router = createRouter({
   history: createWebHistory(),
@@ -15,8 +21,7 @@ export const router = createRouter({
     {
       path: "/plans",
       name: "plans",
-      component: PlaceholderPage,
-      meta: { title: "培养方案", description: "后续接入培养方案 PDF 解析、结构化确认和同专业方案复用。" }
+      component: PlansPage
     },
     {
       path: "/courses",
@@ -27,8 +32,7 @@ export const router = createRouter({
     {
       path: "/gpa",
       name: "gpa",
-      component: PlaceholderPage,
-      meta: { title: "GPA目标", description: "后续支持东南大学 4.8 绩点规则、目标绩点和剩余课程估算。" }
+      component: GpaPage
     },
     {
       path: "/course-recommendations",
@@ -42,14 +46,10 @@ export const router = createRouter({
       component: SportsPage,
       meta: { title: "体育跑操", description: "后续用于记录体测、跑操次数和体育毕业风险。" }
     },
+    { path: "/lecture-practice", name: "lecture-practice", component: LecturePracticePage },
     { path: "/news", name: "news", component: NewsPage },
     { path: "/plaza", name: "plaza", component: PlazaPage },
-    {
-      path: "/volunteer",
-      name: "volunteer",
-      component: PlaceholderPage,
-      meta: { title: "志愿劳育", description: "后续管理志愿时长、心得提交、劳育理论课和实践课完成情况。" }
-    },
+    { path: "/volunteer", name: "volunteer", component: VolunteerPage },
     {
       path: "/exams",
       name: "exams",
@@ -59,8 +59,13 @@ export const router = createRouter({
     {
       path: "/custom-requirements",
       name: "custom-requirements",
-      component: PlaceholderPage,
+      component: CustomRequirementsPage,
       meta: { title: "自定义要求", description: "后续支持学院特色要求和用户自定义毕业要求。" }
+    },
+    {
+      path: "/srtp",
+      name: "srtp",
+      component: SrtpPage
     },
     {
       path: "/graduation-gift",

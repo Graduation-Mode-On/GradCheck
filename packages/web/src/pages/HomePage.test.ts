@@ -29,6 +29,50 @@ vi.mock("../lib/api", async () => {
           gpaGoal: "3.50"
         }
       }
+    }),
+    listCustomRequirements: async () => ({
+      customRequirements: [
+        {
+          id: "requirement-1",
+          userId: "user-1",
+          name: "人文讲座",
+          kind: "count",
+          category: "lecture",
+          targetValue: "4",
+          currentValue: "2",
+          unit: "次",
+          importance: "required",
+          source: "user_custom",
+          includeInProgress: true,
+          showOnHome: true,
+          deadline: "2026-06-30",
+          notes: null,
+          status: "in_progress",
+          progressPercent: 50,
+          createdAt: "2026-06-06T00:00:00.000Z",
+          updatedAt: "2026-06-06T00:00:00.000Z"
+        },
+        {
+          id: "requirement-2",
+          userId: "user-1",
+          name: "个人阅读目标",
+          kind: "count",
+          category: "other",
+          targetValue: "10",
+          currentValue: "1",
+          unit: "本",
+          importance: "personal_goal",
+          source: "user_custom",
+          includeInProgress: false,
+          showOnHome: false,
+          deadline: null,
+          notes: null,
+          status: "in_progress",
+          progressPercent: 10,
+          createdAt: "2026-06-06T00:00:00.000Z",
+          updatedAt: "2026-06-06T00:00:00.000Z"
+        }
+      ]
     })
   };
 });
@@ -79,9 +123,11 @@ describe("HomePage dashboard layout", () => {
       "讲座实践",
       "志愿劳育",
       "实验考试",
-      "自定义要求",
-      "毕业礼包"
+      "自定义",
+      "SRTP"
     ]);
+    expect(featureGrid.findAllComponents(RouterLinkStub)[5]?.props("to")).toBe("/lecture-practice");
+    expect(featureGrid.text()).not.toContain("毕业礼包");
   });
 
   it("renders dashboard cards with jump hints", () => {
@@ -94,5 +140,16 @@ describe("HomePage dashboard layout", () => {
     expect(dashboard.text()).toContain("查看全部提醒 >");
     expect(dashboard.text()).toContain("机会推荐");
     expect(dashboard.text()).toContain("查看补齐机会 >");
+  });
+
+  it("shows only show-on-home custom requirements in the homepage summary", async () => {
+    const wrapper = mountHomePage();
+
+    await vi.dynamicImportSettled();
+
+    const customSummary = wrapper.get('[data-testid="custom-requirements-home-summary"]');
+    expect(customSummary.text()).toContain("人文讲座");
+    expect(customSummary.text()).toContain("2 / 4 次");
+    expect(customSummary.text()).not.toContain("个人阅读目标");
   });
 });

@@ -2,17 +2,38 @@ import cors from "cors";
 import express from "express";
 
 import { errorHandler } from "./middleware/error-handler.js";
+import type { LecturePracticeRepository } from "./modules/lecture-practice/lecture-practice.repository.js";
+import { createLecturePracticeRouter } from "./modules/lecture-practice/lecture-practice.routes.js";
 import type { AuthRepository } from "./modules/auth/auth.repository.js";
 import { createAuthRouter } from "./modules/auth/auth.routes.js";
+import type { NewsRepository } from "./modules/news/news.repository.js";
+import { createNewsRouter } from "./modules/news/news.routes.js";
+import type { GpaRepository } from "./modules/gpa/gpa.repository.js";
+import { createGpaRouter } from "./modules/gpa/gpa.routes.js";
 import type { PlazaRepository } from "./modules/plaza/plaza.repository.js";
 import { createPlazaRouter } from "./modules/plaza/plaza.routes.js";
+import type { ProgramPlanRepository } from "./modules/program-plans/program-plans.repository.js";
+import { createProgramPlansRouter } from "./modules/program-plans/program-plans.routes.js";
 import { createProgramRulesRouter } from "./modules/program-rules/expressRouter.js";
+import type { SrtpRepository } from "./modules/srtp/srtp.repository.js";
+import { createSrtpRouter } from "./modules/srtp/srtp.routes.js";
 import { createUserRouter } from "./modules/users/user.routes.js";
+import type { VolunteerLaborRepository } from "./modules/volunteer-labor/volunteer-labor.repository.js";
+import { createVolunteerLaborRouter } from "./modules/volunteer-labor/volunteer-labor.routes.js";
 import { createWeatherRouter } from "./modules/weather/weather.routes.js";
+import type { CustomRequirementRepository } from "./modules/custom-requirements/custom-requirement.repository.js";
+import { createCustomRequirementRouter } from "./modules/custom-requirements/custom-requirement.routes.js";
 
 export interface AppDependencies {
   authRepository: AuthRepository;
   plazaRepository: PlazaRepository;
+  newsRepository: NewsRepository;
+  lecturePracticeRepository: LecturePracticeRepository;
+  volunteerLaborRepository: VolunteerLaborRepository;
+  customRequirementRepository: CustomRequirementRepository;
+  srtpRepository: SrtpRepository;
+  programPlanRepository: ProgramPlanRepository;
+  gpaRepository: GpaRepository;
   corsOrigin?: string;
   amapWeatherKey?: string;
 }
@@ -29,7 +50,26 @@ export function createApp(dependencies: AppDependencies) {
 
   app.use("/api/auth", createAuthRouter(dependencies.authRepository));
   app.use("/api/users", createUserRouter(dependencies.authRepository));
+  app.use("/api/gpa", createGpaRouter(dependencies.authRepository, dependencies.gpaRepository));
   app.use("/api/plaza/posts", createPlazaRouter(dependencies.authRepository, dependencies.plazaRepository));
+  app.use("/api/news", createNewsRouter(dependencies.newsRepository));
+  app.use("/api/srtp", createSrtpRouter(dependencies.authRepository, dependencies.srtpRepository));
+  app.use("/api/program-plans", createProgramPlansRouter(dependencies.authRepository, dependencies.programPlanRepository));
+  app.use(
+    "/api/lecture-practice",
+    createLecturePracticeRouter(dependencies.authRepository, dependencies.lecturePracticeRepository)
+  );
+  app.use(
+    "/api/volunteer-labor",
+    createVolunteerLaborRouter(dependencies.authRepository, dependencies.volunteerLaborRepository)
+  );
+  app.use(
+    "/api/custom-requirements",
+    createCustomRequirementRouter({
+      authRepository: dependencies.authRepository,
+      customRequirementRepository: dependencies.customRequirementRepository
+    })
+  );
   if (dependencies.amapWeatherKey) {
     app.use("/api/weather", createWeatherRouter(dependencies.amapWeatherKey));
   }
