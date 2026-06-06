@@ -167,9 +167,9 @@ describe("GpaPage", () => {
       name: "程序设计",
       credit: "4.00",
       score: "90.00",
-      isRequired: true,
-      isFirstAttempt: true,
-      isGpaEligible: true
+      isRequired: false,
+      isFirstAttempt: false,
+      isGpaEligible: false
     });
   });
 

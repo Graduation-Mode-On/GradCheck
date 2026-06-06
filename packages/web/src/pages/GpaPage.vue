@@ -41,9 +41,9 @@ const form = reactive<GpaCourseInput>({
   name: "",
   credit: "",
   score: "",
-  isRequired: true,
-  isFirstAttempt: true,
-  isGpaEligible: true
+  isRequired: false,
+  isFirstAttempt: false,
+  isGpaEligible: false
 });
 
 if (!authToken) {
@@ -75,9 +75,9 @@ function resetForm() {
   form.name = "";
   form.credit = "";
   form.score = "";
-  form.isRequired = true;
-  form.isFirstAttempt = true;
-  form.isGpaEligible = true;
+  form.isRequired = false;
+  form.isFirstAttempt = false;
+  form.isGpaEligible = false;
 }
 
 async function applyDashboard(response: GpaDashboardResponse) {
@@ -384,18 +384,47 @@ function scopeSubtitle(scope: GpaScopeResult | undefined): string {
               <input data-testid="gpa-course-score" v-model="form.score" class="mt-1 w-full rounded-xl border border-slate-300 px-3 py-2" inputmode="decimal" />
             </label>
           </div>
-          <label class="flex items-center gap-2 text-sm text-[var(--tommy-text-secondary)]">
-            <input v-model="form.isRequired" type="checkbox" />
-            必修课程
-          </label>
-          <label class="flex items-center gap-2 text-sm text-[var(--tommy-text-secondary)]">
-            <input v-model="form.isFirstAttempt" type="checkbox" />
-            首修成绩
-          </label>
-          <label class="flex items-center gap-2 text-sm text-[var(--tommy-text-secondary)]">
-            <input v-model="form.isGpaEligible" type="checkbox" />
-            计入 GPA/均分
-          </label>
+          <div class="space-y-2">
+            <label
+              data-testid="gpa-required-toggle"
+              class="flex min-h-12 cursor-pointer items-center justify-between gap-3 rounded-xl border px-4 py-3 text-sm transition"
+              :class="
+                form.isRequired
+                  ? 'border-[var(--tommy-primary)] bg-[color-mix(in_srgb,var(--tommy-primary)_14%,white)] text-[var(--tommy-info)] shadow-sm'
+                  : 'border-slate-200 bg-slate-50 text-[var(--tommy-text-secondary)]'
+              "
+            >
+              <input v-model="form.isRequired" class="sr-only" type="checkbox" />
+              <span class="font-semibold">必修课程</span>
+              <span class="shrink-0 text-xs font-medium text-slate-400">点击即可勾选</span>
+            </label>
+            <label
+              data-testid="gpa-first-attempt-toggle"
+              class="flex min-h-12 cursor-pointer items-center justify-between gap-3 rounded-xl border px-4 py-3 text-sm transition"
+              :class="
+                form.isFirstAttempt
+                  ? 'border-[var(--tommy-primary)] bg-[color-mix(in_srgb,var(--tommy-primary)_14%,white)] text-[var(--tommy-info)] shadow-sm'
+                  : 'border-slate-200 bg-slate-50 text-[var(--tommy-text-secondary)]'
+              "
+            >
+              <input v-model="form.isFirstAttempt" class="sr-only" type="checkbox" />
+              <span class="font-semibold">首修成绩</span>
+              <span class="shrink-0 text-xs font-medium text-slate-400">点击即可勾选</span>
+            </label>
+            <label
+              data-testid="gpa-eligible-toggle"
+              class="flex min-h-12 cursor-pointer items-center justify-between gap-3 rounded-xl border px-4 py-3 text-sm transition"
+              :class="
+                form.isGpaEligible
+                  ? 'border-[var(--tommy-primary)] bg-[color-mix(in_srgb,var(--tommy-primary)_14%,white)] text-[var(--tommy-info)] shadow-sm'
+                  : 'border-slate-200 bg-slate-50 text-[var(--tommy-text-secondary)]'
+              "
+            >
+              <input v-model="form.isGpaEligible" class="sr-only" type="checkbox" />
+              <span class="font-semibold">计入 GPA/均分</span>
+              <span class="shrink-0 text-xs font-medium text-slate-400">点击即可勾选</span>
+            </label>
+          </div>
 
           <p v-if="message" class="rounded-xl bg-[color-mix(in_srgb,var(--tommy-primary)_12%,white)] px-3 py-2 text-sm text-[var(--tommy-info)]">{{ message }}</p>
 
