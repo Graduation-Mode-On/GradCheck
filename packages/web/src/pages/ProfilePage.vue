@@ -5,7 +5,7 @@ import { useRouter } from "vue-router";
 import { ZodError } from "zod";
 
 import AppShell from "../components/AppShell.vue";
-import { getCurrentUser, getToken, updateProfile } from "../lib/api";
+import { clearToken, getCurrentUser, getToken, updateProfile } from "../lib/api";
 import { profileSchema } from "../schemas/auth";
 
 const router = useRouter();
@@ -57,6 +57,11 @@ const mutation = useMutation({
     message.value = error instanceof Error ? error.message : "保存失败";
   }
 });
+
+async function logout() {
+  clearToken();
+  await router.push("/login");
+}
 </script>
 
 <template>
@@ -93,13 +98,23 @@ const mutation = useMutation({
 
         <div class="sm:col-span-2">
           <p v-if="message" class="mb-3 rounded-xl bg-blue-50 px-3 py-2 text-sm text-blue-700">{{ message }}</p>
-          <button
-            class="rounded-xl bg-blue-700 px-5 py-2.5 font-semibold text-white disabled:opacity-60"
-            type="submit"
-            :disabled="mutation.isPending.value"
-          >
-            {{ mutation.isPending.value ? "保存中..." : "保存个人信息" }}
-          </button>
+          <div class="flex flex-wrap gap-3">
+            <button
+              class="rounded-xl bg-blue-700 px-5 py-2.5 font-semibold text-white disabled:opacity-60"
+              type="submit"
+              :disabled="mutation.isPending.value"
+            >
+              {{ mutation.isPending.value ? "保存中..." : "保存个人信息" }}
+            </button>
+            <button
+              data-testid="profile-logout"
+              class="rounded-xl bg-slate-900 px-5 py-2.5 font-semibold text-white"
+              type="button"
+              @click="logout"
+            >
+              退出登录
+            </button>
+          </div>
         </div>
       </form>
     </section>
