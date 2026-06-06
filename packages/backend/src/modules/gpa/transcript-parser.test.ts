@@ -28,6 +28,9 @@ describe("parseTranscriptTextItems", () => {
       item("0.5", 195, 414),
       item("通过", 226, 414),
       item("2025-2026学年3-4学期", 463, 466),
+      item("3.53.02.82.5", 464, 446),
+      item("2", 545, 446),
+      item("1.8", 573, 446),
       item("IT新技术讲座（校企）", 464, 456),
       item("0.5", 545, 456),
       item("良", 573, 456),
@@ -87,5 +90,6 @@ describe("parseTranscriptTextItems", () => {
       })
     ]));
     expect(courses).toHaveLength(6);
+    expect(courses.map((course) => course.name)).not.toContain("3.53.02.82.5");
   });
 });
