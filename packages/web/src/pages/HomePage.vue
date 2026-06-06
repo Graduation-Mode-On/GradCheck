@@ -222,7 +222,7 @@ const dashboardCards = computed(() => [
     </section>
 
     <section data-testid="dashboard-card-grid" class="space-y-4">
-      <div class="grid gap-4 sm:grid-cols-2">
+      <div class="grid grid-cols-2 gap-3 sm:gap-4">
         <RouterLink
           :to="dashboardCards[0].to"
           class="rounded-3xl bg-white p-5 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md"

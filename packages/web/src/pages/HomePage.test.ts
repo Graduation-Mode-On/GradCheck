@@ -153,7 +153,9 @@ describe("HomePage dashboard layout", () => {
     await vi.dynamicImportSettled();
 
     const dashboard = wrapper.get('[data-testid="dashboard-card-grid"]');
+    const primaryCardRow = dashboard.find(".grid");
 
+    expect(primaryCardRow.classes()).toContain("grid-cols-2");
     expect(dashboard.text()).toContain("GPA计算器");
     expect(dashboard.text()).toContain("3.67");
     expect(dashboard.text()).toContain(">");
