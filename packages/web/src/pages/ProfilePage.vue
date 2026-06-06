@@ -91,11 +91,6 @@ async function logout() {
             type="number"
           />
         </label>
-        <label class="block text-sm font-medium text-[var(--tommy-text-secondary)]">
-          目标 GPA
-          <input v-model="form.gpaGoal" class="mt-1 w-full rounded-xl border border-slate-300 px-3 py-2" />
-        </label>
-
         <div class="sm:col-span-2">
           <p v-if="message" class="mb-3 rounded-xl bg-[color-mix(in_srgb,var(--tommy-primary)_12%,white)] px-3 py-2 text-sm text-[var(--tommy-info)]">{{ message }}</p>
           <div class="flex flex-wrap gap-3">

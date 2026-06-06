@@ -134,7 +134,7 @@ describe("HomePage dashboard layout", () => {
     expect(entries.map((entry) => entry.get('[data-testid="feature-entry-label"]').text())).toEqual([
       "培养方案",
       "课程进度",
-      "GPA目标",
+      "GPA",
       "选课推荐",
       "体育跑操",
       "讲座实践",

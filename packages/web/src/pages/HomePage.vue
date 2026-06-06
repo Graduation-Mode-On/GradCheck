@@ -65,7 +65,7 @@ const featureEntries = [
     bgColor: "bg-blue-50"
   },
   {
-    title: "GPA目标",
+    title: "GPA",
     iconPath: "M12 21a9 9 0 1 0 0-18 9 9 0 0 0 0 18Zm0-4a5 5 0 1 0 0-10 5 5 0 0 0 0 10Zm0-5h.01",
     to: "/gpa",
     iconColor: "text-purple-500",
