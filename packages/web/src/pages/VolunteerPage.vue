@@ -4,10 +4,10 @@ import { computed, reactive, ref, watchEffect } from "vue";
 import { useRouter } from "vue-router";
 
 import AppShell from "../components/AppShell.vue";
-import RequirementProgressCard from "../components/RequirementProgressCard.vue";
+import LecturePracticeCard from "../components/LecturePracticeCard.vue";
 import { getToken, getVolunteerLaborProgress, updateVolunteerLaborProgress } from "../lib/api";
-import { volunteerLaborCompleted, volunteerLaborProgressSchema } from "../schemas/volunteerLabor";
 import { decimalToFixedText } from "../schemas/lecturePractice";
+import { volunteerLaborCompleted, volunteerLaborProgressSchema } from "../schemas/volunteerLabor";
 
 const router = useRouter();
 const queryClient = useQueryClient();
@@ -71,70 +71,113 @@ const missingItems = computed(() =>
     .length
 );
 
-function updateCount(key: "ordinaryLaborCount" | "specialLaborCount", value: string) {
-  form[key] = Math.max(0, Math.floor(Number(value || 0)));
-}
-
-function updateHours(value: string) {
+function updateHoursAndSave(value: string) {
   form.volunteerHours = String(Math.max(0, Number(value || 0)));
+  saveProgress("volunteerHours");
 }
 
-function countStatus(value: number, target: number) {
-  return value >= target ? "已完成" : `还差 ${target - value}`;
+function updateCountAndSave(key: "ordinaryLaborCount" | "specialLaborCount", value: string) {
+  form[key] = Math.max(0, Math.floor(Number(value || 0)));
+  saveProgress(key);
 }
 </script>
 
 <template>
   <AppShell>
     <section class="space-y-4">
-      <div class="rounded-3xl bg-white p-5 shadow-sm">
-        <p class="text-sm font-semibold text-[var(--tommy-primary)]">志愿劳育</p>
-        <h1 class="mt-1 text-2xl font-bold text-[var(--tommy-text)]">志愿劳育进度</h1>
-        <p class="mt-2 text-sm leading-6 text-[var(--tommy-text-secondary)]">
-          {{ completed ? "已满足毕业要求" : `还差 ${missingItems} 项要求` }}
-        </p>
+      <!-- 模块说明 Banner -->
+      <div
+        class="relative overflow-hidden rounded-3xl bg-gradient-to-r from-[color-mix(in_srgb,var(--tommy-primary)_8%,white)] to-[color-mix(in_srgb,var(--tommy-info)_4%,white)] p-6 shadow-sm border border-[color-mix(in_srgb,var(--tommy-primary)_10%,white)]"
+      >
+        <!-- 装饰背景圆圈 -->
+        <div class="absolute -right-8 -top-8 h-32 w-32 rounded-full bg-[var(--tommy-primary)]/5" />
+        <div class="absolute -bottom-6 -left-6 h-24 w-24 rounded-full bg-[var(--tommy-info)]/5" />
+
+        <div class="relative flex items-start justify-between gap-4">
+          <div class="flex-1">
+            <div class="flex items-center gap-3">
+              <!-- 装饰图标 -->
+              <div
+                class="flex h-10 w-10 items-center justify-center rounded-xl bg-[color-mix(in_srgb,var(--tommy-primary)_12%,white)]"
+              >
+                <svg
+                  class="h-5 w-5 text-[var(--tommy-primary)]"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                >
+                  <path d="M12 21a9 9 0 1 0 0-18 9 9 0 0 0 0 18z" />
+                  <path d="M12 8v4l3 3" />
+                  <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
+                  <circle cx="9" cy="7" r="4" />
+                </svg>
+              </div>
+              <span class="text-xs font-semibold uppercase tracking-wider text-[var(--tommy-primary)]">志愿劳育</span>
+            </div>
+
+            <h1 class="mt-3 text-2xl font-bold text-[var(--tommy-text)]">志愿劳育进度</h1>
+            <p class="mt-1.5 text-sm leading-relaxed text-[var(--tommy-text-secondary)]">
+              记录志愿服务时长、普通生产劳动和特色劳动完成情况，追踪毕业要求
+            </p>
+          </div>
+
+          <!-- 统计数字 -->
+          <div class="shrink-0 text-right">
+            <div class="text-3xl font-bold text-[var(--tommy-primary)]">
+              {{ missingItems }}
+            </div>
+            <div class="mt-0.5 text-xs text-[var(--tommy-text-secondary)]">
+              {{ completed ? "全部达标" : `待完成项` }}
+            </div>
+          </div>
+        </div>
       </div>
 
-      <p v-if="mutation.error.value" class="rounded-xl bg-[color-mix(in_srgb,var(--tommy-error)_12%,white)] px-3 py-2 text-sm text-[var(--tommy-error)]">
+      <p
+        v-if="mutation.error.value"
+        class="rounded-xl bg-[color-mix(in_srgb,var(--tommy-error)_12%,white)] px-3 py-2 text-sm text-[var(--tommy-error)]"
+      >
         {{ mutation.error.value instanceof Error ? mutation.error.value.message : "保存失败" }}
       </p>
 
       <div class="grid gap-4 md:grid-cols-2">
-        <RequirementProgressCard
+        <LecturePracticeCard
           field-key="volunteerHours"
           title="志愿活动时长"
-          :value="String(Number(form.volunteerHours))"
-          target-text="12 小时"
+          icon="M12 21a9 9 0 1 0 0-18 9 9 0 0 0 0 18z M12 8v4l3 3"
+          variant="gauge"
+          simple
+          :current="Number(form.volunteerHours)"
+          :target="12"
           unit="小时"
-          :status-text="Number(form.volunteerHours) >= 12 ? '已完成' : `还差 ${12 - Number(form.volunteerHours)}`"
-          :missing-text="Number(form.volunteerHours) >= 12 ? '志愿时长已满足毕业要求' : `还差 ${12 - Number(form.volunteerHours)} 小时志愿活动`"
+          :step="0.5"
           :saved="savedField === 'volunteerHours'"
-          @update-value="updateHours"
-          @save="saveProgress('volunteerHours')"
+          @update-value="updateHoursAndSave"
         />
-        <RequirementProgressCard
+        <LecturePracticeCard
           field-key="ordinaryLaborCount"
           title="普通生产劳动"
-          :value="String(form.ordinaryLaborCount)"
-          target-text="2 次"
+          icon="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"
+          variant="dots"
+          :current="form.ordinaryLaborCount"
+          :target="2"
           unit="次"
-          :status-text="countStatus(form.ordinaryLaborCount, 2)"
-          :missing-text="form.ordinaryLaborCount >= 2 ? '普通生产劳动已满足毕业要求' : `还差 ${2 - form.ordinaryLaborCount} 次普通生产劳动`"
           :saved="savedField === 'ordinaryLaborCount'"
-          @update-value="updateCount('ordinaryLaborCount', $event)"
-          @save="saveProgress('ordinaryLaborCount')"
+          @update-value="updateCountAndSave('ordinaryLaborCount', $event)"
         />
-        <RequirementProgressCard
+        <LecturePracticeCard
           field-key="specialLaborCount"
           title="特色劳动"
-          :value="String(form.specialLaborCount)"
-          target-text="1 次"
+          icon="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"
+          variant="toggle"
+          :current="form.specialLaborCount"
+          :target="1"
           unit="次"
-          :status-text="countStatus(form.specialLaborCount, 1)"
-          :missing-text="form.specialLaborCount >= 1 ? '特色劳动已满足毕业要求' : '还差 1 次特色劳动'"
           :saved="savedField === 'specialLaborCount'"
-          @update-value="updateCount('specialLaborCount', $event)"
-          @save="saveProgress('specialLaborCount')"
+          @update-value="updateCountAndSave('specialLaborCount', $event)"
         />
       </div>
     </section>
