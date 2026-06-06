@@ -64,4 +64,21 @@ describe("ProfilePage", () => {
     expect(giftEntry?.text()).toContain("毕业礼包");
     expect(giftEntry?.props("to")).toBe("/graduation-gift");
   });
+
+  it("uses the shared college selector on the personal profile page", () => {
+    const wrapper = mount(ProfilePage, {
+      global: {
+        plugins: [VueQueryPlugin],
+        stubs: {
+          RouterLink: RouterLinkStub
+        }
+      }
+    });
+
+    const collegeSelect = wrapper.get('[data-testid="profile-college"]');
+
+    expect(collegeSelect.element.tagName).toBe("SELECT");
+    expect(collegeSelect.text()).toContain("计算机科学与工程学院");
+    expect(collegeSelect.text()).toContain("东南大学—蒙纳士大学苏州联合研究生院");
+  });
 });

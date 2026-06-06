@@ -5,6 +5,7 @@ import { useRouter } from "vue-router";
 import { ZodError } from "zod";
 
 import AppShell from "../components/AppShell.vue";
+import { seuColleges } from "../constants/colleges";
 import { clearToken, getCurrentUser, getToken, updateProfile } from "../lib/api";
 import { profileSchema } from "../schemas/auth";
 
@@ -77,7 +78,10 @@ async function logout() {
         </label>
         <label class="block text-sm font-medium text-[var(--tommy-text-secondary)]">
           学院
-          <input v-model="form.college" class="mt-1 w-full rounded-xl border border-slate-300 px-3 py-2" />
+          <select data-testid="profile-college" v-model="form.college" class="mt-1 w-full rounded-xl border border-slate-300 px-3 py-2">
+            <option value="" disabled>请选择学院</option>
+            <option v-for="college in seuColleges" :key="college" :value="college">{{ college }}</option>
+          </select>
         </label>
         <label class="block text-sm font-medium text-[var(--tommy-text-secondary)]">
           专业
