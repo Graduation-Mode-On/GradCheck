@@ -81,4 +81,20 @@ describe("ProfilePage", () => {
     expect(collegeSelect.text()).toContain("计算机科学与工程学院");
     expect(collegeSelect.text()).toContain("东南大学—蒙纳士大学苏州联合研究生院");
   });
+
+  it("uses a 2021-2026 grade selector on the personal profile page", () => {
+    const wrapper = mount(ProfilePage, {
+      global: {
+        plugins: [VueQueryPlugin],
+        stubs: {
+          RouterLink: RouterLinkStub
+        }
+      }
+    });
+
+    const gradeSelect = wrapper.get('[data-testid="profile-grade"]');
+
+    expect(gradeSelect.element.tagName).toBe("SELECT");
+    expect(wrapper.findAll('[data-testid="profile-grade"] option').map((option) => option.attributes("value"))).toEqual(["2021", "2022", "2023", "2024", "2025", "2026"]);
+  });
 });

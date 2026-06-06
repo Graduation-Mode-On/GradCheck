@@ -57,6 +57,10 @@ describe("LoginPage", () => {
     await wrapper.get('[data-testid="register-display-name"]').setValue("同学");
     await collegeSelect.setValue("软件学院");
     await wrapper.get('[data-testid="register-major"]').setValue("软件工程");
+    const gradeSelect = wrapper.get('[data-testid="register-grade"]');
+    expect(gradeSelect.element.tagName).toBe("SELECT");
+    expect(wrapper.findAll('[data-testid="register-grade"] option').map((option) => option.attributes("value"))).toEqual(["2021", "2022", "2023", "2024", "2025", "2026"]);
+    await gradeSelect.setValue("2024");
     await wrapper.get('[data-testid="login-form"]').trigger("submit");
     await flushPromises();
 
@@ -67,7 +71,7 @@ describe("LoginPage", () => {
         displayName: "同学",
         college: "软件学院",
         major: "软件工程",
-        grade: new Date().getFullYear(),
+        grade: 2024,
         gpaGoal: "2.00"
       }
     });

@@ -7,6 +7,7 @@ import { ZodError } from "zod";
 import { login, register, setToken } from "../lib/api";
 import { loginSchema, profileSchema } from "../schemas/auth";
 import { seuColleges } from "../constants/colleges";
+import { enrollmentGrades } from "../constants/grades";
 
 const router = useRouter();
 const mode = ref<"login" | "register">("login");
@@ -126,11 +127,9 @@ function submit() {
           <div class="grid grid-cols-2 gap-3">
             <label class="block text-sm font-medium text-[var(--tommy-text-secondary)]">
               年级
-              <input
-                v-model.number="form.grade"
-                class="mt-1 w-full rounded-xl border border-slate-300 px-3 py-2"
-                type="number"
-              />
+              <select data-testid="register-grade" v-model.number="form.grade" class="mt-1 w-full rounded-xl border border-slate-300 px-3 py-2">
+                <option v-for="grade in enrollmentGrades" :key="grade" :value="grade">{{ grade }}</option>
+              </select>
             </label>
             <label class="block text-sm font-medium text-[var(--tommy-text-secondary)]">
               目标 GPA

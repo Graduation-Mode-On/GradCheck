@@ -6,6 +6,7 @@ import { ZodError } from "zod";
 
 import AppShell from "../components/AppShell.vue";
 import { seuColleges } from "../constants/colleges";
+import { enrollmentGrades } from "../constants/grades";
 import { clearToken, getCurrentUser, getToken, updateProfile } from "../lib/api";
 import { profileSchema } from "../schemas/auth";
 
@@ -89,11 +90,9 @@ async function logout() {
         </label>
         <label class="block text-sm font-medium text-[var(--tommy-text-secondary)]">
           年级
-          <input
-            v-model.number="form.grade"
-            class="mt-1 w-full rounded-xl border border-slate-300 px-3 py-2"
-            type="number"
-          />
+          <select data-testid="profile-grade" v-model.number="form.grade" class="mt-1 w-full rounded-xl border border-slate-300 px-3 py-2">
+            <option v-for="grade in enrollmentGrades" :key="grade" :value="grade">{{ grade }}</option>
+          </select>
         </label>
         <label class="block text-sm font-medium text-[var(--tommy-text-secondary)]">
           目标 GPA
