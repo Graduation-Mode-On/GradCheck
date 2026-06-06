@@ -3,12 +3,21 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { createApp } from "./app.js";
 import type { AuthRepository } from "./modules/auth/auth.repository.js";
+import { calculateGpaResult } from "./modules/gpa/gpa.calculator.js";
 import { createGpaCourse } from "./modules/gpa/gpa.service.js";
 import type { GpaCalculationResult, GpaCourse, GpaCourseInput, PersistedGpaCalculationResult } from "./modules/gpa/gpa.types.js";
 import type { GpaRepository } from "./modules/gpa/gpa.repository.js";
 import type { UserProfile } from "./modules/users/user.repository.js";
 
 const now = new Date("2026-06-06T00:00:00.000Z");
+
+interface TestGpaRepository extends GpaRepository {
+  createCourse(userId: string, input: GpaCourseInput): Promise<GpaCourse>;
+  updateCourse(userId: string, courseId: string, input: GpaCourseInput): Promise<GpaCourse | null>;
+  deleteCourse(userId: string, courseId: string): Promise<boolean>;
+  getLatestResult(userId: string): Promise<PersistedGpaCalculationResult | null>;
+  upsertLatestResult(userId: string, result: GpaCalculationResult): Promise<PersistedGpaCalculationResult>;
+}
 
 function createRepository(): AuthRepository {
   const users = new Map<string, Parameters<AuthRepository["createUser"]>[0] & { id: string; createdAt: Date; updatedAt: Date }>();
@@ -55,17 +64,25 @@ function createRepository(): AuthRepository {
   };
 }
 
-function createGpaRepository(): GpaRepository {
+function createGpaRepository(): TestGpaRepository {
   const courses = new Map<string, GpaCourse>();
   const results = new Map<string, PersistedGpaCalculationResult>();
+  async function recalculate(userId: string) {
+    const userCourses = [...courses.values()].filter((course) => course.userId === userId);
+    const result = calculateGpaResult(userCourses);
+    const persisted: PersistedGpaCalculationResult = {
+      userId,
+      ...result,
+      createdAt: results.get(userId)?.createdAt ?? now,
+      updatedAt: now
+    };
+    results.set(userId, persisted);
+    return { courses: userCourses, result };
+  }
 
   return {
     async listCourses(userId) {
       return [...courses.values()].filter((course) => course.userId === userId);
-    },
-    async findCourse(userId, courseId) {
-      const course = courses.get(courseId);
-      return course?.userId === userId ? course : null;
     },
     async createCourse(userId, input: GpaCourseInput) {
       const course: GpaCourse = {
@@ -113,6 +130,39 @@ function createGpaRepository(): GpaRepository {
       };
       results.set(userId, persisted);
       return persisted;
+    },
+    async createCourseAndRecalculate(userId, input) {
+      const course: GpaCourse = {
+        id: `course-${courses.size + 1}`,
+        userId,
+        ...input,
+        createdAt: now,
+        updatedAt: now
+      };
+      courses.set(course.id, course);
+      return recalculate(userId);
+    },
+    async updateCourseAndRecalculate(userId, courseId, input) {
+      const existing = courses.get(courseId);
+      if (!existing || existing.userId !== userId) {
+        return null;
+      }
+
+      courses.set(courseId, {
+        ...existing,
+        ...input,
+        updatedAt: now
+      });
+      return recalculate(userId);
+    },
+    async deleteCourseAndRecalculate(userId, courseId) {
+      const existing = courses.get(courseId);
+      if (!existing || existing.userId !== userId) {
+        return null;
+      }
+
+      courses.delete(courseId);
+      return recalculate(userId);
     }
   };
 }
@@ -397,7 +447,7 @@ describe("GradCheck API baseline", () => {
 
   it("returns not found when the repository rejects a malformed GPA course id", async () => {
     const gpaRepository = createGpaRepository();
-    gpaRepository.updateCourse = async () => {
+    gpaRepository.updateCourseAndRecalculate = async () => {
       throw Object.assign(new Error("invalid input syntax for type uuid"), { code: "22P02" });
     };
     const app = createApp({
@@ -427,41 +477,40 @@ describe("GradCheck API baseline", () => {
     expect(response.body).toEqual({ error: { message: "GPA course was not found" } });
   });
 
-  it("serializes concurrent GPA mutations so the latest result is not overwritten by a stale recalculation", async () => {
-    const baseRepository = createGpaRepository();
-    let firstUpsertStarted!: () => void;
-    let releaseFirstUpsert!: () => void;
-    let createCount = 0;
-    let secondCreateStarted = false;
-    let upsertCount = 0;
-    const firstUpsertStartedPromise = new Promise<void>((resolve) => {
-      firstUpsertStarted = resolve;
-    });
-    const releaseFirstUpsertPromise = new Promise<void>((resolve) => {
-      releaseFirstUpsert = resolve;
-    });
-    const gpaRepository: GpaRepository = {
-      ...baseRepository,
-      async createCourse(userId, input) {
-        createCount += 1;
-        if (createCount === 2) {
-          secondCreateStarted = true;
-        }
+  it("delegates GPA course creation and recalculation to one repository operation", async () => {
+    const gpaRepository = createGpaRepository();
+    gpaRepository.createCourse = async () => {
+      throw new Error("createCourse should not be used for GPA mutations");
+    };
+    gpaRepository.createCourseAndRecalculate = async (userId, input) => {
+      const course: GpaCourse = {
+        id: "course-1",
+        userId,
+        ...input,
+        createdAt: now,
+        updatedAt: now
+      };
 
-        return baseRepository.createCourse(userId, input);
-      },
-      async upsertLatestResult(userId, result) {
-        upsertCount += 1;
-        if (upsertCount === 1) {
-          firstUpsertStarted();
-          await releaseFirstUpsertPromise;
+      return {
+        courses: [course],
+        result: {
+          requiredFirstAttempt: {
+            weightedGpa: 4.8,
+            weightedAverageScore: 96,
+            totalCredits: 2,
+            courseCount: 1
+          },
+          overall: {
+            weightedGpa: 4.8,
+            weightedAverageScore: 96,
+            totalCredits: 2,
+            courseCount: 1
+          }
         }
-
-        return baseRepository.upsertLatestResult(userId, result);
-      }
+      };
     };
 
-    const firstCreate = createGpaCourse(gpaRepository, "user-1", {
+    const response = await createGpaCourse(gpaRepository, "user-1", {
       term: "2025-2026 春",
       name: "离散数学",
       credit: "2.00",
@@ -471,26 +520,6 @@ describe("GradCheck API baseline", () => {
       isGpaEligible: true
     });
 
-    await firstUpsertStartedPromise;
-
-    const secondCreate = createGpaCourse(gpaRepository, "user-1", {
-      term: "2025-2026 春",
-      name: "数据结构",
-      credit: "3.00",
-      score: "90.00",
-      isRequired: true,
-      isFirstAttempt: true,
-      isGpaEligible: true
-    });
-
-    try {
-      expect(secondCreateStarted).toBe(false);
-    } finally {
-      releaseFirstUpsert();
-    }
-    await Promise.all([firstCreate, secondCreate]);
-
-    const latestResult = await baseRepository.getLatestResult("user-1");
-    expect(latestResult?.overall.courseCount).toBe(2);
+    expect(response.result.overall.courseCount).toBe(1);
   });
 });
