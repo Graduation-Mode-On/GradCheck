@@ -183,7 +183,7 @@ describe("PlansPage", () => {
     const wrapper = mountPage();
     await flushPromises();
 
-    expect(wrapper.text()).toContain("当前绑定方案");
+    expect(wrapper.text()).not.toContain("当前绑定方案");
     expect(wrapper.text()).toContain("软件工程");
     expect(wrapper.text()).toContain("2022级");
   });
