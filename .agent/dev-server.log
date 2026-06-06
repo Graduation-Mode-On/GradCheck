@@ -1,0 +1,81 @@
+//给项目接入“高德天气查询能力”
+> gradcheck@0.1.0 dev E:\Code\GradCheck
+> pnpm -r --parallel dev
+
+Scope: 2 of 3 workspace projects
+packages/backend dev$ tsx watch src/index.ts
+packages/web dev$ vite --host 0.0.0.0
+packages/web dev: Port 5173 is in use, trying another one...
+packages/web dev:   [32m[1mVITE[22m v7.3.5[39m  [2mready in [0m[1m668[22m[2m[0m ms[22m
+packages/web dev:   [32m➜[39m  [1mLocal[22m:   [36mhttp://localhost:[1m5174[22m/[39m
+packages/web dev:   [32m➜[39m  [1mNetwork[22m: [36mhttp://10.82.34.121:[1m5174[22m/[39m
+packages/backend dev: ◇ injected env (5) from ..\..\.env // tip: ◈ encrypted .env [www.dotenvx.com]
+packages/backend dev: ◇ injected env (0) from .env // tip: ⌁ auth for agents [www.vestauth.com]
+packages/backend dev: GradCheck backend listening on port 3000
+packages/backend dev: 12:57:37 [tsx] change in ./src\lib\config.ts Rerunning...
+packages/backend dev: c◇ injected env (5) from ..\..\.env // tip: ⌘ enable debugging { debug: true }
+packages/backend dev: ◇ injected env (0) from .env // tip: ◈ encrypted .env [www.dotenvx.com]
+packages/backend dev: E:\Code\GradCheck\packages\backend\src\lib\config.ts:16
+packages/backend dev:   return envSchema.parse(process.env);
+packages/backend dev:                    ^
+packages/backend dev: ZodError: [
+packages/backend dev:   {
+packages/backend dev:     "expected": "string",
+packages/backend dev:     "code": "invalid_type",
+packages/backend dev:     "path": [
+packages/backend dev:       "AMAP_WEATHER_KEY"
+packages/backend dev:     ],
+packages/backend dev:     "message": "Invalid input: expected string, received undefined"
+packages/backend dev:   }
+packages/backend dev: ]
+packages/backend dev:     at loadConfig (E:\Code\GradCheck\packages\backend\src\lib\config.ts:16:20)
+packages/backend dev:     at <anonymous> (E:\Code\GradCheck\packages\backend\src\index.ts:6:16)
+packages/backend dev:     at ModuleJob.run (node:internal/modules/esm/module_job:430:25)
+packages/backend dev:     at async onImport.tracePromise.__proto__ (node:internal/modules/esm/loader:661:26)
+packages/backend dev:     at async asyncRunEntryPointWithESMLoader (node:internal/modules/run_main:101:5)
+packages/backend dev: Node.js v24.14.0
+packages/backend dev: 12:58:02 [tsx] change in ./src\app.ts Rerunning...
+packages/backend dev: c◇ injected env (5) from ..\..\.env // tip: ⌘ multiple files { path: ['.env.local', '.env'] }
+packages/backend dev: ◇ injected env (0) from .env // tip: ⌘ multiple files { path: ['.env.local', '.env'] }
+packages/backend dev: E:\Code\GradCheck\packages\backend\src\lib\config.ts:16
+packages/backend dev:   return envSchema.parse(process.env);
+packages/backend dev:                    ^
+packages/backend dev: ZodError: [
+packages/backend dev:   {
+packages/backend dev:     "expected": "string",
+packages/backend dev:     "code": "invalid_type",
+packages/backend dev:     "path": [
+packages/backend dev:       "AMAP_WEATHER_KEY"
+packages/backend dev:     ],
+packages/backend dev:     "message": "Invalid input: expected string, received undefined"
+packages/backend dev:   }
+packages/backend dev: ]
+packages/backend dev:     at loadConfig (E:\Code\GradCheck\packages\backend\src\lib\config.ts:16:20)
+packages/backend dev:     at <anonymous> (E:\Code\GradCheck\packages\backend\src\index.ts:6:16)
+packages/backend dev:     at ModuleJob.run (node:internal/modules/esm/module_job:430:25)
+packages/backend dev:     at async onImport.tracePromise.__proto__ (node:internal/modules/esm/loader:661:26)
+packages/backend dev:     at async asyncRunEntryPointWithESMLoader (node:internal/modules/run_main:101:5)
+packages/backend dev: Node.js v24.14.0
+packages/backend dev: 12:58:10 [tsx] change in ./src\index.ts Rerunning...
+packages/backend dev: c◇ injected env (5) from ..\..\.env // tip: ⌘ override existing { override: true }
+packages/backend dev: ◇ injected env (0) from .env // tip: ⌁ auth for agents [www.vestauth.com]
+packages/backend dev: E:\Code\GradCheck\packages\backend\src\lib\config.ts:16
+packages/backend dev:   return envSchema.parse(process.env);
+packages/backend dev:                    ^
+packages/backend dev: ZodError: [
+packages/backend dev:   {
+packages/backend dev:     "expected": "string",
+packages/backend dev:     "code": "invalid_type",
+packages/backend dev:     "path": [
+packages/backend dev:       "AMAP_WEATHER_KEY"
+packages/backend dev:     ],
+packages/backend dev:     "message": "Invalid input: expected string, received undefined"
+packages/backend dev:   }
+packages/backend dev: ]
+packages/backend dev:     at loadConfig (E:\Code\GradCheck\packages\backend\src\lib\config.ts:16:20)
+packages/backend dev:     at <anonymous> (E:\Code\GradCheck\packages\backend\src\index.ts:6:16)
+packages/backend dev:     at ModuleJob.run (node:internal/modules/esm/module_job:430:25)
+packages/backend dev:     at async onImport.tracePromise.__proto__ (node:internal/modules/esm/loader:661:26)
+packages/backend dev:     at async asyncRunEntryPointWithESMLoader (node:internal/modules/run_main:101:5)
+packages/backend dev: Node.js v24.14.0
+packages/web dev: [2m12:58:32[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/style.css, /src/pages/HomePage.vue, /src/pages/ProfilePage.vue, /src/pages/LoginPage.vue, /src/components/AppShell.vue[22m

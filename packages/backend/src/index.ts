@@ -7,7 +7,8 @@ const config = loadConfig();
 const db = createDb(config.DATABASE_URL);
 const app = createApp({
   authRepository: createAuthRepository(db),
-  corsOrigin: config.CORS_ORIGIN
+  corsOrigin: config.CORS_ORIGIN,
+  amapWeatherKey: config.AMAP_WEATHER_KEY
 });
 
 app.listen(config.PORT, () => {
