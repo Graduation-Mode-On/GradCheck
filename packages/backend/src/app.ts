@@ -4,6 +4,7 @@ import express from "express";
 import { errorHandler } from "./middleware/error-handler.js";
 import type { AuthRepository } from "./modules/auth/auth.repository.js";
 import { createAuthRouter } from "./modules/auth/auth.routes.js";
+import { createProgramRulesRouter } from "./modules/program-rules/expressRouter.js";
 import { createUserRouter } from "./modules/users/user.routes.js";
 import { createWeatherRouter } from "./modules/weather/weather.routes.js";
 
@@ -28,6 +29,7 @@ export function createApp(dependencies: AppDependencies) {
   if (dependencies.amapWeatherKey) {
     app.use("/api/weather", createWeatherRouter(dependencies.amapWeatherKey));
   }
+  app.use("/api", createProgramRulesRouter());
   app.use(errorHandler);
 
   return app;
