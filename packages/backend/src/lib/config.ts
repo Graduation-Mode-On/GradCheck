@@ -15,7 +15,8 @@ const envSchema = z.object({
     .default("true")
     .transform((v) => v === "true"),
   REMINDER_SCHEDULER_INTERVAL_MS: z.coerce.number().int().positive().min(1000).default(60_000),
-  REMINDER_PUBLIC_BASE_URL: z.string().url().optional()
+  REMINDER_PUBLIC_BASE_URL: z.string().url().optional(),
+  MCP_RATE_LIMIT_PER_MINUTE: z.coerce.number().int().positive().default(60)
 });
 
 export function loadConfig() {

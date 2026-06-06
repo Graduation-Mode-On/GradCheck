@@ -590,8 +590,38 @@ function createGpaRepository(): GpaRepository {
             async unignoreGroup() {}
           },
           reminderRepository: createReminderRepositoryStub(),
-          labExamEvents: createLabExamEventsDeps()
-        });
+          labExamEvents: createLabExamEventsDeps(),
+          mcp: {
+            authRepository: createRepository(),
+            reminderRepository: createReminderRepositoryStub(),
+            coursesProgressRepository: {
+              async loadProgressData() {
+                return { plan: null, planCourses: [], planGroups: [], gpaCourses: [], matches: [], ignoredGroupIds: [] };
+              },
+              async ignoreGroup() {},
+              async unignoreGroup() {}
+            },
+            gpaRepository: createGpaRepository(),
+            programPlanRepository: createProgramPlanRepository(),
+            customRequirementRepository: createCustomRequirementRepository(),
+            homeSummaryDependencies: {
+              coursesProgressRepository: {
+                async loadProgressData() {
+                  return { plan: null, planCourses: [], planGroups: [], gpaCourses: [], matches: [], ignoredGroupIds: [] };
+                },
+                async ignoreGroup() {},
+                async unignoreGroup() {}
+              },
+              gpaRepository: createGpaRepository(),
+              lecturePracticeRepository: createLecturePracticeRepository(),
+              volunteerLaborRepository: createVolunteerLaborRepository(),
+              srtpRepository: createSrtpRepository(),
+              customRequirementRepository: createCustomRequirementRepository()
+            },
+            labExamEvents: createLabExamEventsDeps(),
+            rateLimitPerMinute: 60
+          }
+        } as unknown as AppDependencies);
       }
 
       beforeEach(() => {

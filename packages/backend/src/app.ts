@@ -37,6 +37,8 @@ import type { LabExamEventRepository } from "./modules/lab-exam-events/lab-exam-
 import type { RemindersDatabase } from "./modules/reminders/reminders.repository.js";
 import { createRemindersRouter } from "./modules/reminders/reminders.routes.js";
 import type { ReminderRepository } from "./modules/reminders/reminders.types.js";
+import { createMcpRouter } from "./modules/mcp/mcp.routes.js";
+import type { McpDependencies } from "./modules/mcp/mcp.context.js";
 
 export interface AppDependencies {
   authRepository: AuthRepository;
@@ -59,6 +61,7 @@ export interface AppDependencies {
   };
   corsOrigin?: string;
   amapWeatherKey?: string;
+  mcp: McpDependencies;
 }
 
 export function createApp(dependencies: AppDependencies) {
@@ -129,6 +132,7 @@ export function createApp(dependencies: AppDependencies) {
     app.use("/api/weather", createWeatherRouter(dependencies.amapWeatherKey));
   }
   app.use("/api", createProgramRulesRouter());
+  app.use("/mcp", createMcpRouter(dependencies.mcp));
   app.use(
     "/api/course-recommendations",
     createCourseRecommendationsRouter({
