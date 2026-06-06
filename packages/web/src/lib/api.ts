@@ -1,5 +1,7 @@
 import type { LoginInput, ProfileInput, RegisterInput } from "../schemas/auth";
+import type { LecturePracticeProgress, LecturePracticeProgressInput } from "../schemas/lecturePractice";
 import type { PlazaPost, PlazaPostFilters, PlazaPostInput, PlazaPostStatus } from "../schemas/plaza";
+import type { VolunteerLaborProgress, VolunteerLaborProgressInput } from "../schemas/volunteerLabor";
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL ?? "";
 const TOKEN_KEY = "gradcheck.token";
@@ -141,4 +143,30 @@ export async function updatePlazaPostStatus(id: string, status: PlazaPostStatus)
 }
 export async function deletePlazaPost(id: string): Promise<{ success: true }> {
   return request<{ success: true }>(`/api/plaza/posts/${id}`, { method: "DELETE" });
+}
+
+export async function getLecturePracticeProgress(): Promise<{ progress: LecturePracticeProgress }> {
+  return request<{ progress: LecturePracticeProgress }>("/api/lecture-practice/me");
+}
+
+export async function updateLecturePracticeProgress(
+  input: LecturePracticeProgressInput
+): Promise<{ progress: LecturePracticeProgress }> {
+  return request<{ progress: LecturePracticeProgress }>("/api/lecture-practice/me", {
+    method: "PUT",
+    body: JSON.stringify(input)
+  });
+}
+
+export async function getVolunteerLaborProgress(): Promise<{ progress: VolunteerLaborProgress }> {
+  return request<{ progress: VolunteerLaborProgress }>("/api/volunteer-labor/me");
+}
+
+export async function updateVolunteerLaborProgress(
+  input: VolunteerLaborProgressInput
+): Promise<{ progress: VolunteerLaborProgress }> {
+  return request<{ progress: VolunteerLaborProgress }>("/api/volunteer-labor/me", {
+    method: "PUT",
+    body: JSON.stringify(input)
+  });
 }

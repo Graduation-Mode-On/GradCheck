@@ -11,6 +11,15 @@ describe("router placeholders for mobile tabs", () => {
   });
 });
 
+describe("router for lecture practice and volunteer labor", () => {
+  it("registers lecture practice and volunteer routes", () => {
+    expect(router.hasRoute("lecture-practice")).toBe(true);
+    expect(router.hasRoute("volunteer")).toBe(true);
+    expect(router.resolve({ name: "lecture-practice" }).path).toBe("/lecture-practice");
+    expect(router.resolve({ name: "volunteer" }).path).toBe("/volunteer");
+  });
+});
+
 describe("router placeholders for homepage feature entries", () => {
   it("registers placeholder routes for all homepage feature entry targets", () => {
     const expectedRoutes = [
