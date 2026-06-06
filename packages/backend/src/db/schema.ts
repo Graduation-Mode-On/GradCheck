@@ -224,6 +224,24 @@ export const programPlanCourses = pgTable("program_plan_courses", {
   updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull()
 });
 
+export const userCoursePlanMatches = pgTable("user_course_plan_matches", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  userId: uuid("user_id")
+    .notNull()
+    .references(() => users.id, { onDelete: "cascade" }),
+  gpaCourseId: uuid("gpa_course_id")
+    .notNull()
+    .references(() => gpaCourses.id, { onDelete: "cascade" }),
+  programPlanCourseId: uuid("program_plan_course_id")
+    .notNull()
+    .references(() => programPlanCourses.id, { onDelete: "cascade" }),
+  matchMethod: varchar("match_method", { length: 40 }).notNull(),
+  confidence: numeric("confidence", { precision: 4, scale: 2 }).notNull(),
+  confirmedByUser: boolean("confirmed_by_user").notNull().default(false),
+  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull()
+});
+
 export const userProgramPlanBindings = pgTable("user_program_plan_bindings", {
   userId: uuid("user_id")
     .primaryKey()

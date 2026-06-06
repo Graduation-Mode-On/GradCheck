@@ -1,8 +1,9 @@
 import { and, eq, sql } from "drizzle-orm";
 
 import type { Database } from "../../db/client.js";
-import { gpaCalculationResults, gpaCourses } from "../../db/schema.js";
+import { gpaCalculationResults, gpaCourses, programPlanCourses, userCoursePlanMatches, userProgramPlanBindings } from "../../db/schema.js";
 import { calculateGpaResult } from "./gpa.calculator.js";
+import { isTranscriptArtifactName, matchGpaCourseToPlanCourse } from "./course-plan-matcher.js";
 import type { GpaCalculationResult, GpaCourse, GpaCourseInput, PersistedGpaCalculationResult } from "./gpa.types.js";
 
 export interface GpaDashboard {
@@ -14,6 +15,8 @@ export interface GpaRepository {
   listCourses(userId: string): Promise<GpaCourse[]>;
   createCourseAndRecalculate(userId: string, input: GpaCourseInput): Promise<GpaDashboard>;
   createCoursesAndRecalculate(userId: string, input: GpaCourseInput[]): Promise<GpaDashboard>;
+  matchCoursesToProgramPlan(userId: string): Promise<GpaDashboard & { matchedCount: number }>;
+  cleanupTranscriptArtifactsAndRecalculate(userId: string): Promise<GpaDashboard & { deletedCount: number }>;
   updateCourseAndRecalculate(userId: string, courseId: string, input: GpaCourseInput): Promise<GpaDashboard | null>;
   deleteCourseAndRecalculate(userId: string, courseId: string): Promise<GpaDashboard | null>;
 }
@@ -71,6 +74,66 @@ export function createGpaRepository(db: Database): GpaRepository {
           await tx.insert(gpaCourses).values(input.map((course) => ({ userId, ...course })));
         }
         return recalculateAndPersist(tx, userId);
+      });
+    },
+    async matchCoursesToProgramPlan(userId) {
+      return db.transaction(async (tx) => {
+        await lockUserGpa(tx, userId);
+        const courses = await listCourses(tx, userId);
+        const [binding] = await tx
+          .select()
+          .from(userProgramPlanBindings)
+          .where(eq(userProgramPlanBindings.userId, userId))
+          .limit(1);
+        if (!binding) {
+          return { ...(await recalculateAndPersist(tx, userId)), matchedCount: 0 };
+        }
+
+        const planCourses = await tx
+          .select()
+          .from(programPlanCourses)
+          .where(eq(programPlanCourses.programPlanId, binding.programPlanId));
+        let matchedCount = 0;
+
+        await tx.delete(userCoursePlanMatches).where(eq(userCoursePlanMatches.userId, userId));
+
+        for (const course of courses) {
+          const match = matchGpaCourseToPlanCourse(course, planCourses);
+          if (!match) {
+            continue;
+          }
+
+          const matchedPlanCourse = planCourses.find((planCourse) => planCourse.id === match.programPlanCourseId);
+          await tx.insert(userCoursePlanMatches).values({
+            userId,
+            gpaCourseId: course.id,
+            programPlanCourseId: match.programPlanCourseId,
+            matchMethod: match.matchMethod,
+            confidence: match.confidence,
+            confirmedByUser: false
+          });
+          matchedCount += 1;
+
+          if (matchedPlanCourse?.requirementType === "required" && !course.isRequired) {
+            await tx.update(gpaCourses).set({ isRequired: true, updatedAt: new Date() }).where(eq(gpaCourses.id, course.id));
+          }
+        }
+
+        return { ...(await recalculateAndPersist(tx, userId)), matchedCount };
+      });
+    },
+    async cleanupTranscriptArtifactsAndRecalculate(userId) {
+      return db.transaction(async (tx) => {
+        await lockUserGpa(tx, userId);
+        const courses = await listCourses(tx, userId);
+        const artifactIds = courses.filter((course) => isTranscriptArtifactName(course.name)).map((course) => course.id);
+        if (artifactIds.length === 0) {
+          return { ...(await recalculateAndPersist(tx, userId)), deletedCount: 0 };
+        }
+        for (const id of artifactIds) {
+          await tx.delete(gpaCourses).where(eq(gpaCourses.id, id));
+        }
+        return { ...(await recalculateAndPersist(tx, userId)), deletedCount: artifactIds.length };
       });
     },
     async updateCourseAndRecalculate(userId, courseId, input) {

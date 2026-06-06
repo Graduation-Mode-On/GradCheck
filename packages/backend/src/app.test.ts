@@ -5,6 +5,7 @@ import { createApp } from "./app.js";
 import type { AuthRepository } from "./modules/auth/auth.repository.js";
 import type { CustomRequirementRepository } from "./modules/custom-requirements/custom-requirement.repository.js";
 import { calculateGpaResult } from "./modules/gpa/gpa.calculator.js";
+import { matchGpaCourseToPlanCourse } from "./modules/gpa/course-plan-matcher.js";
 import type { GpaDashboard, GpaRepository } from "./modules/gpa/gpa.repository.js";
 import type { GpaCourse, GpaCourseInput } from "./modules/gpa/gpa.types.js";
 import type { NewsRepository } from "./modules/news/news.repository.js";
@@ -26,6 +27,10 @@ import type { SrtpRecord, SrtpRecordInput } from "./modules/srtp/srtp.schemas.js
 import type { UserProfile } from "./modules/users/user.repository.js";
 
 const now = new Date("2026-06-06T00:00:00.000Z");
+const testPlanCoursesByUser = new Map<
+  string,
+  Array<{ id: string; code: string; name: string; credits: string; requirementType: string }>
+>();
 
 interface TestLecturePracticeProgress {
   userId: string;
@@ -71,6 +76,16 @@ function createProgramPlanRepository(): ProgramPlanRepository {
       plans.set(plan.id, plan);
       const normalized = normalizeProgramPlanCourses(planJson);
       normalizedStats.set(plan.id, { groupCount: normalized.groups.length, courseCount: normalized.courses.length });
+      testPlanCoursesByUser.set(
+        userId,
+        normalized.courses.map((course, index) => ({
+          id: `plan-course-${plans.size + 1}-${index + 1}`,
+          code: course.code,
+          name: course.name,
+          credits: course.credits,
+          requirementType: course.requirementType
+        }))
+      );
       const binding: ProgramPlanBinding = {
         userId,
         programPlanId: plan.id,
@@ -217,6 +232,23 @@ function createGpaRepository(): GpaRepository {
         courses.set(course.id, course);
       }
       return dashboard(userId);
+    },
+    async matchCoursesToProgramPlan(userId) {
+      let matchedCount = 0;
+      const planCourses = testPlanCoursesByUser.get(userId) ?? [];
+      for (const course of [...courses.values()].filter((value) => value.userId === userId)) {
+        const match = matchGpaCourseToPlanCourse(course, planCourses);
+        if (!match) continue;
+        matchedCount += 1;
+        const planCourse = planCourses.find((value) => value.id === match.programPlanCourseId);
+        if (planCourse?.requirementType === "required") {
+          courses.set(course.id, { ...course, isRequired: true, updatedAt: now });
+        }
+      }
+      return { ...dashboard(userId), matchedCount };
+    },
+    async cleanupTranscriptArtifactsAndRecalculate(userId) {
+      return { ...dashboard(userId), deletedCount: 0 };
     },
     async updateCourseAndRecalculate(userId, courseId, input) {
       const existing = courses.get(courseId);
@@ -1282,6 +1314,30 @@ const app = createTestApp();
       it("imports confirmed transcript courses and skips duplicates", async () => {
         const app = createTestApp();
         const token = await registerAndToken(app, "gpa-import@example.com");
+        await request(app)
+          .post("/api/program-plans/import")
+          .set("Authorization", `Bearer ${token}`)
+          .send({
+            sourceFilename: "software-plan.json",
+            planJson: {
+              program: { school: "东南大学", college: "软件学院", major: "软件工程", grade: "2022级", total_credits: 166 },
+              courses: [
+                {
+                  code: "BSEDB001",
+                  name: "数据库原理(全英文)",
+                  credits: 3,
+                  category: "专业主干课",
+                  subcategory: "软件工程",
+                  term: { year: "四", semester: "1" }
+                }
+              ],
+              requirements: [{ id: "required_core", type: "required", title: "必修课程" }],
+              semester_plan: [],
+              warnings: [],
+              provenance: {}
+            }
+          })
+          .expect(201);
         const course = {
           term: "2025-2026 春",
           name: "数据库原理(全英文)",
@@ -1301,6 +1357,7 @@ const app = createTestApp();
         expect(firstImport.body.importedCount).toBe(1);
         expect(firstImport.body.skippedCount).toBe(0);
         expect(firstImport.body.dashboard.courses).toHaveLength(1);
+        expect(firstImport.body.dashboard.courses[0]).toMatchObject({ name: "数据库原理(全英文)", isRequired: true });
 
         const secondImport = await request(app)
           .post("/api/gpa/transcript/import")
