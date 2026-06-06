@@ -539,3 +539,45 @@ export interface RematchGpaCoursesResponse extends GpaDashboardResponse {
 export async function rematchGpaCourses(): Promise<RematchGpaCoursesResponse> {
   return request<RematchGpaCoursesResponse>("/api/gpa/rematch", { method: "POST" });
 }
+
+export type GraduationDimensionStatus = "completed" | "in_progress" | "not_started" | "unknown";
+
+export type GraduationDimensionKey =
+  | "courses"
+  | "gpa"
+  | "human_lecture"
+  | "book_report"
+  | "social_practice_credits"
+  | "social_practice_courses"
+  | "volunteer_hours"
+  | "ordinary_labor"
+  | "special_labor"
+  | "srtp"
+  | "custom_requirement";
+
+export interface GraduationDimension {
+  key: GraduationDimensionKey;
+  id: string;
+  label: string;
+  status: GraduationDimensionStatus;
+  current: number;
+  target: number;
+  unit: string;
+  percent: number;
+  route: string;
+  detail: string;
+}
+
+export interface GraduationSummaryResponse {
+  overall: {
+    coursesPercent: number;
+    completedDimensions: number;
+    totalDimensions: number;
+    unfinishedCount: number;
+  };
+  dimensions: GraduationDimension[];
+}
+
+export async function getGraduationSummary(): Promise<GraduationSummaryResponse> {
+  return request<GraduationSummaryResponse>("/api/home/graduation-summary");
+}

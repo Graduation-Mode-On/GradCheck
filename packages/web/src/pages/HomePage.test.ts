@@ -90,6 +90,27 @@ vi.mock("../lib/api", async () => {
           updatedAt: "2026-06-06T00:00:00.000Z"
         }
       ]
+    }),
+    getGraduationSummary: async () => ({
+      overall: {
+        coursesPercent: 64,
+        completedDimensions: 3,
+        totalDimensions: 11,
+        unfinishedCount: 8
+      },
+      dimensions: [
+        { key: "courses", id: "courses", label: "培养方案课程", status: "in_progress", current: 100, target: 160, unit: "学分", percent: 64, route: "/courses", detail: "进行中" },
+        { key: "gpa", id: "gpa", label: "GPA", status: "completed", current: 3.5, target: 2, unit: "", percent: 100, route: "/gpa", detail: "已通过" },
+        { key: "human_lecture", id: "human_lecture", label: "人文讲座", status: "in_progress", current: 5, target: 8, unit: "次", percent: 63, route: "/lecture-practice", detail: "5/8 次" },
+        { key: "book_report", id: "book_report", label: "读书报告", status: "not_started", current: 0, target: 2, unit: "篇", percent: 0, route: "/lecture-practice", detail: "0/2 篇" },
+        { key: "social_practice_credits", id: "social_practice_credits", label: "社会实践学分", status: "completed", current: 1, target: 1, unit: "学分", percent: 100, route: "/lecture-practice", detail: "已完成" },
+        { key: "social_practice_courses", id: "social_practice_courses", label: "社会实践课程", status: "not_started", current: 0, target: 1, unit: "门", percent: 0, route: "/lecture-practice", detail: "0/1 门" },
+        { key: "volunteer_hours", id: "volunteer_hours", label: "志愿服务", status: "in_progress", current: 6, target: 12, unit: "小时", percent: 50, route: "/volunteer", detail: "6/12 小时" },
+        { key: "ordinary_labor", id: "ordinary_labor", label: "普通劳动", status: "not_started", current: 0, target: 2, unit: "次", percent: 0, route: "/volunteer", detail: "0/2 次" },
+        { key: "special_labor", id: "special_labor", label: "专项劳动", status: "not_started", current: 0, target: 1, unit: "次", percent: 0, route: "/volunteer", detail: "0/1 次" },
+        { key: "srtp", id: "srtp", label: "SRTP", status: "completed", current: 2, target: 2, unit: "学分", percent: 100, route: "/srtp", detail: "通过" },
+        { key: "custom_requirement", id: "custom:requirement-1", label: "人文讲座", status: "in_progress", current: 2, target: 4, unit: "次", percent: 50, route: "/custom-requirements", detail: "2/4 次" }
+      ]
     })
   };
 });
@@ -115,6 +136,31 @@ describe("HomePage dashboard layout", () => {
     expect(progressCard.text()).toContain("毕业进度总览");
     expect(progressCard.text()).not.toContain("数据可信度");
     expect(progressCard.element.compareDocumentPosition(featureGrid.element)).toBe(Node.DOCUMENT_POSITION_FOLLOWING);
+  });
+
+  it("renders the graduation progress card driven by the summary endpoint", async () => {
+    const wrapper = mountHomePage();
+
+    await vi.dynamicImportSettled();
+
+    const card = wrapper.get('[data-testid="graduation-progress-card"]');
+    expect(card.get('[data-testid="graduation-dimension-count"]').text()).toContain("3");
+    expect(card.get('[data-testid="graduation-dimension-count"]').text()).toContain("11");
+    expect(card.get('[data-testid="courses-percent"]').text()).toBe("64%");
+
+    const bar = card.get('[data-testid="courses-percent-bar"]');
+    expect(bar.attributes("style")).toContain("width: 64%");
+
+    const dots = card.findAll('[data-testid="graduation-dimension"]');
+    expect(dots).toHaveLength(11);
+    expect(dots[0].attributes("data-status")).toBe("in_progress");
+    expect(dots[0].attributes("data-key")).toBe("courses");
+    expect(dots[1].attributes("data-status")).toBe("completed");
+    expect(dots[3].attributes("data-status")).toBe("not_started");
+    expect(dots[3].get('[data-testid="graduation-dimension-dot"]').classes()).toContain("bg-slate-300");
+
+    const footer = card.get('[data-testid="graduation-progress-footer"]');
+    expect(footer.text()).toContain("还有 8 项未完成");
   });
 
   it("renders the 10 PRD feature entries in a 5-column grid", () => {

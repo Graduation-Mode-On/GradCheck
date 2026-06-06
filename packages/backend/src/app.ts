@@ -25,6 +25,7 @@ import { createVolunteerLaborRouter } from "./modules/volunteer-labor/volunteer-
 import { createWeatherRouter } from "./modules/weather/weather.routes.js";
 import type { CustomRequirementRepository } from "./modules/custom-requirements/custom-requirement.repository.js";
 import { createCustomRequirementRouter } from "./modules/custom-requirements/custom-requirement.routes.js";
+import { createHomeSummaryRouter } from "./modules/home-summary/home-summary.routes.js";
 
 export interface AppDependencies {
   authRepository: AuthRepository;
@@ -74,6 +75,17 @@ export function createApp(dependencies: AppDependencies) {
     "/api/custom-requirements",
     createCustomRequirementRouter({
       authRepository: dependencies.authRepository,
+      customRequirementRepository: dependencies.customRequirementRepository
+    })
+  );
+  app.use(
+    "/api/home",
+    createHomeSummaryRouter(dependencies.authRepository, {
+      coursesProgressRepository: dependencies.coursesProgressRepository,
+      gpaRepository: dependencies.gpaRepository,
+      lecturePracticeRepository: dependencies.lecturePracticeRepository,
+      volunteerLaborRepository: dependencies.volunteerLaborRepository,
+      srtpRepository: dependencies.srtpRepository,
       customRequirementRepository: dependencies.customRequirementRepository
     })
   );
