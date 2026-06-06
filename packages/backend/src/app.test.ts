@@ -28,6 +28,7 @@ import type { SrtpRepository } from "./modules/srtp/srtp.repository.js";
 import type { SrtpRecord, SrtpRecordInput } from "./modules/srtp/srtp.schemas.js";
 import type { SportsRepository } from "./modules/sports/sports.repository.js";
 import type { UserProfile } from "./modules/users/user.repository.js";
+import { HttpError } from "./lib/http-error.js";
 
 const now = new Date("2026-06-06T00:00:00.000Z");
 const testPlanCoursesByUser = new Map<
@@ -213,6 +214,13 @@ function createRepository(): AuthRepository {
       return profiles.get(userId) ?? null;
     },
     async upsertProfile(userId, input) {
+      const existingForStudentId = [...profiles.values()].find(
+        (entry) => entry.studentId === input.studentId && entry.userId !== userId
+      );
+      if (existingForStudentId) {
+        throw new HttpError(409, "该学生一卡通已被其他账号使用");
+      }
+
       const profile: UserProfile = {
         userId,
         displayName: input.displayName,
@@ -220,6 +228,7 @@ function createRepository(): AuthRepository {
         major: input.major,
         grade: input.grade,
         gpaGoal: input.gpaGoal,
+        studentId: input.studentId,
         createdAt: now,
         updatedAt: now
       };
@@ -589,7 +598,8 @@ const app = createTestApp();
           college: "计算机科学与工程学院",
           major: "软件工程",
           grade: 2022,
-          gpaGoal: "3.70"
+          gpaGoal: "3.70",
+          studentId: "213220001"
         }
       });
 
@@ -602,7 +612,8 @@ const app = createTestApp();
         college: "计算机科学与工程学院",
         major: "软件工程",
         grade: 2022,
-        gpaGoal: "3.70"
+        gpaGoal: "3.70",
+        studentId: "213220001"
       }
     });
 
@@ -629,7 +640,8 @@ const app = createTestApp();
         college: "计算机科学与工程学院",
         major: "计算机科学与技术",
         grade: 2023,
-        gpaGoal: "3.90"
+        gpaGoal: "3.90",
+        studentId: "213220002"
       });
 
     expect(profileResponse.status).toBe(200);
@@ -638,7 +650,8 @@ const app = createTestApp();
       college: "计算机科学与工程学院",
       major: "计算机科学与技术",
       grade: 2023,
-      gpaGoal: "3.90"
+      gpaGoal: "3.90",
+      studentId: "213220002"
     });
   });
 
@@ -798,6 +811,14 @@ const app = createTestApp();
     };
   }
 
+  function studentIdFromEmail(email: string): string {
+    let hash = 0;
+    for (const ch of email) {
+      hash = (hash * 31 + ch.charCodeAt(0)) >>> 0;
+    }
+    return String(200000000 + (hash % 100000000)).padStart(9, "0");
+  }
+
   async function registerAndToken(app: ReturnType<typeof createApp>, email: string) {
     const response = await request(app)
       .post("/api/auth/register")
@@ -809,7 +830,8 @@ const app = createTestApp();
           college: "计算机科学与工程学院",
           major: "软件工程",
           grade: 2022,
-          gpaGoal: "3.70"
+          gpaGoal: "3.70",
+          studentId: studentIdFromEmail(email)
         }
       });
     return response.body.token as string;

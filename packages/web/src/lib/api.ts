@@ -26,6 +26,7 @@ export interface UserProfile {
   major: string;
   grade: number;
   gpaGoal: string;
+  studentId: string | null;
 }
 
 export interface CurrentUser {
