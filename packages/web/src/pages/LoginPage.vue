@@ -124,18 +124,12 @@ function submit() {
             专业
             <input data-testid="register-major" v-model="form.major" class="mt-1 w-full rounded-xl border border-slate-300 px-3 py-2" />
           </label>
-          <div class="grid grid-cols-2 gap-3">
-            <label class="block text-sm font-medium text-[var(--tommy-text-secondary)]">
-              年级
-              <select data-testid="register-grade" v-model.number="form.grade" class="mt-1 w-full rounded-xl border border-slate-300 px-3 py-2">
-                <option v-for="grade in enrollmentGrades" :key="grade" :value="grade">{{ grade }}</option>
-              </select>
-            </label>
-            <label class="block text-sm font-medium text-[var(--tommy-text-secondary)]">
-              目标 GPA
-              <input v-model="form.gpaGoal" class="mt-1 w-full rounded-xl border border-slate-300 px-3 py-2" />
-            </label>
-          </div>
+          <label class="block text-sm font-medium text-[var(--tommy-text-secondary)]">
+            年级
+            <select data-testid="register-grade" v-model.number="form.grade" class="mt-1 w-full rounded-xl border border-slate-300 px-3 py-2">
+              <option v-for="grade in enrollmentGrades" :key="grade" :value="grade">{{ grade }}</option>
+            </select>
+          </label>
         </div>
 
         <p v-if="errorMessage" class="rounded-xl bg-[color-mix(in_srgb,var(--tommy-error)_12%,white)] px-3 py-2 text-sm text-[var(--tommy-error)]">{{ errorMessage }}</p>
