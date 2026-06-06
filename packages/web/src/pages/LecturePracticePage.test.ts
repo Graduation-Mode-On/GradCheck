@@ -117,6 +117,8 @@ describe("LecturePracticePage", () => {
     await flushPromises();
 
     const creditsInput = wrapper.get('[data-testid="progress-socialPracticeCredits-input"]');
+    expect(wrapper.get('[data-testid="progress-socialPracticeCredits-increment"]').text()).toBe("+");
+    expect(wrapper.get('[data-testid="progress-socialPracticeCredits-decrement"]').text()).toBe("-");
     await wrapper.get('[data-testid="progress-socialPracticeCredits-increment"]').trigger("click");
     expect((creditsInput.element as HTMLInputElement).value).toBe("0.1");
     await wrapper.get('[data-testid="progress-socialPracticeCredits-decrement"]').trigger("click");

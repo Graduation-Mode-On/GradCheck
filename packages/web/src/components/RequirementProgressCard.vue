@@ -45,9 +45,10 @@ function adjust(delta: number) {
         :data-testid="`progress-${fieldKey}-decrement`"
         class="rounded-xl bg-slate-100 px-3 py-2 font-bold text-[var(--tommy-text)]"
         type="button"
+        :aria-label="`减少 ${step ?? 1}`"
         @click="adjust(-1)"
       >
-        -{{ step ?? 1 }}
+        -
       </button>
       <label class="sr-only" :for="`progress-${fieldKey}`">{{ title }}</label>
       <div class="relative">
@@ -67,9 +68,10 @@ function adjust(delta: number) {
         :data-testid="`progress-${fieldKey}-increment`"
         class="rounded-xl bg-[color-mix(in_srgb,var(--tommy-primary)_12%,white)] px-3 py-2 font-bold text-[var(--tommy-primary)]"
         type="button"
+        :aria-label="`增加 ${step ?? 1}`"
         @click="adjust(1)"
       >
-        +{{ step ?? 1 }}
+        +
       </button>
     </div>
 
