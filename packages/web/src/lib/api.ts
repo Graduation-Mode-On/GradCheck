@@ -398,6 +398,14 @@ export async function getCurrentProgramPlan(): Promise<{ plan: ProgramPlanPrevie
   return request<{ plan: ProgramPlanPreview | null }>("/api/program-plans/me");
 }
 
+export async function listReusableProgramPlans(): Promise<{ plans: ProgramPlanPreview[] }> {
+  return request<{ plans: ProgramPlanPreview[] }>("/api/program-plans/reusable");
+}
+
+export async function bindProgramPlan(id: string): Promise<{ plan: ProgramPlanPreview; binding: unknown }> {
+  return request<{ plan: ProgramPlanPreview; binding: unknown }>(`/api/program-plans/${id}/bind`, { method: "POST" });
+}
+
 export async function mockUploadProgramPlan(file: File): Promise<{ preview: ProgramPlanPreview }> {
   const form = new FormData();
   form.set("file", file);
@@ -426,4 +434,108 @@ export async function importProgramPlan(input: {
     method: "POST",
     body: JSON.stringify(input)
   });
+}
+
+export type CoursesRuleStatus = "completed" | "in_progress" | "not_started";
+export type CoursesRuleTargetType = "all_courses" | "courses" | "credits" | "either" | "manual";
+
+export interface CoursesPlanCourseRef {
+  id: string;
+  code: string;
+  name: string;
+  credits: string;
+}
+
+export interface CoursesCompletedPlanCourse extends CoursesPlanCourseRef {
+  matchedGpaCourseId: string;
+  matchedGpaCourseTerm: string;
+  matchedGpaCourseScore: string;
+}
+
+export interface CoursesMatchedFreeCourse {
+  gpaCourseId: string;
+  name: string;
+  credits: string;
+  term: string;
+  score: string;
+}
+
+export interface CoursesRuleProgress {
+  id: string;
+  name: string;
+  requirementType: string;
+  description: string | null;
+  status: CoursesRuleStatus;
+  targetType: CoursesRuleTargetType;
+  targetCourses: number | null;
+  targetCredits: string | null;
+  earnedCourses: number;
+  earnedCredits: string;
+  gapText: string;
+  completedCourses: CoursesCompletedPlanCourse[];
+  candidateCourses: CoursesPlanCourseRef[];
+  matchedFreeCourses: CoursesMatchedFreeCourse[];
+}
+
+export interface CoursesCategoryProgress {
+  name: string;
+  requiredCredits: string;
+  earnedCredits: string;
+  completedCourseCount: number;
+  totalCourseCount: number;
+  percent: number;
+}
+
+export interface CoursesOverallProgress {
+  totalCredits: string;
+  earnedCredits: string;
+  gapCredits: string;
+  percent: number;
+  satisfiedRuleCount: number;
+  totalRuleCount: number;
+}
+
+export interface CoursesPlanSummaryRef {
+  id: string;
+  school: string;
+  college: string | null;
+  major: string;
+  grade: string | null;
+}
+
+export type CoursesProgressEmptyReason = "no_plan" | "no_gpa_courses" | "no_matches";
+
+export interface CoursesIgnoredRule {
+  id: string;
+  name: string;
+  requirementType: string;
+}
+
+export interface CoursesProgressResponse {
+  plan: CoursesPlanSummaryRef | null;
+  emptyReason: CoursesProgressEmptyReason | null;
+  overall: CoursesOverallProgress | null;
+  categories: CoursesCategoryProgress[];
+  rules: CoursesRuleProgress[];
+  ignoredRules: CoursesIgnoredRule[];
+}
+
+export async function getCoursesProgress(): Promise<CoursesProgressResponse> {
+  return request<CoursesProgressResponse>("/api/courses/progress");
+}
+
+export async function ignoreCoursesRule(groupId: string): Promise<CoursesProgressResponse> {
+  return request<CoursesProgressResponse>(`/api/courses/rules/${groupId}/ignore`, { method: "POST" });
+}
+
+export async function unignoreCoursesRule(groupId: string): Promise<CoursesProgressResponse> {
+  return request<CoursesProgressResponse>(`/api/courses/rules/${groupId}/ignore`, { method: "DELETE" });
+}
+
+export interface RematchGpaCoursesResponse extends GpaDashboardResponse {
+  matchedCount: number;
+}
+
+export async function rematchGpaCourses(): Promise<RematchGpaCoursesResponse> {
+  return request<RematchGpaCoursesResponse>("/api/gpa/rematch", { method: "POST" });
 }

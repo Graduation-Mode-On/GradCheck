@@ -10,6 +10,7 @@ import { createProgramPlanRepository } from "./modules/program-plans/program-pla
 import { createSrtpRepository } from "./modules/srtp/srtp.repository.js";
 import { createVolunteerLaborRepository } from "./modules/volunteer-labor/volunteer-labor.repository.js";
 import { createCustomRequirementRepository } from "./modules/custom-requirements/custom-requirement.repository.js";
+import { createCoursesProgressRepository } from "./modules/courses-progress/courses-progress.repository.js";
 
 const config = loadConfig();
 const db = createDb(config.DATABASE_URL);
@@ -23,6 +24,7 @@ const app = createApp({
   volunteerLaborRepository: createVolunteerLaborRepository(db),
   customRequirementRepository: createCustomRequirementRepository(db),
   gpaRepository: createGpaRepository(db),
+  coursesProgressRepository: createCoursesProgressRepository(db),
   corsOrigin: config.CORS_ORIGIN,
   amapWeatherKey: config.AMAP_WEATHER_KEY
 });

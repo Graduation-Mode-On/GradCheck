@@ -15,6 +15,8 @@ import { createPlazaRouter } from "./modules/plaza/plaza.routes.js";
 import type { ProgramPlanRepository } from "./modules/program-plans/program-plans.repository.js";
 import { createProgramPlansRouter } from "./modules/program-plans/program-plans.routes.js";
 import { createProgramRulesRouter } from "./modules/program-rules/expressRouter.js";
+import type { CoursesProgressRepository } from "./modules/courses-progress/courses-progress.repository.js";
+import { createCoursesProgressRouter } from "./modules/courses-progress/courses-progress.routes.js";
 import type { SrtpRepository } from "./modules/srtp/srtp.repository.js";
 import { createSrtpRouter } from "./modules/srtp/srtp.routes.js";
 import { createUserRouter } from "./modules/users/user.routes.js";
@@ -34,6 +36,7 @@ export interface AppDependencies {
   srtpRepository: SrtpRepository;
   programPlanRepository: ProgramPlanRepository;
   gpaRepository: GpaRepository;
+  coursesProgressRepository: CoursesProgressRepository;
   corsOrigin?: string;
   amapWeatherKey?: string;
 }
@@ -55,6 +58,10 @@ export function createApp(dependencies: AppDependencies) {
   app.use("/api/news", createNewsRouter(dependencies.newsRepository));
   app.use("/api/srtp", createSrtpRouter(dependencies.authRepository, dependencies.srtpRepository));
   app.use("/api/program-plans", createProgramPlansRouter(dependencies.authRepository, dependencies.programPlanRepository));
+  app.use(
+    "/api/courses",
+    createCoursesProgressRouter(dependencies.authRepository, dependencies.coursesProgressRepository)
+  );
   app.use(
     "/api/lecture-practice",
     createLecturePracticeRouter(dependencies.authRepository, dependencies.lecturePracticeRepository)
