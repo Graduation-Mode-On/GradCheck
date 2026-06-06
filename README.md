@@ -52,6 +52,35 @@ pnpm typecheck
 pnpm build
 ```
 
+## Production deployment
+
+Production is deployed from GitHub Actions to `https://gc.myseu.cn`.
+
+Required GitHub Secrets:
+
+- `PROD_SSH_HOST`: production server host, currently `119.29.196.62`
+- `PROD_SSH_USER`: SSH deployment user, currently `ubuntu`
+- `PROD_SSH_KEY`: private SSH key used by GitHub Actions
+- `PROD_DATABASE_URL`: production PostgreSQL connection string
+- `PROD_JWT_SECRET`: production JWT signing secret
+- `PROD_AMAP_WEATHER_KEY`: production AMap weather key
+- `PROD_CORS_ORIGIN`: production frontend origin, currently `https://gc.myseu.cn`
+
+One-time server setup:
+
+```bash
+ssh ubuntu@119.29.196.62 'bash -s' < scripts/setup-production-server.sh
+```
+
+Manual production deploy from the server checkout:
+
+```bash
+cd /opt/gradcheck/app
+PUBLIC_HEALTH_URL=https://gc.myseu.cn/health scripts/deploy-production.sh
+```
+
+The production `.env` is written by GitHub Actions during deployment and must not be committed.
+
 ## Program PDF Parsing
 
 The backend includes a program-rule parser at `packages/backend/src/modules/program-rules`.
