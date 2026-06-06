@@ -1,0 +1,102 @@
+{
+  "program": {
+    "school": "东南大学",
+    "college": "软件学院",
+    "major": "软件工程",
+    "grade": "2022级",
+    "major_code": "080902",
+    "degree": "工学",
+    "duration_years": 4,
+    "total_credits": 166.0,
+    "summary": null
+  },
+  "courses": [
+    {
+      "code": "B07M1050",
+      "name": "工科数学分析I",
+      "credits": 6.0,
+      "hours": { "lecture": 96.0, "experiment": 0.0, "discussion": 0.0, "extracurricular": 0.0, "weekly": "6" },
+      "category": "通识教育基础课",
+      "subcategory": "数学类",
+      "term": { "year": "一", "semester": "1" },
+      "assessment": "+",
+      "required_type": "必修",
+      "notes": [],
+      "tags": [],
+      "source_pages": [4]
+    },
+    {
+      "code": "BJSL0020",
+      "name": "程序设计基础及语言I(双语)",
+      "credits": 2.0,
+      "hours": { "lecture": 32.0, "experiment": 16.0, "discussion": 0.0, "extracurricular": 0.0, "weekly": "3" },
+      "category": "大类学科基础课",
+      "subcategory": "软件工程",
+      "term": { "year": "一", "semester": "1" },
+      "assessment": "+",
+      "required_type": "必修",
+      "notes": [],
+      "tags": [],
+      "source_pages": [5]
+    },
+    {
+      "code": "BJSL1010",
+      "name": "数据结构",
+      "credits": 3.0,
+      "hours": { "lecture": 48.0, "experiment": 16.0, "discussion": 0.0, "extracurricular": 0.0, "weekly": "4" },
+      "category": "专业主干课",
+      "subcategory": "软件工程",
+      "term": { "year": "二", "semester": "1" },
+      "assessment": "+",
+      "required_type": "必修",
+      "notes": [],
+      "tags": [],
+      "source_pages": [6]
+    }
+  ],
+  "requirements": [
+    {
+      "id": "sishi_choose_one",
+      "type": "choose_one_of",
+      "title": "四史四选一",
+      "course_codes": ["B13M0020", "B15M1002", "B15M1001", "B13M0030"],
+      "course_names": ["新中国史", "改革开放史", "中共党史", "社会主义发展史"],
+      "groups": [],
+      "min_courses": null,
+      "min_credits": null,
+      "tag": null,
+      "notes": [],
+      "source_text": "四史四选一"
+    },
+    {
+      "id": "major_required",
+      "type": "all_required",
+      "title": "专业主干必修课",
+      "course_codes": ["BJSL1010"],
+      "course_names": ["数据结构"],
+      "groups": [],
+      "min_courses": null,
+      "min_credits": null,
+      "tag": null,
+      "notes": [],
+      "source_text": "专业主干必修课需全部完成"
+    }
+  ],
+  "semester_plan": [
+    {
+      "academic_year": "第一学年",
+      "semester": "第1学期",
+      "courses": [
+        { "code": "B07M1050", "name": "工科数学分析I", "credits": 6.0, "required_type": "必修", "note_ref": null },
+        { "code": "BJSL0020", "name": "程序设计基础及语言I(双语)", "credits": 2.0, "required_type": "必修", "note_ref": null }
+      ],
+      "required_credits": 8.0
+    }
+  ],
+  "warnings": [],
+  "provenance": {
+    "source_pdf": "2022级软件工程专业培养方案.pdf",
+    "extractor_version": "pdf-extract-sample",
+    "llm_model": null
+  }
+}
