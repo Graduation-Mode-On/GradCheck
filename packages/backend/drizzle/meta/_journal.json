@@ -71,6 +71,13 @@
       "when": 1780748599277,
       "tag": "0009_abnormal_toxin",
       "breakpoints": true
+    },
+    {
+      "idx": 10,
+      "version": "7",
+      "when": 1780753760760,
+      "tag": "0010_lame_the_fury",
+      "breakpoints": true
     }
   ]
 }

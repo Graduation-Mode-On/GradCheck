@@ -42,6 +42,70 @@ export const customRequirements = pgTable("custom_requirements", {
   updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull()
 });
 
+export const reminders = pgTable("reminders", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  userId: uuid("user_id")
+    .notNull()
+    .references(() => users.id, { onDelete: "cascade" }),
+  title: varchar("title", { length: 160 }).notNull(),
+  category: varchar("category", { length: 32 }).notNull(),
+  status: varchar("status", { length: 32 }).notNull().default("pending"),
+  priority: varchar("priority", { length: 32 }).notNull().default("normal"),
+  startAt: timestamp("start_at", { withTimezone: true }),
+  dueAt: timestamp("due_at", { withTimezone: true }).notNull(),
+  location: varchar("location", { length: 200 }),
+  notes: text("notes"),
+  sourceType: varchar("source_type", { length: 32 }).notNull().default("custom"),
+  sourceId: uuid("source_id"),
+  reminderOffsets: jsonb("reminder_offsets").$type<number[]>().notNull().default([1440, 60]),
+  smsEnabled: boolean("sms_enabled").notNull().default(false),
+  showOnHome: boolean("show_on_home").notNull().default(true),
+  completedAt: timestamp("completed_at", { withTimezone: true }),
+  snoozedUntil: timestamp("snoozed_until", { withTimezone: true }),
+  deletedAt: timestamp("deleted_at", { withTimezone: true }),
+  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull()
+});
+
+export const labExamEvents = pgTable("lab_exam_events", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  userId: uuid("user_id")
+    .notNull()
+    .references(() => users.id, { onDelete: "cascade" }),
+  reminderId: uuid("reminder_id")
+    .notNull()
+    .references(() => reminders.id, { onDelete: "cascade" }),
+  title: varchar("title", { length: 160 }).notNull(),
+  courseName: varchar("course_name", { length: 160 }),
+  eventType: varchar("event_type", { length: 32 }).notNull(),
+  startAt: timestamp("start_at", { withTimezone: true }).notNull(),
+  endAt: timestamp("end_at", { withTimezone: true }),
+  location: varchar("location", { length: 200 }),
+  teacher: varchar("teacher", { length: 120 }),
+  seatOrGroup: varchar("seat_or_group", { length: 120 }),
+  notes: text("notes"),
+  status: varchar("status", { length: 32 }).notNull().default("scheduled"),
+  deletedAt: timestamp("deleted_at", { withTimezone: true }),
+  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull()
+});
+
+export const reminderDeliveryLogs = pgTable("reminder_delivery_logs", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  reminderId: uuid("reminder_id")
+    .notNull()
+    .references(() => reminders.id, { onDelete: "cascade" }),
+  channel: varchar("channel", { length: 32 }).notNull(),
+  status: varchar("status", { length: 32 }).notNull().default("pending"),
+  scheduledAt: timestamp("scheduled_at", { withTimezone: true }).notNull(),
+  sentAt: timestamp("sent_at", { withTimezone: true }),
+  providerMessageId: varchar("provider_message_id", { length: 160 }),
+  errorMessage: text("error_message"),
+  attemptCount: integer("attempt_count").notNull().default(0),
+  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull()
+});
+
 export const auditLogs = pgTable("audit_logs", {
   id: uuid("id").defaultRandom().primaryKey(),
   actorUserId: uuid("actor_user_id").references(() => users.id, { onDelete: "set null" }),
