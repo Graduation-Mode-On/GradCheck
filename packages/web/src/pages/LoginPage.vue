@@ -6,6 +6,7 @@ import { ZodError } from "zod";
 
 import { login, register, setToken } from "../lib/api";
 import { loginSchema, profileSchema } from "../schemas/auth";
+import { seuColleges } from "../constants/colleges";
 
 const router = useRouter();
 const mode = ref<"login" | "register">("login");
@@ -81,6 +82,7 @@ function submit() {
           登录
         </button>
         <button
+          data-testid="register-mode"
           type="button"
           class="rounded-full px-3 py-2"
           :class="mode === 'register' ? 'bg-white text-[var(--tommy-primary)] shadow-sm' : 'text-[var(--tommy-text-secondary)]'"
@@ -90,14 +92,15 @@ function submit() {
         </button>
       </div>
 
-      <form class="mt-5 space-y-4" @submit.prevent="submit">
+      <form data-testid="login-form" class="mt-5 space-y-4" @submit.prevent="submit">
         <label class="block text-sm font-medium text-[var(--tommy-text-secondary)]">
           邮箱
-          <input v-model="form.email" class="mt-1 w-full rounded-xl border border-slate-300 px-3 py-2" type="email" />
+          <input data-testid="login-email" v-model="form.email" class="mt-1 w-full rounded-xl border border-slate-300 px-3 py-2" type="email" />
         </label>
         <label class="block text-sm font-medium text-[var(--tommy-text-secondary)]">
           密码
           <input
+            data-testid="login-password"
             v-model="form.password"
             class="mt-1 w-full rounded-xl border border-slate-300 px-3 py-2"
             type="password"
@@ -107,15 +110,18 @@ function submit() {
         <div v-if="mode === 'register'" class="space-y-4 border-t border-slate-100 pt-4">
           <label class="block text-sm font-medium text-[var(--tommy-text-secondary)]">
             显示名称
-            <input v-model="form.displayName" class="mt-1 w-full rounded-xl border border-slate-300 px-3 py-2" />
+            <input data-testid="register-display-name" v-model="form.displayName" class="mt-1 w-full rounded-xl border border-slate-300 px-3 py-2" />
           </label>
           <label class="block text-sm font-medium text-[var(--tommy-text-secondary)]">
             学院
-            <input v-model="form.college" class="mt-1 w-full rounded-xl border border-slate-300 px-3 py-2" />
+            <select data-testid="register-college" v-model="form.college" class="mt-1 w-full rounded-xl border border-slate-300 px-3 py-2">
+              <option value="" disabled>请选择学院</option>
+              <option v-for="college in seuColleges" :key="college" :value="college">{{ college }}</option>
+            </select>
           </label>
           <label class="block text-sm font-medium text-[var(--tommy-text-secondary)]">
             专业
-            <input v-model="form.major" class="mt-1 w-full rounded-xl border border-slate-300 px-3 py-2" />
+            <input data-testid="register-major" v-model="form.major" class="mt-1 w-full rounded-xl border border-slate-300 px-3 py-2" />
           </label>
           <div class="grid grid-cols-2 gap-3">
             <label class="block text-sm font-medium text-[var(--tommy-text-secondary)]">
