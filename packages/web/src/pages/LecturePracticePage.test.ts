@@ -37,6 +37,7 @@ function mountPage() {
 
 describe("LecturePracticePage", () => {
   beforeEach(() => {
+    vi.useRealTimers();
     mocks.token = null;
     mocks.replace.mockClear();
     mocks.getLecturePracticeProgress.mockReset();
@@ -117,6 +118,27 @@ describe("LecturePracticePage", () => {
     expect(mocks.updateLecturePracticeProgress).toHaveBeenCalledWith(
       expect.objectContaining({ humanLectureCount: 8 })
     );
+  });
+
+  it("shows a temporary saved state after saving progress", async () => {
+    vi.useFakeTimers();
+    mocks.token = "token";
+    const wrapper = mountPage();
+
+    await flushPromises();
+    await wrapper.get('[data-testid="progress-humanLectureCount-save"]').trigger("click");
+    await flushPromises();
+
+    const saveButton = wrapper.get('[data-testid="progress-humanLectureCount-save"]');
+    expect(saveButton.text()).toBe("已保存");
+    expect(saveButton.classes()).toContain("bg-[var(--tommy-success)]");
+
+    vi.advanceTimersByTime(1000);
+    await flushPromises();
+
+    expect(saveButton.text()).toBe("保存");
+    expect(saveButton.classes()).toContain("bg-[var(--tommy-primary)]");
+    vi.useRealTimers();
   });
 
   it("adjusts social practice credits in 0.1 increments", async () => {

@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { useMutation, useQuery, useQueryClient } from "@tanstack/vue-query";
-import { computed, reactive, watchEffect } from "vue";
+import { computed, reactive, ref, watchEffect } from "vue";
 import { useRouter } from "vue-router";
 
 import AppShell from "../components/AppShell.vue";
@@ -21,6 +21,8 @@ const form = reactive({
   ordinaryLaborCount: 0,
   specialLaborCount: 0
 });
+const savedField = ref("");
+let savedTimer: ReturnType<typeof setTimeout> | null = null;
 
 const query = useQuery({
   queryKey: ["volunteer-labor-progress"],
@@ -48,6 +50,20 @@ const mutation = useMutation({
     await queryClient.invalidateQueries({ queryKey: ["volunteer-labor-progress"] });
   }
 });
+
+function markSaved(fieldKey: string) {
+  savedField.value = fieldKey;
+  if (savedTimer) clearTimeout(savedTimer);
+  savedTimer = setTimeout(() => {
+    savedField.value = "";
+  }, 1000);
+}
+
+function saveProgress(fieldKey: string) {
+  mutation.mutate(undefined, {
+    onSuccess: () => markSaved(fieldKey)
+  });
+}
 
 const completed = computed(() => volunteerLaborCompleted(form));
 const missingItems = computed(() =>
@@ -92,8 +108,9 @@ function countStatus(value: number, target: number) {
           unit="小时"
           :status-text="Number(form.volunteerHours) >= 12 ? '已完成' : `还差 ${12 - Number(form.volunteerHours)}`"
           :missing-text="Number(form.volunteerHours) >= 12 ? '志愿时长已满足毕业要求' : `还差 ${12 - Number(form.volunteerHours)} 小时志愿活动`"
+          :saved="savedField === 'volunteerHours'"
           @update-value="updateHours"
-          @save="mutation.mutate()"
+          @save="saveProgress('volunteerHours')"
         />
         <RequirementProgressCard
           field-key="ordinaryLaborCount"
@@ -103,8 +120,9 @@ function countStatus(value: number, target: number) {
           unit="次"
           :status-text="countStatus(form.ordinaryLaborCount, 2)"
           :missing-text="form.ordinaryLaborCount >= 2 ? '普通生产劳动已满足毕业要求' : `还差 ${2 - form.ordinaryLaborCount} 次普通生产劳动`"
+          :saved="savedField === 'ordinaryLaborCount'"
           @update-value="updateCount('ordinaryLaborCount', $event)"
-          @save="mutation.mutate()"
+          @save="saveProgress('ordinaryLaborCount')"
         />
         <RequirementProgressCard
           field-key="specialLaborCount"
@@ -114,8 +132,9 @@ function countStatus(value: number, target: number) {
           unit="次"
           :status-text="countStatus(form.specialLaborCount, 1)"
           :missing-text="form.specialLaborCount >= 1 ? '特色劳动已满足毕业要求' : '还差 1 次特色劳动'"
+          :saved="savedField === 'specialLaborCount'"
           @update-value="updateCount('specialLaborCount', $event)"
-          @save="mutation.mutate()"
+          @save="saveProgress('specialLaborCount')"
         />
       </div>
     </section>

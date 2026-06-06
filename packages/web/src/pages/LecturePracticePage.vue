@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { useMutation, useQuery, useQueryClient } from "@tanstack/vue-query";
-import { computed, reactive, watchEffect } from "vue";
+import { computed, reactive, ref, watchEffect } from "vue";
 import { useRouter } from "vue-router";
 
 import AppShell from "../components/AppShell.vue";
@@ -26,6 +26,8 @@ const form = reactive({
   socialPracticeCredits: "0.00",
   socialPracticeCourseCount: 0
 });
+const savedField = ref("");
+let savedTimer: ReturnType<typeof setTimeout> | null = null;
 
 const query = useQuery({
   queryKey: ["lecture-practice-progress"],
@@ -54,6 +56,20 @@ const mutation = useMutation({
     await queryClient.invalidateQueries({ queryKey: ["lecture-practice-progress"] });
   }
 });
+
+function markSaved(fieldKey: string) {
+  savedField.value = fieldKey;
+  if (savedTimer) clearTimeout(savedTimer);
+  savedTimer = setTimeout(() => {
+    savedField.value = "";
+  }, 1000);
+}
+
+function saveProgress(fieldKey: string) {
+  mutation.mutate(undefined, {
+    onSuccess: () => markSaved(fieldKey)
+  });
+}
 
 const completed = computed(() => lecturePracticeCompleted(form));
 const missingItems = computed(() =>
@@ -102,8 +118,9 @@ function countStatus(value: number, target: number) {
           unit="次"
           :status-text="countStatus(form.humanLectureCount, 8)"
           :missing-text="form.humanLectureCount >= 8 ? '人文讲座已满足毕业要求' : `还差 ${8 - form.humanLectureCount} 次人文讲座`"
+          :saved="savedField === 'humanLectureCount'"
           @update-value="updateCount('humanLectureCount', $event)"
-          @save="mutation.mutate()"
+          @save="saveProgress('humanLectureCount')"
         />
         <RequirementProgressCard
           field-key="bookReportCount"
@@ -113,8 +130,9 @@ function countStatus(value: number, target: number) {
           unit="次"
           :status-text="countStatus(form.bookReportCount, 2)"
           :missing-text="form.bookReportCount >= 2 ? '读书报告已满足毕业要求' : `还差 ${2 - form.bookReportCount} 次读书报告`"
+          :saved="savedField === 'bookReportCount'"
           @update-value="updateCount('bookReportCount', $event)"
-          @save="mutation.mutate()"
+          @save="saveProgress('bookReportCount')"
         />
         <RequirementProgressCard
           field-key="socialPracticeCredits"
@@ -125,8 +143,9 @@ function countStatus(value: number, target: number) {
           :step="0.1"
           :status-text="Number(form.socialPracticeCredits) >= 1 ? '已及格' : '未及格'"
           :missing-text="socialPracticeStatus(form.socialPracticeCredits)"
+          :saved="savedField === 'socialPracticeCredits'"
           @update-value="updateCredits"
-          @save="mutation.mutate()"
+          @save="saveProgress('socialPracticeCredits')"
         />
         <RequirementProgressCard
           field-key="socialPracticeCourseCount"
@@ -136,8 +155,9 @@ function countStatus(value: number, target: number) {
           unit="次"
           :status-text="countStatus(form.socialPracticeCourseCount, 1)"
           :missing-text="form.socialPracticeCourseCount >= 1 ? '公开课已满足毕业要求' : '还差 1 次社会实践公开课'"
+          :saved="savedField === 'socialPracticeCourseCount'"
           @update-value="updateCount('socialPracticeCourseCount', $event)"
-          @save="mutation.mutate()"
+          @save="saveProgress('socialPracticeCourseCount')"
         />
       </div>
     </section>

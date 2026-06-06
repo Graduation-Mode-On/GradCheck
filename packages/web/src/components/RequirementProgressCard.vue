@@ -8,6 +8,7 @@ const props = defineProps<{
   missingText: string;
   unit: string;
   step?: number;
+  saved?: boolean;
 }>();
 
 const emit = defineEmits<{
@@ -91,11 +92,12 @@ function statusClass(statusText: string): string {
 
     <button
       :data-testid="`progress-${fieldKey}-save`"
-      class="mt-4 w-full rounded-xl bg-[var(--tommy-primary)] px-4 py-2.5 text-sm font-semibold text-white"
+      class="mt-4 w-full rounded-xl px-4 py-2.5 text-sm font-semibold text-white"
+      :class="saved ? 'bg-[var(--tommy-success)]' : 'bg-[var(--tommy-primary)]'"
       type="button"
       @click="emit('save')"
     >
-      保存
+      {{ saved ? "已保存" : "保存" }}
     </button>
   </article>
 </template>

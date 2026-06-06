@@ -152,6 +152,7 @@ function createRepository(): AuthRepository {
         return createApp({
           authRepository: createRepository(),
           plazaRepository: createPlazaRepository(),
+          newsRepository: createNewsRepository(),
           lecturePracticeRepository: createLecturePracticeRepository(),
           volunteerLaborRepository: createVolunteerLaborRepository()
         });

@@ -37,6 +37,7 @@ function mountPage() {
 
 describe("VolunteerPage", () => {
   beforeEach(() => {
+    vi.useRealTimers();
     mocks.token = null;
     mocks.replace.mockClear();
     mocks.getVolunteerLaborProgress.mockReset();
@@ -96,5 +97,26 @@ describe("VolunteerPage", () => {
     expect(mocks.updateVolunteerLaborProgress).toHaveBeenCalledWith(
       expect.objectContaining({ volunteerHours: "12.00" })
     );
+  });
+
+  it("shows a temporary saved state after saving progress", async () => {
+    vi.useFakeTimers();
+    mocks.token = "token";
+    const wrapper = mountPage();
+
+    await flushPromises();
+    await wrapper.get('[data-testid="progress-volunteerHours-save"]').trigger("click");
+    await flushPromises();
+
+    const saveButton = wrapper.get('[data-testid="progress-volunteerHours-save"]');
+    expect(saveButton.text()).toBe("已保存");
+    expect(saveButton.classes()).toContain("bg-[var(--tommy-success)]");
+
+    vi.advanceTimersByTime(1000);
+    await flushPromises();
+
+    expect(saveButton.text()).toBe("保存");
+    expect(saveButton.classes()).toContain("bg-[var(--tommy-primary)]");
+    vi.useRealTimers();
   });
 });
