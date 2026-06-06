@@ -1,6 +1,7 @@
 import { createRouter, createWebHistory } from "vue-router";
 
 import CustomRequirementsPage from "./pages/CustomRequirementsPage.vue";
+import GpaCourseMatchesPage from "./pages/GpaCourseMatchesPage.vue";
 import GpaPage from "./pages/GpaPage.vue";
 import HomePage from "./pages/HomePage.vue";
 import LecturePracticePage from "./pages/LecturePracticePage.vue";
@@ -33,6 +34,11 @@ export const router = createRouter({
       path: "/gpa",
       name: "gpa",
       component: GpaPage
+    },
+    {
+      path: "/gpa/course-matches",
+      name: "gpa-course-matches",
+      component: GpaCourseMatchesPage
     },
     {
       path: "/course-recommendations",
