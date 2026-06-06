@@ -126,7 +126,7 @@ function deletePost(post: PlazaPost) {
           </div>
           <button
             data-testid="plaza-create-button"
-            class="rounded-xl bg-[var(--tommy-primary)] px-4 py-2.5 text-sm font-semibold text-white"
+            class="min-w-16 whitespace-nowrap rounded-xl bg-[var(--tommy-primary)] px-4 py-2.5 text-sm font-semibold text-white"
             type="button"
             @click="openCreateForm"
           >

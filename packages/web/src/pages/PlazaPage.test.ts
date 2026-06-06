@@ -57,6 +57,7 @@ describe("PlazaPage", () => {
 
     expect(wrapper.get('[data-testid="plaza-page"]').text()).toContain("广场");
     expect(wrapper.get('[data-testid="plaza-create-button"]').text()).toContain("发布");
+    expect(wrapper.get('[data-testid="plaza-create-button"]').classes()).toContain("whitespace-nowrap");
     expect(wrapper.find('[data-testid="plaza-search-input"]').exists()).toBe(true);
   });
 
@@ -84,7 +85,7 @@ describe("PlazaPage", () => {
     expect(wrapper.text()).toContain("发布帖子");
   });
 
-  it("renders owner controls for owned plaza posts", async () => {
+  it("shows owner actions from a single top-right menu", async () => {
     mocks.token = "token";
     mocks.listPlazaPosts.mockResolvedValue({
       posts: [
@@ -116,6 +117,16 @@ describe("PlazaPage", () => {
 
     expect(wrapper.text()).toContain("想换软件工程实践课");
     expect(wrapper.text()).toContain("owner");
+    expect(wrapper.find('[data-testid="plaza-post-actions-menu"]').exists()).toBe(true);
+    expect(wrapper.find('[data-testid="plaza-post-edit"]').exists()).toBe(false);
+    expect(wrapper.find('[data-testid="plaza-post-status"]').exists()).toBe(false);
+    expect(wrapper.find('[data-testid="plaza-post-delete"]').exists()).toBe(false);
+
+    await wrapper.get('[data-testid="plaza-post-actions-menu"]').trigger("click");
+
+    expect(wrapper.find('[data-testid="plaza-post-edit"]').exists()).toBe(true);
+    expect(wrapper.find('[data-testid="plaza-post-status"]').exists()).toBe(true);
+    expect(wrapper.find('[data-testid="plaza-post-delete"]').exists()).toBe(true);
     expect(wrapper.text()).toContain("编辑");
     expect(wrapper.text()).toContain("关闭");
   });

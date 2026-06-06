@@ -14,14 +14,53 @@ const emit = defineEmits<{
 }>();
 
 const expanded = ref(false);
+const actionsOpen = ref(false);
 
 const typeLabel = props.post.type === "course_exchange" ? "换课" : "组队";
 const statusLabel = props.post.status === "open" ? "开放中" : "已关闭";
 </script>
 
 <template>
-  <article class="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm">
-    <button class="w-full text-left" type="button" @click="expanded = !expanded">
+  <article class="relative rounded-3xl border border-slate-200 bg-white p-5 shadow-sm">
+    <div v-if="post.isOwner" class="absolute right-4 top-4">
+      <button
+        data-testid="plaza-post-actions-menu"
+        class="flex h-9 w-9 items-center justify-center rounded-full bg-slate-100 text-lg font-bold text-[var(--tommy-text-secondary)]"
+        type="button"
+        aria-label="帖子操作"
+        @click.stop="actionsOpen = !actionsOpen"
+      >
+        ...
+      </button>
+      <div v-if="actionsOpen" class="absolute right-0 z-10 mt-2 w-28 overflow-hidden rounded-2xl border border-slate-200 bg-white text-sm shadow-lg">
+        <button
+          data-testid="plaza-post-edit"
+          class="block w-full px-4 py-2 text-left text-[var(--tommy-text)] hover:bg-slate-50"
+          type="button"
+          @click="actionsOpen = false; emit('edit', post)"
+        >
+          编辑
+        </button>
+        <button
+          data-testid="plaza-post-status"
+          class="block w-full px-4 py-2 text-left text-[var(--tommy-text)] hover:bg-slate-50"
+          type="button"
+          @click="actionsOpen = false; emit('status', post)"
+        >
+          {{ post.status === "open" ? "关闭" : "重新打开" }}
+        </button>
+        <button
+          data-testid="plaza-post-delete"
+          class="block w-full px-4 py-2 text-left text-[var(--tommy-error)] hover:bg-slate-50"
+          type="button"
+          @click="actionsOpen = false; emit('delete', post)"
+        >
+          删除
+        </button>
+      </div>
+    </div>
+
+    <button class="w-full pr-12 text-left" type="button" @click="expanded = !expanded">
       <div class="flex flex-wrap items-center gap-2">
         <span class="rounded-full bg-[color-mix(in_srgb,var(--tommy-primary)_12%,white)] px-3 py-1 text-xs font-semibold text-[var(--tommy-info)]">
           {{ typeLabel }}
@@ -56,16 +95,5 @@ const statusLabel = props.post.status === "open" ? "开放中" : "已关闭";
       </template>
     </div>
 
-    <div v-if="post.isOwner" class="mt-4 flex flex-wrap gap-2">
-      <button class="rounded-xl bg-[var(--tommy-primary)] px-3 py-2 text-sm font-semibold text-white" type="button" @click="emit('edit', post)">
-        编辑
-      </button>
-      <button class="rounded-xl bg-slate-900 px-3 py-2 text-sm font-semibold text-white" type="button" @click="emit('status', post)">
-        {{ post.status === "open" ? "关闭" : "重新打开" }}
-      </button>
-      <button class="rounded-xl bg-[var(--tommy-error)] px-3 py-2 text-sm font-semibold text-white" type="button" @click="emit('delete', post)">
-        删除
-      </button>
-    </div>
   </article>
 </template>
