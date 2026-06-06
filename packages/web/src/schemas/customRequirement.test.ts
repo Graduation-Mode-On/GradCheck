@@ -21,4 +21,23 @@ describe("customRequirementSchema", () => {
 
     expect(result.success).toBe(false);
   });
+
+  it("rejects zero target values", () => {
+    const result = customRequirementSchema.safeParse({
+      name: "零目标",
+      kind: "count",
+      category: "other",
+      targetValue: "0",
+      currentValue: "0",
+      unit: "次",
+      importance: "required",
+      source: "user_custom",
+      includeInProgress: true,
+      showOnHome: true,
+      deadline: null,
+      notes: null
+    });
+
+    expect(result.success).toBe(false);
+  });
 });

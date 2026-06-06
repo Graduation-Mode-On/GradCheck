@@ -7,7 +7,8 @@ export const customRequirementSchema = z.object({
   targetValue: z
     .string()
     .regex(/^\d+(\.\d{1,2})?$/, "请输入有效目标值")
-    .refine((value) => Number(value) <= 999999.99, "目标值不能超过 999999.99"),
+    .refine((value) => Number(value) <= 999999.99, "目标值不能超过 999999.99")
+    .refine((value) => Number(value) > 0, "目标值必须大于 0"),
   currentValue: z
     .string()
     .regex(/^\d+(\.\d{1,2})?$/, "请输入有效当前值")

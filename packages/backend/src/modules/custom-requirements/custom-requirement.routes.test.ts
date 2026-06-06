@@ -237,5 +237,25 @@ describe("custom requirement routes", () => {
       });
 
     expect(invalidDeadlineResponse.status).toBe(400);
+
+    const zeroTargetResponse = await request(app)
+      .post("/api/custom-requirements")
+      .set("Authorization", `Bearer ${token}`)
+      .send({
+        name: "零目标",
+        kind: "count",
+        category: "other",
+        targetValue: "0",
+        currentValue: "0",
+        unit: "次",
+        importance: "required",
+        source: "user_custom",
+        includeInProgress: true,
+        showOnHome: true,
+        deadline: null,
+        notes: null
+      });
+
+    expect(zeroTargetResponse.status).toBe(400);
   });
 });

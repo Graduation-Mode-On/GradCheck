@@ -18,6 +18,7 @@ const decimalStringSchema = z
   .string()
   .regex(/^\d+(\.\d{1,2})?$/)
   .refine((value) => Number(value) <= 999999.99, "Value must fit numeric(8,2)");
+const positiveDecimalStringSchema = decimalStringSchema.refine((value) => Number(value) > 0, "Target value must be greater than zero");
 
 function isRealCalendarDate(value: string): boolean {
   const [year, month, day] = value.split("-").map(Number);
@@ -35,7 +36,7 @@ export const createCustomRequirementSchema = z.object({
   name: z.string().min(1).max(120),
   kind: customRequirementKindSchema,
   category: customRequirementCategorySchema,
-  targetValue: decimalStringSchema,
+  targetValue: positiveDecimalStringSchema,
   currentValue: decimalStringSchema.default("0"),
   unit: z.string().min(1).max(24),
   importance: customRequirementImportanceSchema.default("required"),
@@ -50,7 +51,7 @@ export const updateCustomRequirementSchema = z.object({
   name: z.string().min(1).max(120).optional(),
   kind: customRequirementKindSchema.optional(),
   category: customRequirementCategorySchema.optional(),
-  targetValue: decimalStringSchema.optional(),
+  targetValue: positiveDecimalStringSchema.optional(),
   currentValue: decimalStringSchema.optional(),
   unit: z.string().min(1).max(24).optional(),
   importance: customRequirementImportanceSchema.optional(),
