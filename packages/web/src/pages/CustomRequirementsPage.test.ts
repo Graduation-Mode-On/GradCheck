@@ -87,6 +87,14 @@ describe("CustomRequirementsPage", () => {
     expect(wrapper.find('[data-testid="custom-requirement-source"]').exists()).toBe(true);
     expect(wrapper.find('[data-testid="custom-requirement-include-in-progress"]').exists()).toBe(true);
     expect(wrapper.find('[data-testid="custom-requirement-show-on-home"]').exists()).toBe(true);
+    expect(wrapper.get('[data-testid="custom-requirement-include-in-progress-card"]').classes()).toContain("rounded-2xl");
+    expect(wrapper.get('[data-testid="custom-requirement-show-on-home-card"]').classes()).toContain("rounded-2xl");
+    expect(wrapper.get('[data-testid="custom-requirement-include-in-progress-knob"]').classes()).toEqual(
+      expect.arrayContaining(["h-5", "w-5"])
+    );
+    expect(wrapper.get('[data-testid="custom-requirement-show-on-home-knob"]').classes()).toEqual(
+      expect.arrayContaining(["h-5", "w-5"])
+    );
     expect(wrapper.find('[data-testid="custom-requirement-deadline"]').exists()).toBe(true);
     expect(wrapper.find('[data-testid="custom-requirement-notes"]').exists()).toBe(true);
     expect(wrapper.get('[data-testid="custom-requirement-form-card"]').classes()).toEqual(

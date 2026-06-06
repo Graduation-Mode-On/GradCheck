@@ -189,13 +189,45 @@ function isRequirementUpdating(id: string): boolean {
             <option value="pending_confirmation">待确认</option>
           </select>
         </label>
-        <label class="flex items-center gap-2 text-sm font-medium text-[var(--tommy-text-secondary)]">
-          <input data-testid="custom-requirement-include-in-progress" v-model="form.includeInProgress" type="checkbox" />
-          计入毕业进度
+        <label
+          data-testid="custom-requirement-include-in-progress-card"
+          class="flex items-center justify-between gap-3 rounded-2xl border border-slate-200 bg-white/80 px-4 py-3 text-sm font-medium text-[var(--tommy-text-secondary)]"
+        >
+          <span>
+            <span class="block font-semibold text-[var(--tommy-text)]">计入毕业进度</span>
+            <span class="mt-0.5 block text-xs text-[var(--tommy-text-secondary)]">用于后续毕业进度统计</span>
+          </span>
+          <span
+            class="relative h-7 w-12 rounded-full transition"
+            :class="form.includeInProgress ? 'bg-[var(--tommy-primary)]' : 'bg-slate-300'"
+          >
+            <input data-testid="custom-requirement-include-in-progress" v-model="form.includeInProgress" class="sr-only" type="checkbox" />
+            <span
+              data-testid="custom-requirement-include-in-progress-knob"
+              class="absolute top-1 h-5 w-5 rounded-full bg-white shadow transition"
+              :class="form.includeInProgress ? 'left-6' : 'left-1'"
+            />
+          </span>
         </label>
-        <label class="flex items-center gap-2 text-sm font-medium text-[var(--tommy-text-secondary)] sm:col-span-2">
-          <input data-testid="custom-requirement-show-on-home" v-model="form.showOnHome" type="checkbox" />
-          主页展示
+        <label
+          data-testid="custom-requirement-show-on-home-card"
+          class="flex items-center justify-between gap-3 rounded-2xl border border-slate-200 bg-white/80 px-4 py-3 text-sm font-medium text-[var(--tommy-text-secondary)]"
+        >
+          <span>
+            <span class="block font-semibold text-[var(--tommy-text)]">主页展示</span>
+            <span class="mt-0.5 block text-xs text-[var(--tommy-text-secondary)]">在首页摘要卡片中显示</span>
+          </span>
+          <span
+            class="relative h-7 w-12 rounded-full transition"
+            :class="form.showOnHome ? 'bg-[var(--tommy-primary)]' : 'bg-slate-300'"
+          >
+            <input data-testid="custom-requirement-show-on-home" v-model="form.showOnHome" class="sr-only" type="checkbox" />
+            <span
+              data-testid="custom-requirement-show-on-home-knob"
+              class="absolute top-1 h-5 w-5 rounded-full bg-white shadow transition"
+              :class="form.showOnHome ? 'left-6' : 'left-1'"
+            />
+          </span>
         </label>
         <label class="block text-sm font-medium text-[var(--tommy-text-secondary)]">
           截止时间
