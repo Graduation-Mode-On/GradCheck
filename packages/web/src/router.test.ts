@@ -31,6 +31,7 @@ describe("router placeholders for homepage feature entries", () => {
       ["volunteer", "/volunteer"],
       ["exams", "/exams"],
       ["custom-requirements", "/custom-requirements"],
+      ["srtp", "/srtp"],
       ["graduation-gift", "/graduation-gift"]
     ] as const;
 

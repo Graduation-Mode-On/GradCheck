@@ -60,6 +60,12 @@ export const router = createRouter({
       meta: { title: "自定义要求", description: "后续支持学院特色要求和用户自定义毕业要求。" }
     },
     {
+      path: "/srtp",
+      name: "srtp",
+      component: PlaceholderPage,
+      meta: { title: "SRTP", description: "后续用于记录 SRTP、课外实践和相关学分完成情况。" }
+    },
+    {
       path: "/graduation-gift",
       name: "graduation-gift",
       component: PlaceholderPage,

@@ -65,9 +65,9 @@ const featureEntries = [
     to: "/custom-requirements"
   },
   {
-    title: "毕业礼包",
-    iconPath: "M4 11h16v10H4V11Zm0 0V7h16v4M12 7v14M8 7a2 2 0 1 1 4 0M16 7a2 2 0 1 0-4 0",
-    to: "/graduation-gift"
+    title: "SRTP",
+    iconPath: "M4 12h16M12 4v16M7 7l10 10M17 7 7 17",
+    to: "/srtp"
   }
 ];
 

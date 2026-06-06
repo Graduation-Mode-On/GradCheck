@@ -80,9 +80,10 @@ describe("HomePage dashboard layout", () => {
       "志愿劳育",
       "实验考试",
       "自定义要求",
-      "毕业礼包"
+      "SRTP"
     ]);
     expect(featureGrid.findAllComponents(RouterLinkStub)[5]?.props("to")).toBe("/lecture-practice");
+    expect(featureGrid.text()).not.toContain("毕业礼包");
   });
 
   it("renders dashboard cards with jump hints", () => {
