@@ -645,8 +645,7 @@ export async function generateRecommendation(input: {
 
 export async function listRecommendationHistory(term: string): Promise<{ recommendations: RecommendationResult[] }> {
   return request<{ recommendations: RecommendationResult[] }>(`/api/course-recommendations/history${toQueryString({ term })}`);
-export type CoursesRuleStatus = "completed" | "in_progress" | "not_started";
-export type CoursesRuleTargetType = "all_courses" | "courses" | "credits" | "either" | "manual";
+}
 
 export interface CoursesPlanCourseRef {
   id: string;
@@ -789,6 +788,7 @@ export interface GraduationSummaryResponse {
 
 export async function getGraduationSummary(): Promise<GraduationSummaryResponse> {
   return request<GraduationSummaryResponse>("/api/home/graduation-summary");
+}
 
 export type CoursesRuleStatus = "completed" | "in_progress" | "not_started";
 export type CoursesRuleTargetType = "all_courses" | "courses" | "credits" | "either" | "manual";
@@ -900,27 +900,4 @@ export async function loadSportsSummary(): Promise<SportsSummary> {
 
 export async function recordSportsRun(): Promise<void> {
   return request("/api/sports/record", { method: "POST" });
-}
-
-export interface GraduationDimension {
-  name: string;
-  status: "completed" | "in_progress" | "not_started";
-  progress: string;
-  detail: string;
-}
-
-export interface GraduationSummaryResponse {
-  summary: {
-    completedCount: number;
-    totalCount: number;
-    completedDimensions: number;
-    totalDimensions: number;
-    unfinishedCount: number;
-  };
-  dimensions: GraduationDimension[];
-}
-
-export async function getGraduationSummary(): Promise<GraduationSummaryResponse> {
-  return request<GraduationSummaryResponse>("/api/home/graduation-summary");
-}
 }
