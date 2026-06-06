@@ -184,7 +184,7 @@ async function startReimport() {
 
     <section v-if="showImportFlow" ref="importPanel" class="scroll-mt-24 rounded-3xl bg-white p-5 shadow-sm">
       <h2 class="text-lg font-bold text-[var(--tommy-text)]">{{ uploadTitle }}</h2>
-      <p class="mt-1 text-sm text-[var(--tommy-text-secondary)]">可以直接使用同专业同年级已上传的培养方案；没有合适方案时再上传 PDF。</p>
+      <p class="mt-1 text-sm text-[var(--tommy-text-secondary)]">可以直接使用同专业同年级已上传的培养方案；没有合适方案时再上传 PDF 解析导入。</p>
       <div v-if="reusablePlans.length > 0" data-testid="program-plan-reusable-list" class="mt-4 space-y-3">
         <article v-for="plan in reusablePlans" :key="plan.id" class="rounded-2xl border border-slate-200 p-4">
           <div class="flex flex-wrap items-start justify-between gap-3">
