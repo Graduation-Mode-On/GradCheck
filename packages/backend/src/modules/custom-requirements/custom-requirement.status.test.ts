@@ -29,7 +29,7 @@ describe("custom requirement status", () => {
     ).toBe("completed");
   });
 
-  it("marks unfinished requirements due within 14 days as at risk", () => {
+  it("keeps partial requirements due within 14 days in progress", () => {
     expect(
       deriveCustomRequirementStatus({
         source: "college_requirement",
@@ -38,19 +38,19 @@ describe("custom requirement status", () => {
         deadline: "2026-06-15",
         now: baseDate
       })
-    ).toBe("at_risk");
+    ).toBe("in_progress");
   });
 
-  it("marks requirements due on the 14th calendar day as at risk", () => {
+  it("keeps not-started requirements due on the 14th calendar day not started", () => {
     expect(
       deriveCustomRequirementStatus({
         source: "college_requirement",
-        currentValue: 1,
+        currentValue: 0,
         targetValue: 4,
         deadline: "2026-06-20",
         now: baseDate
       })
-    ).toBe("at_risk");
+    ).toBe("not_started");
   });
 
   it("marks partial progress outside the risk window as in progress", () => {

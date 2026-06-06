@@ -13,18 +13,6 @@ interface ProgressInput {
   targetValue: number;
 }
 
-function isWithinRiskWindow(deadline: string | null, now: Date): boolean {
-  if (!deadline) {
-    return false;
-  }
-
-  const [year, month, day] = deadline.split("-").map(Number);
-  const deadlineDate = Date.UTC(year, month - 1, day);
-  const today = Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate());
-  const daysUntilDeadline = (deadlineDate - today) / (1000 * 60 * 60 * 24);
-  return daysUntilDeadline <= 14;
-}
-
 export function deriveCustomRequirementStatus(input: StatusInput): CustomRequirementStatus {
   if (input.source === "pending_confirmation") {
     return "pending_confirmation";
@@ -32,10 +20,6 @@ export function deriveCustomRequirementStatus(input: StatusInput): CustomRequire
 
   if (input.currentValue >= input.targetValue) {
     return "completed";
-  }
-
-  if (isWithinRiskWindow(input.deadline, input.now ?? new Date())) {
-    return "at_risk";
   }
 
   if (input.currentValue > 0) {
