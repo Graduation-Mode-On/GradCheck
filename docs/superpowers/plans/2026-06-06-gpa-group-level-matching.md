@@ -66,7 +66,30 @@ Steps:
   - Required flags remain correct.
 - Update docs to describe group-level matches.
 
-## Task 4: Final verification and merge
+## Task 4: User-facing match management
+
+Files:
+- Modify `packages/backend/src/modules/gpa/gpa.routes.ts`
+- Modify `packages/backend/src/modules/gpa/gpa.repository.ts`
+- Modify `packages/backend/src/modules/gpa/gpa.service.ts`
+- Modify `packages/web/src/lib/api.ts`
+- Modify `packages/web/src/pages/GpaPage.vue`
+- Modify `packages/web/src/pages/GpaPage.test.ts`
+
+Steps:
+- Add `GET /api/gpa/course-matches` to return GPA courses with current match and candidate courses/groups.
+- Add `PUT /api/gpa/course-matches/:gpaCourseId` to bind or update a match.
+- Add `DELETE /api/gpa/course-matches/:gpaCourseId` to unbind a match.
+- Manual course/group binding sets `confirmed_by_user=true`.
+- Manual required course/group binding updates `gpa_courses.is_required`; unbinding resets `is_required=false` unless another confirmed required match exists.
+- Frontend shows a compact match management section in the GPA page:
+  - current matched target
+  - candidate selector
+  - bind/update button
+  - unbind button
+- Add tests for viewing, binding, and unbinding.
+
+## Task 5: Final verification and merge
 
 Run:
 
