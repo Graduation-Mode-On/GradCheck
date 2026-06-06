@@ -3,6 +3,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { createApp } from "./app.js";
 import type { AuthRepository } from "./modules/auth/auth.repository.js";
+import type { CustomRequirementRepository } from "./modules/custom-requirements/custom-requirement.repository.js";
 import type { UserProfile } from "./modules/users/user.repository.js";
 
 const now = new Date("2026-06-06T00:00:00.000Z");
@@ -52,13 +53,37 @@ function createRepository(): AuthRepository {
   };
 }
 
+function createCustomRequirementRepository(): CustomRequirementRepository {
+  return {
+    async listByUserId() {
+      return [];
+    },
+    async create() {
+      throw new Error("not used");
+    },
+    async update() {
+      throw new Error("not used");
+    },
+    async delete() {
+      throw new Error("not used");
+    }
+  };
+}
+
+function createTestApp() {
+  return createApp({
+    authRepository: createRepository(),
+    customRequirementRepository: createCustomRequirementRepository()
+  });
+}
+
 describe("GradCheck API baseline", () => {
   beforeEach(() => {
     vi.stubEnv("JWT_SECRET", "test-secret-that-is-long-enough");
   });
 
   it("returns health status", async () => {
-    const app = createApp({ authRepository: createRepository() });
+    const app = createTestApp();
 
     const response = await request(app).get("/health");
 
@@ -67,7 +92,7 @@ describe("GradCheck API baseline", () => {
   });
 
   it("registers a user, returns the current user, and updates profile data", async () => {
-    const app = createApp({ authRepository: createRepository() });
+    const app = createTestApp();
 
     const registerResponse = await request(app)
       .post("/api/auth/register")
@@ -133,7 +158,7 @@ describe("GradCheck API baseline", () => {
   });
 
   it("rejects duplicate registration and unauthenticated profile access", async () => {
-    const app = createApp({ authRepository: createRepository() });
+    const app = createTestApp();
     const payload = { email: "student@example.com", password: "password123" };
 
     await request(app).post("/api/auth/register").send(payload).expect(201);
