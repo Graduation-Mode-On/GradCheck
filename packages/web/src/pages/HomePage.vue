@@ -4,7 +4,7 @@ import { computed } from "vue";
 import { useRouter } from "vue-router";
 
 import AppShell from "../components/AppShell.vue";
-import { getCurrentUser, getToken } from "../lib/api";
+import { getCurrentUser, getToken, listCustomRequirements } from "../lib/api";
 
 const router = useRouter();
 
@@ -17,6 +17,16 @@ const { data } = useQuery({
   queryFn: getCurrentUser,
   enabled: computed(() => Boolean(getToken()))
 });
+
+const { data: customRequirementsData } = useQuery({
+  queryKey: ["custom-requirements"],
+  queryFn: listCustomRequirements,
+  enabled: computed(() => Boolean(getToken()))
+});
+
+const homeCustomRequirements = computed(() =>
+  (customRequirementsData.value?.customRequirements ?? []).filter((requirement) => requirement.showOnHome).slice(0, 3)
+);
 
 const featureEntries = [
   {
@@ -180,6 +190,24 @@ const dashboardCards = [
         </div>
         <p class="mt-3 text-sm leading-6 text-[var(--tommy-text-secondary)]">{{ card.description }}</p>
       </RouterLink>
+
+      <article data-testid="custom-requirements-home-summary" class="rounded-3xl bg-white p-5 shadow-sm">
+        <div class="flex items-start justify-between gap-3">
+          <div>
+            <h2 class="text-lg font-bold text-[var(--tommy-text)]">自定义要求</h2>
+            <p class="mt-2 text-2xl font-bold text-[var(--tommy-primary)]">{{ homeCustomRequirements.length }} 项展示</p>
+          </div>
+          <RouterLink to="/custom-requirements" class="text-xs font-semibold text-[var(--tommy-info)]">管理要求 &gt;</RouterLink>
+        </div>
+        <div class="mt-3 space-y-2">
+          <p v-if="homeCustomRequirements.length === 0" class="text-sm text-[var(--tommy-text-secondary)]">
+            还没有设置主页展示的自定义要求。
+          </p>
+          <p v-for="requirement in homeCustomRequirements" :key="requirement.id" class="text-sm text-[var(--tommy-text-secondary)]">
+            {{ requirement.name }}：{{ requirement.currentValue }} / {{ requirement.targetValue }} {{ requirement.unit }}
+          </p>
+        </div>
+      </article>
     </section>
   </AppShell>
 </template>
