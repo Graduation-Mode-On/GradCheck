@@ -1,12 +1,12 @@
 <script setup lang="ts">
-import { useQuery } from "@tanstack/vue-query";
+import { useMutation, useQuery } from "@tanstack/vue-query";
 import { computed, ref, watch } from "vue";
 
 import AppShell from "../components/AppShell.vue";
 import cancelTestIcon from "../assets/cancel-test.svg";
 import sportsRestIcon from "../assets/sports-rest.svg";
 import sportsRunnerIcon from "../assets/sports-runner.svg";
-import { getWeather } from "../lib/api";
+import { getSportsProgress, getToken, getWeather, updateSportsProgress } from "../lib/api";
 import {
   buildSportsPlan,
   clampTargetRuns,
@@ -85,6 +85,7 @@ const currentRuns = ref(savedProgress?.currentRuns ?? 0);
 const targetRuns = ref(savedProgress?.targetRuns ?? MIN_SPORTS_RUNS);
 const lastRunDate = ref(savedProgress?.lastRunDate);
 const runDates = ref<string[]>(savedProgress?.runDates ?? []);
+const serverProgressLoaded = ref(false);
 const isEditingCurrentRuns = ref(!savedProgress);
 const isEditingTargetRuns = ref(!savedProgress);
 const runMenuVisible = ref(false);
@@ -102,15 +103,19 @@ const sparkStages = [
 ];
 
 function saveProgress(): void {
+  const input = {
+    currentRuns: currentRuns.value,
+    targetRuns: targetRuns.value,
+    lastRunDate: lastRunDate.value ?? null,
+    runDates: runDates.value
+  };
   localStorage.setItem(
     STORAGE_KEY,
-    JSON.stringify({
-      currentRuns: currentRuns.value,
-      targetRuns: targetRuns.value,
-      lastRunDate: lastRunDate.value,
-      runDates: runDates.value
-    })
+    JSON.stringify(input)
   );
+  if (serverProgressLoaded.value) {
+    sportsProgressMutation.mutate(input);
+  }
 }
 
 function syncRunDate(date: string, active: boolean): void {
@@ -173,6 +178,41 @@ const { data, isLoading, error, refetch } = useQuery({
   queryKey: ["sports-weather", "320100"],
   queryFn: () => getWeather("320100", "all")
 });
+
+const sportsProgressQuery = useQuery({
+  queryKey: ["sports-progress"],
+  queryFn: getSportsProgress,
+  enabled: Boolean(getToken())
+});
+
+const sportsProgressMutation = useMutation({
+  mutationFn: updateSportsProgress
+});
+
+watch(
+  () => sportsProgressQuery.data.value?.progress,
+  (progress) => {
+    if (!progress || serverProgressLoaded.value) return;
+
+    const serverHasProgress = progress.createdAt && !progress.createdAt.startsWith("1970-");
+    const initialProgress = serverHasProgress ? progress : savedProgress;
+    if (!initialProgress) {
+      serverProgressLoaded.value = true;
+      return;
+    }
+
+    currentRuns.value = initialProgress.currentRuns;
+    targetRuns.value = clampTargetRuns(initialProgress.targetRuns);
+    lastRunDate.value = initialProgress.lastRunDate ?? undefined;
+    runDates.value = initialProgress.runDates;
+    serverProgressLoaded.value = true;
+
+    if (!serverHasProgress && savedProgress) {
+      saveProgress();
+    }
+  },
+  { immediate: true }
+);
 
 const casts = computed(() => {
   const forecast = data.value?.forecasts?.[0] as AmapForecast | undefined;

@@ -122,6 +122,18 @@ export const volunteerLaborProgress = pgTable("volunteer_labor_progress", {
   updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull()
 });
 
+export const sportsProgress = pgTable("sports_progress", {
+  userId: uuid("user_id")
+    .primaryKey()
+    .references(() => users.id, { onDelete: "cascade" }),
+  currentRuns: integer("current_runs").notNull().default(0),
+  targetRuns: integer("target_runs").notNull().default(45),
+  lastRunDate: varchar("last_run_date", { length: 10 }),
+  runDates: jsonb("run_dates").$type<string[]>().notNull().default([]),
+  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull()
+});
+
 export const srtpRecords = pgTable("srtp_records", {
   id: uuid("id").defaultRandom().primaryKey(),
   userId: uuid("user_id")
