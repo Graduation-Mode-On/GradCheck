@@ -119,5 +119,13 @@ export function createGpaRouter(authRepository: AuthRepository, gpaRepository: G
     }
   });
 
+  router.post("/rematch", authenticate(authRepository), async (req, res, next) => {
+    try {
+      res.json(await gpaRepository.matchCoursesToProgramPlan(req.userId ?? ""));
+    } catch (error) {
+      next(error);
+    }
+  });
+
   return router;
 }

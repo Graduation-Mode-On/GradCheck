@@ -9,9 +9,12 @@ import {
   completeReminder,
   getCurrentUser,
   getGpaDashboard,
+  getGraduationSummary,
   getHomeReminders,
   getToken,
-  listCustomRequirements
+  listCustomRequirements,
+  type GraduationDimension,
+  type GraduationDimensionStatus
 } from "../lib/api";
 
 const router = useRouter();
@@ -52,6 +55,11 @@ const completeHomeReminderMutation = useMutation({
   }
 });
 
+const { data: graduationSummary } = useQuery({
+  queryKey: ["graduation-summary", getToken()],
+  queryFn: getGraduationSummary,
+  enabled: computed(() => Boolean(getToken()))
+});
 const homeCustomRequirements = computed(() =>
   (customRequirementsData.value?.customRequirements ?? []).filter((requirement) => requirement.showOnHome).slice(0, 3)
 );
@@ -71,6 +79,53 @@ const currentGpaText = computed(() => {
   return currentGpa === null ? "暂无" : currentGpa.toFixed(2);
 });
 
+const coursesPercent = computed(() => graduationSummary.value?.overall.coursesPercent ?? 0);
+const completedDimensions = computed(() => graduationSummary.value?.overall.completedDimensions ?? 0);
+const totalDimensions = computed(() => graduationSummary.value?.overall.totalDimensions ?? 0);
+const unfinishedCount = computed(() => graduationSummary.value?.overall.unfinishedCount ?? 0);
+const dimensions = computed<GraduationDimension[]>(() => graduationSummary.value?.dimensions ?? []);
+
+const segmentClassByStatus: Record<GraduationDimensionStatus, string> = {
+  completed: "bg-[var(--tommy-success)]",
+  in_progress: "bg-[var(--tommy-warning)]",
+  not_started: "bg-slate-300",
+  unknown: "bg-slate-200"
+};
+
+interface LegendEntry {
+  status: GraduationDimensionStatus;
+  label: string;
+  count: number;
+  swatchClass: string;
+}
+
+const statusCounts = computed(() => {
+  const counts: Record<GraduationDimensionStatus, number> = {
+    completed: 0,
+    in_progress: 0,
+    not_started: 0,
+    unknown: 0
+  };
+  for (const dimension of dimensions.value) {
+    counts[dimension.status] += 1;
+  }
+  return counts;
+});
+
+const legendEntries = computed<LegendEntry[]>(() => [
+  { status: "completed", label: "已完成", count: statusCounts.value.completed, swatchClass: segmentClassByStatus.completed },
+  { status: "in_progress", label: "进行中", count: statusCounts.value.in_progress, swatchClass: segmentClassByStatus.in_progress },
+  { status: "not_started", label: "未开始", count: statusCounts.value.not_started, swatchClass: segmentClassByStatus.not_started }
+]);
+
+const progressFooterText = computed(() => {
+  if (!graduationSummary.value) return "正在加载毕业进度…";
+  if (totalDimensions.value === 0) return "暂无可统计的毕业要求。";
+  if (unfinishedCount.value === 0) return "全部毕业要求已满足，记得保持数据更新。";
+  return `还有 ${unfinishedCount.value} 项未完成`;
+});
+
+
 const featureEntries = [
   {
     title: "培养方案",
@@ -87,7 +142,7 @@ const featureEntries = [
     bgColor: "bg-blue-50"
   },
   {
-    title: "GPA目标",
+    title: "GPA",
     iconPath: "M12 21a9 9 0 1 0 0-18 9 9 0 0 0 0 18Zm0-4a5 5 0 1 0 0-10 5 5 0 0 0 0 10Zm0-5h.01",
     to: "/gpa",
     iconColor: "text-purple-500",
@@ -144,13 +199,6 @@ const featureEntries = [
   }
 ];
 
-const progressSegments = [
-  { label: "已完成", value: "42 项", color: "bg-[var(--tommy-success)]" },
-  { label: "进行中", value: "8 项", color: "bg-[var(--tommy-primary)]" },
-  { label: "待确认", value: "3 项", color: "bg-[var(--tommy-warning)]" },
-  { label: "未满足", value: "6 项", color: "bg-[var(--tommy-error)]" }
-];
-
 const dashboardCards = computed(() => [
   {
     title: "GPA计算器",
@@ -182,23 +230,65 @@ const dashboardCards = computed(() => [
             {{ data?.user.profile?.displayName ?? data?.user.email ?? "GradCheck 用户" }}，录入数据后这里会实时更新你的毕业任务状态。
           </p>
         </div>
-        <div class="rounded-2xl bg-[color-mix(in_srgb,var(--tommy-primary)_12%,white)] px-4 py-3 text-right">
-          <p class="text-xs font-semibold text-[var(--tommy-info)]">当前估算</p>
-          <p class="text-2xl font-bold text-[var(--tommy-primary)]">68%</p>
+        <div
+          data-testid="graduation-dimension-count"
+          class="shrink-0 rounded-2xl bg-[color-mix(in_srgb,var(--tommy-primary)_12%,white)] px-4 py-3 text-right"
+        >
+          <p class="text-xs font-semibold text-[var(--tommy-info)]">已完成</p>
+          <p class="whitespace-nowrap text-2xl font-bold text-[var(--tommy-primary)]">
+            {{ completedDimensions }} <span class="text-base font-semibold text-[var(--tommy-text-secondary)]">/ {{ totalDimensions }}</span>
+          </p>
         </div>
       </div>
 
-      <div class="mt-5 h-3 overflow-hidden rounded-full bg-slate-100">
-        <div class="h-full w-[68%] rounded-full bg-gradient-to-r from-[var(--tommy-success)] to-[var(--tommy-primary)]" />
-      </div>
-
-      <div class="mt-4 grid grid-cols-4 gap-2">
-        <div v-for="segment in progressSegments" :key="segment.label" class="rounded-2xl bg-slate-50 p-3">
-          <div class="mb-2 h-1.5 w-8 rounded-full" :class="segment.color" />
-          <p class="text-xs text-[var(--tommy-text-secondary)]">{{ segment.label }}</p>
-          <p class="mt-1 text-sm font-bold text-[var(--tommy-text)]">{{ segment.value }}</p>
+      <div class="mt-5">
+        <div class="flex items-center justify-between text-xs text-[var(--tommy-text-secondary)]">
+          <span>课程学分进度</span>
+          <span data-testid="courses-percent" class="font-semibold text-[var(--tommy-primary)]">{{ coursesPercent }}%</span>
+        </div>
+        <div class="mt-2 h-3 overflow-hidden rounded-full bg-slate-100">
+          <div
+            data-testid="courses-percent-bar"
+            class="h-full rounded-full bg-gradient-to-r from-[var(--tommy-success)] to-[var(--tommy-primary)] transition-all duration-300"
+            :style="{ width: `${coursesPercent}%` }"
+          />
         </div>
       </div>
+
+      <div v-if="dimensions.length > 0" data-testid="graduation-status-bar-section" class="mt-4">
+        <div
+          data-testid="graduation-status-bar"
+          class="flex h-2.5 w-full overflow-hidden rounded-full bg-slate-100"
+        >
+          <div
+            v-for="dimension in dimensions"
+            :key="dimension.id"
+            data-testid="graduation-status-segment"
+            :data-key="dimension.key"
+            :data-status="dimension.status"
+            :title="`${dimension.label} · ${dimension.detail}`"
+            class="h-full flex-1 border-r border-white last:border-r-0"
+            :class="segmentClassByStatus[dimension.status]"
+          />
+        </div>
+        <div data-testid="graduation-status-legend" class="mt-3 flex flex-wrap gap-x-4 gap-y-2 text-xs text-[var(--tommy-text-secondary)]">
+          <span
+            v-for="entry in legendEntries"
+            :key="entry.status"
+            data-testid="graduation-status-legend-entry"
+            :data-status="entry.status"
+            class="inline-flex items-center gap-1.5"
+          >
+            <span class="inline-block h-2 w-2 rounded-full" :class="entry.swatchClass" />
+            <span>{{ entry.label }}</span>
+            <span class="font-semibold text-[var(--tommy-text)]">{{ entry.count }}</span>
+          </span>
+        </div>
+      </div>
+
+      <p data-testid="graduation-progress-footer" class="mt-4 text-xs text-[var(--tommy-text-secondary)]">
+        {{ progressFooterText }}
+      </p>
     </section>
 
     <section data-testid="feature-entry-grid-card" class="mb-5 rounded-3xl border border-slate-200 bg-white p-3 shadow-sm">

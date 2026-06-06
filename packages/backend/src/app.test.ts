@@ -26,6 +26,7 @@ import { normalizeProgramPlanCourses } from "./modules/program-plans/program-pla
 import type { ReminderRepository } from "./modules/reminders/reminders.types.js";
 import type { SrtpRepository } from "./modules/srtp/srtp.repository.js";
 import type { SrtpRecord, SrtpRecordInput } from "./modules/srtp/srtp.schemas.js";
+import type { SportsRepository } from "./modules/sports/sports.repository.js";
 import type { UserProfile } from "./modules/users/user.repository.js";
 
 const now = new Date("2026-06-06T00:00:00.000Z");
@@ -50,6 +51,16 @@ interface TestVolunteerLaborProgress {
   volunteerHours: string;
   ordinaryLaborCount: number;
   specialLaborCount: number;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+interface TestSportsProgress {
+  userId: string;
+  currentRuns: number;
+  targetRuns: number;
+  lastRunDate?: string | null;
+  runDates: string[];
   createdAt: Date;
   updatedAt: Date;
 }
@@ -120,6 +131,22 @@ function createProgramPlanRepository(): ProgramPlanRepository {
     async getBoundPlan(userId: string) {
       const binding = bindings.get(userId);
       return binding ? (plans.get(binding.programPlanId) ?? null) : null;
+    },
+    async listReusablePlans() {
+      return [...plans.values()];
+    },
+    async bindExistingPlan(userId: string, programPlanId: string) {
+      const plan = plans.get(programPlanId);
+      if (!plan) return null;
+      const binding: ProgramPlanBinding = {
+        userId,
+        programPlanId,
+        confirmedAt: now,
+        createdAt: bindings.get(userId)?.createdAt ?? now,
+        updatedAt: now
+      };
+      bindings.set(userId, binding);
+      return { plan, binding };
     }
   };
 }
@@ -393,6 +420,36 @@ function createGpaRepository(): GpaRepository {
       };
     }
 
+    function createSportsRepository(): SportsRepository {
+      const progressByUser = new Map<string, TestSportsProgress>();
+
+      return {
+        async getProgress(userId: string) {
+          return (
+            progressByUser.get(userId) ?? {
+              userId,
+              currentRuns: 0,
+              targetRuns: 45,
+              lastRunDate: null,
+              runDates: [],
+              createdAt: new Date(0),
+              updatedAt: new Date(0)
+            }
+          );
+        },
+        async upsertProgress(userId: string, input: Omit<TestSportsProgress, "userId" | "createdAt" | "updatedAt">) {
+          const progress: TestSportsProgress = {
+            userId,
+            ...input,
+            createdAt: progressByUser.get(userId)?.createdAt ?? now,
+            updatedAt: now
+          };
+          progressByUser.set(userId, progress);
+          return progress;
+        }
+      };
+    }
+
     function createCustomRequirementRepository(): CustomRequirementRepository {
       return {
         async listByUserId() {
@@ -485,7 +542,15 @@ function createGpaRepository(): GpaRepository {
           gpaRepository: createGpaRepository(),
           lecturePracticeRepository: createLecturePracticeRepository(),
           volunteerLaborRepository: createVolunteerLaborRepository(),
+          sportsRepository: createSportsRepository(),
           customRequirementRepository: createCustomRequirementRepository(),
+          coursesProgressRepository: {
+            async loadProgressData() {
+              return { plan: null, planCourses: [], planGroups: [], gpaCourses: [], matches: [], ignoredGroupIds: [] };
+            },
+            async ignoreGroup() {},
+            async unignoreGroup() {}
+          },
           reminderRepository: createReminderRepositoryStub(),
           labExamEvents: createLabExamEventsDeps()
         });
@@ -1315,6 +1380,47 @@ const app = createTestApp();
       });
 
       const currentResponse = await request(app).get("/api/program-plans/me").set("Authorization", `Bearer ${token}`);
+      expect(currentResponse.body.plan.id).toBe(importResponse.body.plan.id);
+    });
+
+    it("lets users reuse a program plan uploaded for the same major and grade", async () => {
+      const app = createTestApp();
+      const ownerToken = await registerAndToken(app, "plan-reuse-owner@example.com");
+      const uploadResponse = await request(app)
+        .post("/api/program-plans/mock-upload")
+        .set("Authorization", `Bearer ${ownerToken}`)
+        .attach("file", Buffer.from("%PDF-1.4"), "software-plan.pdf");
+      const importResponse = await request(app)
+        .post("/api/program-plans/import")
+        .set("Authorization", `Bearer ${ownerToken}`)
+        .send({
+          sourceFilename: uploadResponse.body.preview.sourceFilename,
+          planJson: uploadResponse.body.preview.planJson
+        });
+      const reuseToken = await registerAndToken(app, "plan-reuse-peer@example.com");
+
+      const optionsResponse = await request(app)
+        .get("/api/program-plans/reusable")
+        .set("Authorization", `Bearer ${reuseToken}`);
+
+      expect(optionsResponse.status).toBe(200);
+      expect(optionsResponse.body.plans).toEqual([
+        expect.objectContaining({
+          id: importResponse.body.plan.id,
+          major: "软件工程",
+          grade: "2022级",
+          courseCount: 134
+        })
+      ]);
+
+      const bindResponse = await request(app)
+        .post(`/api/program-plans/${importResponse.body.plan.id}/bind`)
+        .set("Authorization", `Bearer ${reuseToken}`);
+
+      expect(bindResponse.status).toBe(200);
+      expect(bindResponse.body.plan.id).toBe(importResponse.body.plan.id);
+
+      const currentResponse = await request(app).get("/api/program-plans/me").set("Authorization", `Bearer ${reuseToken}`);
       expect(currentResponse.body.plan.id).toBe(importResponse.body.plan.id);
     });
 

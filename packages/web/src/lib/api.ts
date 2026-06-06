@@ -12,6 +12,7 @@ import type {
   ReminderStatus
 } from "../schemas/reminder";
 import type { SrtpOverview, SrtpRecord, SrtpRecordInput } from "../schemas/srtp";
+import type { SportsProgress, SportsProgressInput } from "../schemas/sports";
 import type { VolunteerLaborProgress, VolunteerLaborProgressInput } from "../schemas/volunteerLabor";
 import type { CustomRequirementInput } from "../schemas/customRequirement";
 import type { GpaCourseInput } from "../schemas/gpa";
@@ -530,6 +531,17 @@ export async function updateVolunteerLaborProgress(
   });
 }
 
+export async function getSportsProgress(): Promise<{ progress: SportsProgress }> {
+  return request<{ progress: SportsProgress }>("/api/sports/me");
+}
+
+export async function updateSportsProgress(input: SportsProgressInput): Promise<{ progress: SportsProgress }> {
+  return request<{ progress: SportsProgress }>("/api/sports/me", {
+    method: "PUT",
+    body: JSON.stringify(input)
+  });
+}
+
 export async function getSrtpOverview(): Promise<SrtpOverview> {
   return request<SrtpOverview>("/api/srtp/me");
 }
@@ -554,6 +566,14 @@ export async function deleteSrtpRecord(id: string): Promise<{ success: true }> {
 
 export async function getCurrentProgramPlan(): Promise<{ plan: ProgramPlanPreview | null }> {
   return request<{ plan: ProgramPlanPreview | null }>("/api/program-plans/me");
+}
+
+export async function listReusableProgramPlans(): Promise<{ plans: ProgramPlanPreview[] }> {
+  return request<{ plans: ProgramPlanPreview[] }>("/api/program-plans/reusable");
+}
+
+export async function bindProgramPlan(id: string): Promise<{ plan: ProgramPlanPreview; binding: unknown }> {
+  return request<{ plan: ProgramPlanPreview; binding: unknown }>(`/api/program-plans/${id}/bind`, { method: "POST" });
 }
 
 export async function mockUploadProgramPlan(file: File): Promise<{ preview: ProgramPlanPreview }> {
@@ -584,4 +604,150 @@ export async function importProgramPlan(input: {
     method: "POST",
     body: JSON.stringify(input)
   });
+}
+
+export type CoursesRuleStatus = "completed" | "in_progress" | "not_started";
+export type CoursesRuleTargetType = "all_courses" | "courses" | "credits" | "either" | "manual";
+
+export interface CoursesPlanCourseRef {
+  id: string;
+  code: string;
+  name: string;
+  credits: string;
+}
+
+export interface CoursesCompletedPlanCourse extends CoursesPlanCourseRef {
+  matchedGpaCourseId: string;
+  matchedGpaCourseTerm: string;
+  matchedGpaCourseScore: string;
+}
+
+export interface CoursesMatchedFreeCourse {
+  gpaCourseId: string;
+  name: string;
+  credits: string;
+  term: string;
+  score: string;
+}
+
+export interface CoursesRuleProgress {
+  id: string;
+  name: string;
+  requirementType: string;
+  description: string | null;
+  status: CoursesRuleStatus;
+  targetType: CoursesRuleTargetType;
+  targetCourses: number | null;
+  targetCredits: string | null;
+  earnedCourses: number;
+  earnedCredits: string;
+  gapText: string;
+  completedCourses: CoursesCompletedPlanCourse[];
+  candidateCourses: CoursesPlanCourseRef[];
+  matchedFreeCourses: CoursesMatchedFreeCourse[];
+}
+
+export interface CoursesCategoryProgress {
+  name: string;
+  requiredCredits: string;
+  earnedCredits: string;
+  completedCourseCount: number;
+  totalCourseCount: number;
+  percent: number;
+}
+
+export interface CoursesOverallProgress {
+  totalCredits: string;
+  earnedCredits: string;
+  gapCredits: string;
+  percent: number;
+  satisfiedRuleCount: number;
+  totalRuleCount: number;
+}
+
+export interface CoursesPlanSummaryRef {
+  id: string;
+  school: string;
+  college: string | null;
+  major: string;
+  grade: string | null;
+}
+
+export type CoursesProgressEmptyReason = "no_plan" | "no_gpa_courses" | "no_matches";
+
+export interface CoursesIgnoredRule {
+  id: string;
+  name: string;
+  requirementType: string;
+}
+
+export interface CoursesProgressResponse {
+  plan: CoursesPlanSummaryRef | null;
+  emptyReason: CoursesProgressEmptyReason | null;
+  overall: CoursesOverallProgress | null;
+  categories: CoursesCategoryProgress[];
+  rules: CoursesRuleProgress[];
+  ignoredRules: CoursesIgnoredRule[];
+}
+
+export async function getCoursesProgress(): Promise<CoursesProgressResponse> {
+  return request<CoursesProgressResponse>("/api/courses/progress");
+}
+
+export async function ignoreCoursesRule(groupId: string): Promise<CoursesProgressResponse> {
+  return request<CoursesProgressResponse>(`/api/courses/rules/${groupId}/ignore`, { method: "POST" });
+}
+
+export async function unignoreCoursesRule(groupId: string): Promise<CoursesProgressResponse> {
+  return request<CoursesProgressResponse>(`/api/courses/rules/${groupId}/ignore`, { method: "DELETE" });
+}
+
+export interface RematchGpaCoursesResponse extends GpaDashboardResponse {
+  matchedCount: number;
+}
+
+export async function rematchGpaCourses(): Promise<RematchGpaCoursesResponse> {
+  return request<RematchGpaCoursesResponse>("/api/gpa/rematch", { method: "POST" });
+}
+
+export type GraduationDimensionStatus = "completed" | "in_progress" | "not_started" | "unknown";
+
+export type GraduationDimensionKey =
+  | "courses"
+  | "gpa"
+  | "human_lecture"
+  | "book_report"
+  | "social_practice_credits"
+  | "social_practice_courses"
+  | "volunteer_hours"
+  | "ordinary_labor"
+  | "special_labor"
+  | "srtp"
+  | "custom_requirement";
+
+export interface GraduationDimension {
+  key: GraduationDimensionKey;
+  id: string;
+  label: string;
+  status: GraduationDimensionStatus;
+  current: number;
+  target: number;
+  unit: string;
+  percent: number;
+  route: string;
+  detail: string;
+}
+
+export interface GraduationSummaryResponse {
+  overall: {
+    coursesPercent: number;
+    completedDimensions: number;
+    totalDimensions: number;
+    unfinishedCount: number;
+  };
+  dimensions: GraduationDimension[];
+}
+
+export async function getGraduationSummary(): Promise<GraduationSummaryResponse> {
+  return request<GraduationSummaryResponse>("/api/home/graduation-summary");
 }

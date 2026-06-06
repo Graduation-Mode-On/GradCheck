@@ -111,24 +111,47 @@ function toggleTargetPicker(courseId: string) {
   targetKeyword.value = "";
 }
 
-function filteredCandidateCourses(item: GpaCourseMatchItem) {
+function sortedCandidateTargets(item: GpaCourseMatchItem) {
   const query = targetKeyword.value.trim().toLowerCase();
-  return item.candidates.courses.filter((course) => {
-    const searchableText = [course.name, course.code, course.credits, course.requirementType].join(" ").toLowerCase();
-    return !query || searchableText.includes(query);
+  const referenceText = query || item.course.name.toLowerCase();
+  const targets = [
+    ...item.candidates.courses.map((course, order) => ({
+      type: "course" as const,
+      value: course,
+      score: sharedCharacterCount(referenceText, course.name),
+      order
+    })),
+    ...item.candidates.groups.map((group, order) => ({
+      type: "group" as const,
+      value: group,
+      score: sharedCharacterCount(referenceText, group.name),
+      order
+    }))
+  ];
+
+  return targets.sort((left, right) => {
+    if (left.score <= 1 && right.score <= 1 && left.type !== right.type) {
+      return left.type === "group" ? -1 : 1;
+    }
+    if (right.score !== left.score) return right.score - left.score;
+    if (left.type !== right.type) return left.type === "course" ? -1 : 1;
+    return left.order - right.order;
   });
 }
 
-function filteredCandidateGroups(item: GpaCourseMatchItem) {
-  const query = targetKeyword.value.trim().toLowerCase();
-  return item.candidates.groups.filter((group) => {
-    const searchableText = [group.name, group.requirementType].join(" ").toLowerCase();
-    return !query || searchableText.includes(query);
-  });
+function sharedCharacterCount(referenceText: string, candidateName: string) {
+  const referenceCharacters = new Set(Array.from(referenceText).filter((character) => character.trim()));
+  return Array.from(new Set(Array.from(candidateName.toLowerCase()).filter((character) => character.trim()))).filter((character) =>
+    referenceCharacters.has(character)
+  ).length;
 }
 
 function bindCourseTarget(item: GpaCourseMatchItem, target: string) {
   bindMutation.mutate({ courseId: item.course.id, target });
+}
+
+function bindSortedCandidate(item: GpaCourseMatchItem, target: ReturnType<typeof sortedCandidateTargets>[number]) {
+  bindCourseTarget(item, `${target.type}:${target.value.id}`);
 }
 
 function confirmCurrentMatch(item: GpaCourseMatchItem) {
@@ -224,33 +247,23 @@ function confirmCurrentMatch(item: GpaCourseMatchItem) {
           />
           <div class="mt-3 space-y-2">
           <button
-            v-for="course in filteredCandidateCourses(item)"
-            :key="`course:${course.id}`"
-            data-testid="gpa-match-candidate-course"
+            v-for="target in sortedCandidateTargets(item)"
+            :key="`${target.type}:${target.value.id}`"
+            :data-testid="target.type === 'group' ? 'gpa-match-candidate-group' : 'gpa-match-candidate-course'"
+            data-match-target="true"
             class="w-full rounded-2xl border border-slate-200 bg-white px-3 py-2 text-left text-sm hover:border-[var(--tommy-primary)]"
             type="button"
-            @click="bindCourseTarget(item, `course:${course.id}`)"
+            @click="bindSortedCandidate(item, target)"
           >
-            <span class="font-semibold text-[var(--tommy-text)]">{{ course.name }}</span>
-            <span class="ml-2 text-xs text-[var(--tommy-text-secondary)]">{{ course.code }} · {{ course.credits }} 学分 · {{ course.requirementType }}</span>
+            <template v-if="target.type === 'course'">
+              <span class="font-semibold text-[var(--tommy-text)]">{{ target.value.name }}</span>
+              <span class="ml-2 text-xs text-[var(--tommy-text-secondary)]">{{ target.value.code }} · {{ target.value.credits }} 学分 · {{ target.value.requirementType }}</span>
+            </template>
+            <template v-else>
+              <span class="font-semibold text-[var(--tommy-text)]">课程组：{{ target.value.name }}</span>
+              <span class="ml-2 text-xs text-[var(--tommy-text-secondary)]">{{ target.value.requirementType }}</span>
+            </template>
           </button>
-          <button
-            v-for="group in filteredCandidateGroups(item)"
-            :key="`group:${group.id}`"
-            data-testid="gpa-match-candidate-group"
-            class="w-full rounded-2xl border border-slate-200 bg-white px-3 py-2 text-left text-sm hover:border-[var(--tommy-primary)]"
-            type="button"
-            @click="bindCourseTarget(item, `group:${group.id}`)"
-          >
-            <span class="font-semibold text-[var(--tommy-text)]">课程组：{{ group.name }}</span>
-            <span class="ml-2 text-xs text-[var(--tommy-text-secondary)]">{{ group.requirementType }}</span>
-          </button>
-          <p
-            v-if="filteredCandidateCourses(item).length === 0 && filteredCandidateGroups(item).length === 0"
-            class="rounded-xl bg-white px-3 py-2 text-sm text-[var(--tommy-text-secondary)]"
-          >
-            没有符合条件的匹配目标。
-          </p>
           </div>
         </div>
       </article>
