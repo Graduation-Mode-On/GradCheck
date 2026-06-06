@@ -74,7 +74,8 @@ describe("LoginPage", () => {
         major: "软件工程",
         grade: 2024,
         gpaGoal: "2.00",
-        studentId: "213220001"
+        studentId: "213220001",
+        pushplusToken: null
       }
     });
   });

@@ -6,7 +6,20 @@ export const profileSchema = z.object({
   major: z.string().min(1).max(120),
   grade: z.coerce.number().int().min(2000).max(2100),
   gpaGoal: z.string().regex(/^[0-4](\.\d{1,2})?$/),
-  studentId: z.string().regex(/^\d{9}$/, "学生一卡通必须是 9 位数字")
+  studentId: z.string().regex(/^\d{9}$/, "学生一卡通必须是 9 位数字"),
+  pushplusToken: z
+    .preprocess(
+      (value) => {
+        if (value === null || value === undefined) return null;
+        if (typeof value === "string" && value.trim().length === 0) return null;
+        return value;
+      },
+      z
+        .string()
+        .regex(/^[a-f0-9]{32}$/i, "PushPlus token 必须是 32 位十六进制字符")
+        .nullable()
+    )
+    .transform((value) => (value ? value.toLowerCase() : null))
 });
 
 export const credentialsSchema = z.object({

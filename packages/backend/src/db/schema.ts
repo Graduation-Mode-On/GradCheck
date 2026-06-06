@@ -18,6 +18,7 @@ export const userProfiles = pgTable("user_profiles", {
   grade: integer("grade").notNull(),
   gpaGoal: numeric("gpa_goal", { precision: 3, scale: 2 }).notNull().default("2.00"),
   studentId: varchar("student_id", { length: 9 }).unique(),
+  pushplusToken: varchar("pushplus_token", { length: 64 }),
   createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
   updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull()
 });

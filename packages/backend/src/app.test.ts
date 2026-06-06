@@ -229,6 +229,7 @@ function createRepository(): AuthRepository {
         grade: input.grade,
         gpaGoal: input.gpaGoal,
         studentId: input.studentId,
+        pushplusToken: input.pushplusToken ?? null,
         createdAt: now,
         updatedAt: now
       };

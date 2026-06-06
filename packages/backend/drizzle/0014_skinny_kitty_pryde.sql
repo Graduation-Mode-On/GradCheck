@@ -1,0 +1,1 @@
+ALTER TABLE "user_profiles" ADD COLUMN "pushplus_token" varchar(64);

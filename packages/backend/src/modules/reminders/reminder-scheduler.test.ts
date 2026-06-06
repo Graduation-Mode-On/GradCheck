@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { runReminderScheduler } from "./reminder-scheduler.js";
+import { runReminderScheduler, type PushplusTokenResolver } from "./reminder-scheduler.js";
 import { NoopSmsAdapter, type SmsAdapter } from "./sms-adapter.js";
 import type {
   ReminderDeliveryLogDto,
@@ -10,6 +10,14 @@ import type {
 } from "./reminders.types.js";
 
 const scheduledAt = new Date("2026-06-06T08:00:00.000Z");
+
+function tokenResolver(token: string | null): PushplusTokenResolver {
+  return {
+    async getPushplusToken() {
+      return token;
+    }
+  };
+}
 
 function createReminder(overrides: Partial<ReminderDto> = {}): ReminderDto {
   return {
@@ -102,7 +110,8 @@ describe("runReminderScheduler", () => {
     const result = await runReminderScheduler({
       now: scheduledAt,
       repository,
-      smsAdapter: new NoopSmsAdapter()
+      smsAdapter: new NoopSmsAdapter(),
+      tokenResolver: tokenResolver("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa")
     });
 
     expect(result).toEqual({ scanned: 1, sent: 1, skipped: 0, failed: 0 });
@@ -142,7 +151,8 @@ describe("runReminderScheduler", () => {
     const result = await runReminderScheduler({
       now: scheduledAt,
       repository,
-      smsAdapter: new NoopSmsAdapter()
+      smsAdapter: new NoopSmsAdapter(),
+      tokenResolver: tokenResolver("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa")
     });
 
     expect(result).toEqual({ scanned: 1, sent: 0, skipped: 1, failed: 0 });
@@ -162,7 +172,8 @@ describe("runReminderScheduler", () => {
     const result = await runReminderScheduler({
       now: scheduledAt,
       repository,
-      smsAdapter: failingAdapter
+      smsAdapter: failingAdapter,
+      tokenResolver: tokenResolver("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa")
     });
 
     expect(result).toEqual({ scanned: 1, sent: 0, skipped: 0, failed: 1 });
@@ -178,5 +189,60 @@ describe("runReminderScheduler", () => {
         attemptCount: 1
       }
     ]);
+  });
+
+  it("skips reminders for users who have not bound a PushPlus token", async () => {
+    const reminder = createReminder();
+    const createdLogs: ReminderDeliveryLogInput[] = [];
+    const adapter: SmsAdapter = {
+      async sendReminder() {
+        throw new Error("adapter should not be invoked");
+      }
+    };
+    const repository = createRepository({ candidates: [reminder], createdLogs });
+
+    const result = await runReminderScheduler({
+      now: scheduledAt,
+      repository,
+      smsAdapter: adapter,
+      tokenResolver: tokenResolver(null)
+    });
+
+    expect(result).toEqual({ scanned: 1, sent: 0, skipped: 1, failed: 0 });
+    expect(createdLogs).toEqual([
+      {
+        reminderId: reminder.id,
+        channel: "sms",
+        status: "skipped",
+        scheduledAt,
+        sentAt: null,
+        providerMessageId: null,
+        errorMessage: "用户未绑定 PushPlus token",
+        attemptCount: 1
+      }
+    ]);
+  });
+
+  it("passes the resolved pushplus token through to the adapter", async () => {
+    const reminder = createReminder();
+    const createdLogs: ReminderDeliveryLogInput[] = [];
+    const seenTokens: string[] = [];
+    const adapter: SmsAdapter = {
+      async sendReminder(input) {
+        seenTokens.push(input.pushplusToken);
+        return { providerMessageId: "msg-1" };
+      }
+    };
+    const repository = createRepository({ candidates: [reminder], createdLogs });
+
+    const result = await runReminderScheduler({
+      now: scheduledAt,
+      repository,
+      smsAdapter: adapter,
+      tokenResolver: tokenResolver("06f028951ec64eafadbd4a0a6d235b41")
+    });
+
+    expect(result).toEqual({ scanned: 1, sent: 1, skipped: 0, failed: 0 });
+    expect(seenTokens).toEqual(["06f028951ec64eafadbd4a0a6d235b41"]);
   });
 });

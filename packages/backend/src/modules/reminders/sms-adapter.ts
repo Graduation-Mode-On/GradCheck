@@ -3,6 +3,7 @@ import type { ReminderDto } from "./reminders.types.js";
 export interface SmsSendInput {
   reminder: ReminderDto;
   scheduledAt: Date;
+  pushplusToken: string;
 }
 
 export interface SmsSendResult {

@@ -27,6 +27,7 @@ export interface UserProfile {
   grade: number;
   gpaGoal: string;
   studentId: string | null;
+  pushplusToken: string | null;
 }
 
 export interface CurrentUser {
