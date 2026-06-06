@@ -10,6 +10,7 @@
     "typecheck": "tsc -p tsconfig.json --noEmit",
     "test": "vitest run",
     "parse:program": "tsx src/modules/program-rules/cli.ts",
+    "backfill:program-courses": "tsx src/scripts/backfill-program-plan-courses.ts",
     "db:generate": "drizzle-kit generate",
     "db:migrate": "drizzle-kit migrate",
     "db:studio": "drizzle-kit studio"
