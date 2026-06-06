@@ -144,4 +144,40 @@ describe("SrtpPage", () => {
     expect(wrapper.find('[data-testid="srtp-record-edit-record-1"]').exists()).toBe(true);
     expect(wrapper.find('[data-testid="srtp-record-delete-record-1"]').exists()).toBe(true);
   });
+
+  it("opens an in-app confirmation dialog before deleting a record", async () => {
+    mocks.token = "token";
+    mocks.getSrtpOverview.mockResolvedValue({
+      records: [
+        {
+          id: "record-1",
+          title: "SRTP 璁插骇",
+          type: "lecture",
+          credits: "0.50",
+          description: "璁插骇璁板綍",
+          createdAt: "2026-06-06T00:00:00.000Z",
+          updatedAt: "2026-06-06T00:00:00.000Z"
+        }
+      ],
+      summary: {
+        ...emptyOverview.summary,
+        totalCredits: "0.50",
+        missingForPassing: "1.50",
+        missingForExcellent: "5.50"
+      }
+    });
+
+    const wrapper = mountPage();
+    await flushPromises();
+
+    await wrapper.get('[data-testid="srtp-record-actions-record-1"]').trigger("click");
+    await wrapper.get('[data-testid="srtp-record-delete-record-1"]').trigger("click");
+
+    expect(wrapper.get('[role="dialog"]').text()).toContain("SRTP 璁插骇");
+    expect(mocks.deleteSrtpRecord).not.toHaveBeenCalled();
+
+    await wrapper.get('[data-testid="srtp-delete-confirm"]').trigger("click");
+
+    expect(mocks.deleteSrtpRecord).toHaveBeenCalledWith("record-1");
+  });
 });
