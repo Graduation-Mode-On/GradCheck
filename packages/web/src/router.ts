@@ -7,6 +7,7 @@ import NewsPage from "./pages/NewsPage.vue";
 import PlaceholderPage from "./pages/PlaceholderPage.vue";
 import PlazaPage from "./pages/PlazaPage.vue";
 import ProfilePage from "./pages/ProfilePage.vue";
+import SrtpPage from "./pages/SrtpPage.vue";
 import VolunteerPage from "./pages/VolunteerPage.vue";
 
 export const router = createRouter({
@@ -62,8 +63,7 @@ export const router = createRouter({
     {
       path: "/srtp",
       name: "srtp",
-      component: PlaceholderPage,
-      meta: { title: "SRTP", description: "后续用于记录 SRTP、课外实践和相关学分完成情况。" }
+      component: SrtpPage
     },
     {
       path: "/graduation-gift",
