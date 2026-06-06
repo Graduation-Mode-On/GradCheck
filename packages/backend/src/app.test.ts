@@ -3,6 +3,8 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { createApp } from "./app.js";
 import type { AuthRepository } from "./modules/auth/auth.repository.js";
+import type { NewsRepository } from "./modules/news/news.repository.js";
+import type { NewsItemRecord } from "./modules/news/news.types.js";
 import type {
   CreatePlazaPostRecordInput,
   PlazaRepository
@@ -169,7 +171,7 @@ function createRepository(): AuthRepository {
   });
 
   it("registers a user, returns the current user, and updates profile data", async () => {
-    const app = createTestApp();
+const app = createTestApp();
 
     const registerResponse = await request(app)
       .post("/api/auth/register")
@@ -269,6 +271,43 @@ function createRepository(): AuthRepository {
       currentMembers: input.type === "team_recruit" ? input.currentMembers : null,
       targetMembers: input.type === "team_recruit" ? input.targetMembers : null,
       activityTime: input.type === "team_recruit" ? input.activityTime : null
+    };
+  }
+
+  function createNewsRepository(): NewsRepository {
+    const items = new Map<string, NewsItemRecord>();
+
+    return {
+      async listItems(filters) {
+        let visible = [...items.values()].filter((item) => item.status === "active");
+        if (filters.type) visible = visible.filter((item) => item.type === filters.type);
+        if (filters.keyword) {
+          const keyword = filters.keyword.toLowerCase();
+          visible = visible.filter((item) =>
+            [item.title, item.organizer ?? "", item.description ?? ""].some((value) =>
+              value.toLowerCase().includes(keyword)
+            )
+          );
+        }
+        visible.sort((a, b) => b.updatedAt.getTime() - a.updatedAt.getTime() || b.id.localeCompare(a.id));
+        const start = filters.cursor ? visible.findIndex((item) => item.id === filters.cursor) + 1 : 0;
+        const page = visible.slice(start, start + filters.limit);
+        const nextCursor = visible[start + filters.limit]?.id ?? null;
+        return { items: page, nextCursor };
+      },
+      async findItemById(id: string) {
+        return items.get(id) ?? null;
+      },
+      async createItem(values) {
+        const item: NewsItemRecord = {
+          id: `news-${items.size + 1}`,
+          ...values,
+          createdAt: now,
+          updatedAt: now
+        };
+        items.set(item.id, item);
+        return item;
+      }
     };
   }
 
@@ -376,7 +415,7 @@ function createRepository(): AuthRepository {
     });
 
     it("creates and lists course exchange posts for authenticated users", async () => {
-      const app = createTestApp();
+const app = createTestApp();
       const token = await registerAndToken(app, "owner@example.com");
 
       const createResponse = await request(app)
@@ -414,7 +453,7 @@ function createRepository(): AuthRepository {
     });
 
     it("matches plaza keyword only against title, description, and contact", async () => {
-      const app = createTestApp();
+const app = createTestApp();
       const token = await registerAndToken(app, "keyword-owner@example.com");
 
       await request(app)
@@ -453,7 +492,7 @@ function createRepository(): AuthRepository {
     });
 
     it("creates team recruiting posts and rejects invalid member counts", async () => {
-      const app = createTestApp();
+const app = createTestApp();
       const token = await registerAndToken(app, "leader@example.com");
 
       const invalidResponse = await request(app)
@@ -504,7 +543,7 @@ function createRepository(): AuthRepository {
     });
 
     it("allows only the author to edit, close, reopen, and soft-delete posts", async () => {
-      const app = createTestApp();
+const app = createTestApp();
       const ownerToken = await registerAndToken(app, "post-owner@example.com");
       const otherToken = await registerAndToken(app, "other@example.com");
 
@@ -562,7 +601,7 @@ function createRepository(): AuthRepository {
   });
 
   it("rejects duplicate registration and unauthenticated profile access", async () => {
-    const app = createTestApp();
+const app = createTestApp();
     const payload = { email: "student@example.com", password: "password123" };
 
     await request(app).post("/api/auth/register").send(payload).expect(201);

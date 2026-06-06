@@ -57,6 +57,27 @@ export const plazaPosts = pgTable("plaza_posts", {
   updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull()
 });
 
+export const newsItems = pgTable("news_items", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  title: varchar("title", { length: 200 }).notNull(),
+  type: varchar("type", { length: 32 }).notNull(),
+  organizer: varchar("organizer", { length: 200 }),
+  location: varchar("location", { length: 200 }),
+  startTime: timestamp("start_time", { withTimezone: true }),
+  endTime: timestamp("end_time", { withTimezone: true }),
+  registrationUrl: text("registration_url"),
+  targetAudience: varchar("target_audience", { length: 200 }),
+  creditCategory: varchar("credit_category", { length: 100 }),
+  description: text("description"),
+  sourceUrl: text("source_url"),
+  sourceName: varchar("source_name", { length: 100 }),
+  dataQuality: varchar("data_quality", { length: 20 }).notNull().default("complete"),
+  status: varchar("status", { length: 20 }).notNull().default("active"),
+  scrapedAt: timestamp("scraped_at", { withTimezone: true }),
+  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull()
+});
+
 export const lecturePracticeProgress = pgTable("lecture_practice_progress", {
   userId: uuid("user_id")
     .primaryKey()

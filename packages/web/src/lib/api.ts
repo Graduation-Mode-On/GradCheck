@@ -1,5 +1,6 @@
 import type { LoginInput, ProfileInput, RegisterInput } from "../schemas/auth";
 import type { LecturePracticeProgress, LecturePracticeProgressInput } from "../schemas/lecturePractice";
+import type { NewsItem, NewsItemFilters } from "../schemas/news";
 import type { PlazaPost, PlazaPostFilters, PlazaPostInput, PlazaPostStatus } from "../schemas/plaza";
 import type { VolunteerLaborProgress, VolunteerLaborProgressInput } from "../schemas/volunteerLabor";
 
@@ -143,6 +144,14 @@ export async function updatePlazaPostStatus(id: string, status: PlazaPostStatus)
 }
 export async function deletePlazaPost(id: string): Promise<{ success: true }> {
   return request<{ success: true }>(`/api/plaza/posts/${id}`, { method: "DELETE" });
+}
+
+export async function listNewsItems(
+  filters: NewsItemFilters & { cursor?: string; limit?: number }
+): Promise<{ items: NewsItem[]; nextCursor: string | null }> {
+  return request<{ items: NewsItem[]; nextCursor: string | null }>(
+    `/api/news${toQueryString({ ...filters, limit: filters.limit ?? 20 })}`
+  );
 }
 
 export async function getLecturePracticeProgress(): Promise<{ progress: LecturePracticeProgress }> {
