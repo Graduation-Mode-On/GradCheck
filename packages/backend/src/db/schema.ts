@@ -134,3 +134,31 @@ export const srtpRecords = pgTable("srtp_records", {
   createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
   updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull()
 });
+
+export const programPlans = pgTable("program_plans", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  sourceFilename: varchar("source_filename", { length: 240 }).notNull(),
+  school: varchar("school", { length: 120 }).notNull(),
+  college: varchar("college", { length: 120 }),
+  major: varchar("major", { length: 120 }).notNull(),
+  grade: varchar("grade", { length: 40 }),
+  totalCredits: numeric("total_credits", { precision: 6, scale: 2 }),
+  courseCount: integer("course_count").notNull(),
+  requirementCount: integer("requirement_count").notNull(),
+  warningCount: integer("warning_count").notNull(),
+  planJson: jsonb("plan_json").$type<Record<string, unknown>>().notNull(),
+  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull()
+});
+
+export const userProgramBindings = pgTable("user_program_bindings", {
+  userId: uuid("user_id")
+    .primaryKey()
+    .references(() => users.id, { onDelete: "cascade" }),
+  programPlanId: uuid("program_plan_id")
+    .notNull()
+    .references(() => programPlans.id, { onDelete: "cascade" }),
+  confirmedAt: timestamp("confirmed_at", { withTimezone: true }).defaultNow().notNull(),
+  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull()
+});

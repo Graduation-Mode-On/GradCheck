@@ -2,6 +2,7 @@ import type { LoginInput, ProfileInput, RegisterInput } from "../schemas/auth";
 import type { LecturePracticeProgress, LecturePracticeProgressInput } from "../schemas/lecturePractice";
 import type { NewsItem, NewsItemFilters } from "../schemas/news";
 import type { PlazaPost, PlazaPostFilters, PlazaPostInput, PlazaPostStatus } from "../schemas/plaza";
+import type { CurriculumPlan, ProgramPlanPreview } from "../schemas/programPlan";
 import type { SrtpOverview, SrtpRecord, SrtpRecordInput } from "../schemas/srtp";
 import type { VolunteerLaborProgress, VolunteerLaborProgressInput } from "../schemas/volunteerLabor";
 import type { CustomRequirementInput } from "../schemas/customRequirement";
@@ -242,4 +243,38 @@ export async function updateSrtpRecord(id: string, input: SrtpRecordInput): Prom
 
 export async function deleteSrtpRecord(id: string): Promise<{ success: true }> {
   return request<{ success: true }>(`/api/srtp/me/records/${id}`, { method: "DELETE" });
+}
+
+export async function getCurrentProgramPlan(): Promise<{ plan: ProgramPlanPreview | null }> {
+  return request<{ plan: ProgramPlanPreview | null }>("/api/program-plans/me");
+}
+
+export async function mockUploadProgramPlan(file: File): Promise<{ preview: ProgramPlanPreview }> {
+  const form = new FormData();
+  form.set("file", file);
+  const token = getToken();
+  const headers = new Headers();
+  if (token) {
+    headers.set("Authorization", `Bearer ${token}`);
+  }
+  const response = await fetch(`${API_BASE_URL}/api/program-plans/mock-upload`, {
+    method: "POST",
+    headers,
+    body: form
+  });
+  if (!response.ok) {
+    const body = (await response.json().catch(() => ({}))) as ApiErrorBody;
+    throw new Error(body.error?.message ?? `Request failed with status ${response.status}`);
+  }
+  return (await response.json()) as { preview: ProgramPlanPreview };
+}
+
+export async function importProgramPlan(input: {
+  sourceFilename: string;
+  planJson: CurriculumPlan;
+}): Promise<{ plan: ProgramPlanPreview; binding: unknown }> {
+  return request<{ plan: ProgramPlanPreview; binding: unknown }>("/api/program-plans/import", {
+    method: "POST",
+    body: JSON.stringify(input)
+  });
 }

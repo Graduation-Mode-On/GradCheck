@@ -10,6 +10,8 @@ import type { NewsRepository } from "./modules/news/news.repository.js";
 import { createNewsRouter } from "./modules/news/news.routes.js";
 import type { PlazaRepository } from "./modules/plaza/plaza.repository.js";
 import { createPlazaRouter } from "./modules/plaza/plaza.routes.js";
+import type { ProgramPlanRepository } from "./modules/program-plans/program-plans.repository.js";
+import { createProgramPlansRouter } from "./modules/program-plans/program-plans.routes.js";
 import { createProgramRulesRouter } from "./modules/program-rules/expressRouter.js";
 import type { SrtpRepository } from "./modules/srtp/srtp.repository.js";
 import { createSrtpRouter } from "./modules/srtp/srtp.routes.js";
@@ -28,6 +30,7 @@ export interface AppDependencies {
   volunteerLaborRepository: VolunteerLaborRepository;
   customRequirementRepository: CustomRequirementRepository;
   srtpRepository: SrtpRepository;
+  programPlanRepository: ProgramPlanRepository;
   corsOrigin?: string;
   amapWeatherKey?: string;
 }
@@ -47,6 +50,7 @@ export function createApp(dependencies: AppDependencies) {
   app.use("/api/plaza/posts", createPlazaRouter(dependencies.authRepository, dependencies.plazaRepository));
   app.use("/api/news", createNewsRouter(dependencies.newsRepository));
   app.use("/api/srtp", createSrtpRouter(dependencies.authRepository, dependencies.srtpRepository));
+  app.use("/api/program-plans", createProgramPlansRouter(dependencies.authRepository, dependencies.programPlanRepository));
   app.use(
     "/api/lecture-practice",
     createLecturePracticeRouter(dependencies.authRepository, dependencies.lecturePracticeRepository)

@@ -15,6 +15,8 @@ import type {
   UpdatePlazaPostInput
 } from "./modules/plaza/plaza.schemas.js";
 import type { PlazaPostStatus } from "./modules/plaza/plaza.types.js";
+import type { ProgramPlanBinding, ProgramPlanRepository } from "./modules/program-plans/program-plans.repository.js";
+import type { CurriculumPlan, ProgramPlanSummary } from "./modules/program-plans/program-plans.schemas.js";
 import type { SrtpRepository } from "./modules/srtp/srtp.repository.js";
 import type { SrtpRecord, SrtpRecordInput } from "./modules/srtp/srtp.schemas.js";
 import type { UserProfile } from "./modules/users/user.repository.js";
@@ -38,6 +40,45 @@ interface TestVolunteerLaborProgress {
   specialLaborCount: number;
   createdAt: Date;
   updatedAt: Date;
+}
+
+function createProgramPlanRepository(): ProgramPlanRepository {
+  const plans = new Map<string, ProgramPlanSummary>();
+  const bindings = new Map<string, ProgramPlanBinding>();
+
+  return {
+    async createAndBind(userId: string, sourceFilename: string, planJson: CurriculumPlan) {
+      const plan: ProgramPlanSummary = {
+        id: `program-plan-${plans.size + 1}`,
+        sourceFilename,
+        school: planJson.program.school,
+        college: planJson.program.college ?? null,
+        major: planJson.program.major,
+        grade: planJson.program.grade ?? null,
+        totalCredits: planJson.program.total_credits == null ? null : String(planJson.program.total_credits),
+        courseCount: planJson.courses.length,
+        requirementCount: planJson.requirements.length,
+        warningCount: planJson.warnings.length,
+        planJson,
+        createdAt: now,
+        updatedAt: now
+      };
+      plans.set(plan.id, plan);
+      const binding: ProgramPlanBinding = {
+        userId,
+        programPlanId: plan.id,
+        confirmedAt: now,
+        createdAt: bindings.get(userId)?.createdAt ?? now,
+        updatedAt: now
+      };
+      bindings.set(userId, binding);
+      return { plan, binding };
+    },
+    async getBoundPlan(userId: string) {
+      const binding = bindings.get(userId);
+      return binding ? (plans.get(binding.programPlanId) ?? null) : null;
+    }
+  };
 }
 
 function createSrtpRepository(): SrtpRepository {
@@ -210,6 +251,7 @@ function createRepository(): AuthRepository {
           plazaRepository: createPlazaRepository(),
           newsRepository: createNewsRepository(),
           srtpRepository: createSrtpRepository(),
+          programPlanRepository: createProgramPlanRepository(),
           lecturePracticeRepository: createLecturePracticeRepository(),
           volunteerLaborRepository: createVolunteerLaborRepository(),
           customRequirementRepository: createCustomRequirementRepository()
@@ -847,6 +889,7 @@ const app = createTestApp();
           missingForExcellent: "6.00"
         }
       });
+
     });
 
     it("creates SRTP records and calculates passing and excellent summary", async () => {
@@ -944,6 +987,91 @@ const app = createTestApp();
         .set("Authorization", `Bearer ${token}`)
         .send({ title: "不存在", type: "other", credits: "1.00", description: "" })
         .expect(404);
+    });
+  });
+
+  describe("program plan import API", () => {
+    beforeEach(() => {
+      vi.stubEnv("JWT_SECRET", "test-secret-that-is-long-enough");
+    });
+
+    it("requires authentication for program plan import APIs", async () => {
+      const app = createTestApp();
+
+      await request(app).get("/api/program-plans/me").expect(401);
+      await request(app).post("/api/program-plans/import").send({}).expect(401);
+    });
+
+    it("returns null when the user has no bound program plan", async () => {
+      const app = createTestApp();
+      const token = await registerAndToken(app, "plan-empty@example.com");
+
+      const response = await request(app).get("/api/program-plans/me").set("Authorization", `Bearer ${token}`);
+
+      expect(response.status).toBe(200);
+      expect(response.body).toEqual({ plan: null });
+    });
+
+    it("mock uploads a PDF and returns pdf-extract sample preview", async () => {
+      const app = createTestApp();
+      const token = await registerAndToken(app, "plan-upload@example.com");
+
+      const response = await request(app)
+        .post("/api/program-plans/mock-upload")
+        .set("Authorization", `Bearer ${token}`)
+        .attach("file", Buffer.from("%PDF-1.4"), "software-plan.pdf");
+
+      expect(response.status).toBe(200);
+      expect(response.body.preview).toMatchObject({
+        sourceFilename: "software-plan.pdf",
+        school: "东南大学",
+        major: "软件工程",
+        totalCredits: "166",
+        courseCount: 3,
+        requirementCount: 2,
+        warningCount: 0
+      });
+      expect(response.body.preview.planJson.courses[0]).toMatchObject({ code: "B07M1050", name: "工科数学分析I" });
+    });
+
+    it("rejects non-PDF mock uploads", async () => {
+      const app = createTestApp();
+      const token = await registerAndToken(app, "plan-upload-invalid@example.com");
+
+      await request(app)
+        .post("/api/program-plans/mock-upload")
+        .set("Authorization", `Bearer ${token}`)
+        .attach("file", Buffer.from("not pdf"), "plan.txt")
+        .expect(400);
+    });
+
+    it("imports and binds a preview plan to the current user", async () => {
+      const app = createTestApp();
+      const token = await registerAndToken(app, "plan-import@example.com");
+      const uploadResponse = await request(app)
+        .post("/api/program-plans/mock-upload")
+        .set("Authorization", `Bearer ${token}`)
+        .attach("file", Buffer.from("%PDF-1.4"), "software-plan.pdf");
+
+      const importResponse = await request(app)
+        .post("/api/program-plans/import")
+        .set("Authorization", `Bearer ${token}`)
+        .send({
+          sourceFilename: uploadResponse.body.preview.sourceFilename,
+          planJson: uploadResponse.body.preview.planJson
+        });
+
+      expect(importResponse.status).toBe(201);
+      expect(importResponse.body.plan).toMatchObject({
+        sourceFilename: "software-plan.pdf",
+        school: "东南大学",
+        major: "软件工程",
+        courseCount: 3,
+        requirementCount: 2
+      });
+
+      const currentResponse = await request(app).get("/api/program-plans/me").set("Authorization", `Bearer ${token}`);
+      expect(currentResponse.body.plan.id).toBe(importResponse.body.plan.id);
     });
   });
 });

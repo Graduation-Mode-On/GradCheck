@@ -7,6 +7,7 @@ import LoginPage from "./pages/LoginPage.vue";
 import NewsPage from "./pages/NewsPage.vue";
 import PlaceholderPage from "./pages/PlaceholderPage.vue";
 import PlazaPage from "./pages/PlazaPage.vue";
+import PlansPage from "./pages/PlansPage.vue";
 import ProfilePage from "./pages/ProfilePage.vue";
 import SrtpPage from "./pages/SrtpPage.vue";
 import VolunteerPage from "./pages/VolunteerPage.vue";
@@ -18,8 +19,7 @@ export const router = createRouter({
     {
       path: "/plans",
       name: "plans",
-      component: PlaceholderPage,
-      meta: { title: "培养方案", description: "后续接入培养方案 PDF 解析、结构化确认和同专业方案复用。" }
+      component: PlansPage
     },
     {
       path: "/courses",
