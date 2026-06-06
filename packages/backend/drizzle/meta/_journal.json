@@ -99,13 +99,6 @@
       "when": 1780763629946,
       "tag": "0013_daffy_luke_cage",
       "breakpoints": true
-    },
-    {
-      "idx": 14,
-      "version": "7",
-      "when": 1780764860500,
-      "tag": "0014_skinny_kitty_pryde",
-      "breakpoints": true
     }
   ]
 }

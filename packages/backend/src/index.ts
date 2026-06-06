@@ -11,6 +11,7 @@ import { createSrtpRepository } from "./modules/srtp/srtp.repository.js";
 import { createSportsRepository } from "./modules/sports/sports.repository.js";
 import { createVolunteerLaborRepository } from "./modules/volunteer-labor/volunteer-labor.repository.js";
 import { createCustomRequirementRepository } from "./modules/custom-requirements/custom-requirement.repository.js";
+import { createCourseRecommendationRepository } from "./modules/course-recommendations/course-recommendations.repository.js";
 import { createCoursesProgressRepository } from "./modules/courses-progress/courses-progress.repository.js";
 import { createLabExamEventRepository } from "./modules/lab-exam-events/lab-exam-events.repository.js";
 import { createReminderRepository } from "./modules/reminders/reminders.repository.js";
@@ -28,6 +29,7 @@ const app = createApp({
   volunteerLaborRepository: createVolunteerLaborRepository(db),
   customRequirementRepository: createCustomRequirementRepository(db),
   gpaRepository: createGpaRepository(db),
+  courseRecommendationRepository: createCourseRecommendationRepository(db),
   coursesProgressRepository: createCoursesProgressRepository(db),
   reminderRepository: createReminderRepository(db),
   labExamEvents: {

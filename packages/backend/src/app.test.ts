@@ -3,6 +3,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { createApp, type AppDependencies } from "./app.js";
 import type { AuthRepository } from "./modules/auth/auth.repository.js";
+import type { CourseRecommendationRepository } from "./modules/course-recommendations/course-recommendations.repository.js";
 import type { CustomRequirementRepository } from "./modules/custom-requirements/custom-requirement.repository.js";
 import { calculateGpaResult } from "./modules/gpa/gpa.calculator.js";
 import { matchGpaCourseToPlanRequirement } from "./modules/gpa/course-plan-matcher.js";
@@ -477,67 +478,29 @@ function createGpaRepository(): GpaRepository {
       };
     }
 
-    function createReminderRepositoryStub(): ReminderRepository {
+    function createCourseRecommendationRepository(): CourseRecommendationRepository {
       return {
-        async listByUserId() {
+        async listSemesterCourses() {
           return [];
         },
-        async findById() {
-          return null;
-        },
-        async create() {
+        async createSemesterCourse() {
           throw new Error("not used");
         },
-        async update() {
-          return null;
+        async updateSemesterCourse() {
+          throw new Error("not used");
         },
-        async softDelete() {
+        async deleteSemesterCourse() {
           return false;
         },
-        async listDueSmsCandidates() {
+        async batchCreateSemesterCourses() {
           return [];
         },
-        async findDeliveryLog() {
-          return null;
-        },
-        async createDeliveryLog() {
+        async saveRecommendation() {
           throw new Error("not used");
-        }
-      };
-    }
-
-    function createLabExamEventRepositoryStub(): LabExamEventRepository {
-      return {
-        async listByUserId() {
+        },
+        async listRecommendations() {
           return [];
-        },
-        async findById() {
-          return null;
-        },
-        async create() {
-          throw new Error("not used");
-        },
-        async update() {
-          return null;
-        },
-        async softDelete() {
-          return false;
         }
-      };
-    }
-
-    function createLabExamEventsDeps(): AppDependencies["labExamEvents"] {
-      const reminderRepository = createReminderRepositoryStub();
-      const labExamEventRepository = createLabExamEventRepositoryStub();
-      const stubDb = {
-        async transaction<T>(fn: (tx: unknown) => Promise<T>): Promise<T> {
-          return fn({});
-        }
-      } as unknown as AppDependencies["labExamEvents"]["db"];
-      return {
-        db: stubDb,
-        createLabExamEventRepository: () => labExamEventRepository,
-        createReminderRepository: () => reminderRepository
       };
     }
 
@@ -554,6 +517,7 @@ function createGpaRepository(): GpaRepository {
           volunteerLaborRepository: createVolunteerLaborRepository(),
           sportsRepository: createSportsRepository(),
           customRequirementRepository: createCustomRequirementRepository(),
+          courseRecommendationRepository: createCourseRecommendationRepository(),
           coursesProgressRepository: {
             async loadProgressData() {
               return { plan: null, planCourses: [], planGroups: [], gpaCourses: [], matches: [], ignoredGroupIds: [] };

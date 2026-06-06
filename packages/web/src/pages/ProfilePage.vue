@@ -53,6 +53,7 @@ const mutation = useMutation({
   onSuccess: async () => {
     message.value = "个人信息已保存";
     await queryClient.invalidateQueries({ queryKey: ["current-user"] });
+    await queryClient.invalidateQueries({ queryKey: ["candidate-courses"] });
   },
   onError: (error) => {
     if (error instanceof ZodError) {
@@ -118,6 +119,7 @@ async function logout() {
           <input v-model="form.major" class="mt-1 w-full rounded-xl border border-slate-300 px-3 py-2" />
         </label>
         <label class="block text-sm font-medium text-[var(--tommy-text-secondary)]">
+<<<<<<< HEAD
           年级
           <select data-testid="profile-grade" v-model.number="form.grade" class="mt-1 w-full rounded-xl border border-slate-300 px-3 py-2">
             <option v-for="grade in enrollmentGrades" :key="grade" :value="grade">{{ grade }}</option>
