@@ -1,6 +1,9 @@
 import { createDb } from "./db/client.js";
 import { loadConfig } from "./lib/config.js";
 import { createApp } from "./app.js";
+import { dirname, join } from "node:path";
+import { fileURLToPath } from "node:url";
+import { existsSync } from "node:fs";
 import { createAuthRepository } from "./modules/auth/auth.repository.js";
 import { createGpaRepository } from "./modules/gpa/gpa.repository.js";
 import { createLecturePracticeRepository } from "./modules/lecture-practice/lecture-practice.repository.js";
@@ -22,6 +25,20 @@ import { startReminderScheduler } from "./modules/reminders/start-reminder-sched
 const config = loadConfig();
 const db = createDb(config.DATABASE_URL);
 const reminderRepository = createReminderRepository(db);
+
+function resolveStaticDir(): string | undefined {
+  if (config.SERVE_STATIC_DIR) {
+    return config.SERVE_STATIC_DIR;
+  }
+  const moduleDir = dirname(fileURLToPath(import.meta.url));
+  const candidates = [
+    join(moduleDir, "..", "public"),
+    join(moduleDir, "..", "..", "web", "dist")
+  ];
+  return candidates.find((candidate) => existsSync(candidate));
+}
+
+const staticDir = resolveStaticDir();
 const app = createApp({
   authRepository: createAuthRepository(db),
   plazaRepository: createPlazaRepository(db),
@@ -64,7 +81,8 @@ const app = createApp({
     rateLimitPerMinute: config.MCP_RATE_LIMIT_PER_MINUTE
   },
   corsOrigin: config.CORS_ORIGIN,
-  amapWeatherKey: config.AMAP_WEATHER_KEY
+  amapWeatherKey: config.AMAP_WEATHER_KEY,
+  staticDir
 });
 
 const scheduler = startReminderScheduler({
@@ -75,8 +93,11 @@ const scheduler = startReminderScheduler({
   enabled: config.REMINDER_SCHEDULER_ENABLED
 });
 
-const server = app.listen(config.PORT, () => {
-  console.log(`GradCheck backend listening on port ${config.PORT}`);
+const server = app.listen(config.PORT, config.HOST, () => {
+  console.log(`GradCheck backend listening on ${config.HOST}:${config.PORT}`);
+  if (staticDir) {
+    console.log(`Serving static frontend from ${staticDir}`);
+  }
 });
 
 function shutdown(signal: string): void {

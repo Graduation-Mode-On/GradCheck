@@ -9,6 +9,8 @@ const envSchema = z.object({
   JWT_SECRET: z.string().min(24),
   AMAP_WEATHER_KEY: z.string().min(1),
   PORT: z.coerce.number().int().positive().default(3000),
+  HOST: z.string().default("0.0.0.0"),
+  SERVE_STATIC_DIR: z.string().optional(),
   CORS_ORIGIN: z.string().default("http://localhost:5173"),
   REMINDER_SCHEDULER_ENABLED: z
     .preprocess((v) => (typeof v === "string" ? v.toLowerCase() : v), z.enum(["true", "false"]))

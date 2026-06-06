@@ -8,3 +8,4 @@ data/
 *.log
 .agent/*
 .superpowers/
+packages/backend/public/
