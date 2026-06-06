@@ -70,18 +70,22 @@ describe("GpaCourseMatchesPage", () => {
     });
   });
 
-  it("filters course matches and binds with mobile-friendly candidate cards", async () => {
+  it("opens one course at a time and searches candidates before binding", async () => {
     upsertGpaCourseMatch.mockResolvedValueOnce({ match: { confirmedByUser: true }, dashboard: { courses: [], result: { requiredFirstAttempt: { weightedGpa: null, weightedAverageScore: null, totalCredits: 0, courseCount: 0 }, overall: { weightedGpa: null, weightedAverageScore: null, totalCredits: 0, courseCount: 0 } } } });
     const wrapper = mountPage();
     await flushPromises();
 
-    expect(wrapper.get('[data-testid="gpa-match-search"]').attributes("placeholder")).toBe("搜索课程名称");
+    expect(wrapper.get('[data-testid="gpa-match-search"]').attributes("placeholder")).toBe("搜索 GPA 课程名称或学期");
     expect(wrapper.get('[data-testid="gpa-match-status-filter"]').element.tagName).toBe("SELECT");
     await wrapper.get('[data-testid="gpa-match-search"]').setValue("电影");
 
     expect(wrapper.get('[data-testid="gpa-match-list"]').text()).toContain("电影艺术理论与实践");
     expect(wrapper.get('[data-testid="gpa-match-list"]').text()).not.toContain("高等数学");
+    expect(wrapper.find('[data-testid="gpa-match-candidate-group"]').exists()).toBe(false);
 
+    await wrapper.get('[data-testid="gpa-match-open"]').trigger("click");
+    expect(wrapper.get('[data-testid="gpa-match-target-search"]').attributes("placeholder")).toBe("搜索可匹配课程或课程组");
+    await wrapper.get('[data-testid="gpa-match-target-search"]').setValue("通识");
     await wrapper.get('[data-testid="gpa-match-candidate-group"]').trigger("click");
 
     expect(upsertGpaCourseMatch).toHaveBeenCalledWith("c2", {
@@ -94,10 +98,14 @@ describe("GpaCourseMatchesPage", () => {
     const wrapper = mountPage();
     await flushPromises();
 
-    await wrapper.get('[data-testid="gpa-match-search"]').setValue("通识选修课");
+    expect(wrapper.find('[data-testid="gpa-match-candidate-group"]').exists()).toBe(false);
 
+    await wrapper.get('[data-testid="gpa-match-open"]').trigger("click");
+    await wrapper.get('[data-testid="gpa-match-target-search"]').setValue("通识选修课");
     expect(wrapper.get('[data-testid="gpa-match-list"]').text()).toContain("高等数学");
     expect(wrapper.get('[data-testid="gpa-match-list"]').text()).toContain("电影艺术理论与实践");
+    expect(wrapper.get('[data-testid="gpa-match-candidate-group"]').text()).toContain("通识选修课");
+    expect(wrapper.find('[data-testid="gpa-match-candidate-course"]').exists()).toBe(false);
     expect(wrapper.findAll('[data-testid="gpa-match-unbind"]')).toHaveLength(1);
 
     await wrapper.get('[data-testid="gpa-match-unbind"]').trigger("click");

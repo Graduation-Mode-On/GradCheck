@@ -17,6 +17,8 @@ const authToken = getToken();
 const keyword = ref("");
 const statusFilter = ref("all");
 const targetFilter = ref("all");
+const activeCourseId = ref<string | null>(null);
+const targetKeyword = ref("");
 const message = ref("");
 
 if (!authToken) {
@@ -41,6 +43,8 @@ const bindMutation = useMutation({
   },
   onSuccess: async () => {
     message.value = "课程匹配已更新";
+    activeCourseId.value = null;
+    targetKeyword.value = "";
     await matchesQuery.refetch();
   },
   onError: (error) => {
@@ -65,9 +69,7 @@ const filteredItems = computed(() => {
     const searchableText = [
       item.course.name,
       item.course.term,
-      currentMatchText(item),
-      ...item.candidates.courses.flatMap((course) => [course.name, course.code, course.credits, course.requirementType]),
-      ...item.candidates.groups.flatMap((group) => [group.name, group.requirementType])
+      currentMatchText(item)
     ]
       .join(" ")
       .toLowerCase();
@@ -95,6 +97,27 @@ function currentMatchText(item: GpaCourseMatchItem) {
   return course ? `${course.name}（${course.credits} 学分）` : "未知课程";
 }
 
+function toggleTargetPicker(courseId: string) {
+  activeCourseId.value = activeCourseId.value === courseId ? null : courseId;
+  targetKeyword.value = "";
+}
+
+function filteredCandidateCourses(item: GpaCourseMatchItem) {
+  const query = targetKeyword.value.trim().toLowerCase();
+  return item.candidates.courses.filter((course) => {
+    const searchableText = [course.name, course.code, course.credits, course.requirementType].join(" ").toLowerCase();
+    return !query || searchableText.includes(query);
+  });
+}
+
+function filteredCandidateGroups(item: GpaCourseMatchItem) {
+  const query = targetKeyword.value.trim().toLowerCase();
+  return item.candidates.groups.filter((group) => {
+    const searchableText = [group.name, group.requirementType].join(" ").toLowerCase();
+    return !query || searchableText.includes(query);
+  });
+}
+
 function bindCourseTarget(item: GpaCourseMatchItem, target: string) {
   bindMutation.mutate({ courseId: item.course.id, target });
 }
@@ -105,7 +128,7 @@ function bindCourseTarget(item: GpaCourseMatchItem, target: string) {
     <section class="mb-5 rounded-3xl bg-white p-5 shadow-sm">
       <RouterLink to="/gpa" class="text-sm font-semibold text-[var(--tommy-info)]">返回 GPA 计算器</RouterLink>
       <h1 class="mt-2 text-2xl font-bold text-[var(--tommy-text)]">课程匹配管理</h1>
-      <p class="mt-2 text-sm text-[var(--tommy-text-secondary)]">搜索课程，按匹配状态筛选，并用移动端友好的卡片选择培养方案课程或课程组。</p>
+      <p class="mt-2 text-sm text-[var(--tommy-text-secondary)]">先找到要处理的 GPA 课程，再打开单门课程的匹配面板搜索培养方案课程或课程组。</p>
     </section>
 
     <section class="mb-5 rounded-3xl bg-white p-4 shadow-sm">
@@ -114,7 +137,7 @@ function bindCourseTarget(item: GpaCourseMatchItem, target: string) {
           v-model="keyword"
           data-testid="gpa-match-search"
           class="rounded-xl border border-slate-300 px-3 py-2"
-          placeholder="搜索课程名称"
+          placeholder="搜索 GPA 课程名称或学期"
         />
         <select v-model="statusFilter" data-testid="gpa-match-status-filter" class="rounded-xl border border-slate-300 px-3 py-2">
           <option value="all">全部状态</option>
@@ -135,7 +158,7 @@ function bindCourseTarget(item: GpaCourseMatchItem, target: string) {
       <p v-if="matchesQuery.isLoading.value" class="rounded-3xl bg-white p-5 text-sm text-[var(--tommy-text-secondary)] shadow-sm">正在加载匹配结果...</p>
       <article v-for="item in filteredItems" :key="item.course.id" class="rounded-3xl bg-white p-4 shadow-sm">
         <div class="flex flex-wrap items-start justify-between gap-3">
-          <div>
+          <div class="min-w-0 flex-1">
             <h2 class="font-bold text-[var(--tommy-text)]">{{ item.course.name }}</h2>
             <p class="mt-1 text-xs text-[var(--tommy-text-secondary)]">{{ item.course.term }} · {{ item.course.credit }} 学分 · {{ item.course.score }} 分</p>
           </div>
@@ -143,11 +166,39 @@ function bindCourseTarget(item: GpaCourseMatchItem, target: string) {
         </div>
         <p class="mt-3 rounded-2xl bg-slate-50 px-3 py-2 text-sm text-[var(--tommy-text-secondary)]">当前匹配：{{ currentMatchText(item) }}</p>
 
-        <div class="mt-4 space-y-2">
+        <div class="mt-3 flex flex-wrap gap-2">
           <button
-            v-for="course in item.candidates.courses"
+            data-testid="gpa-match-open"
+            class="rounded-xl bg-slate-900 px-3 py-2 text-sm font-semibold text-white"
+            type="button"
+            @click="toggleTargetPicker(item.course.id)"
+          >
+            {{ activeCourseId === item.course.id ? "收起" : item.match ? "修改匹配" : "匹配" }}
+          </button>
+          <button
+            v-if="item.match"
+            data-testid="gpa-match-unbind"
+            class="rounded-xl bg-slate-100 px-3 py-2 text-sm font-semibold text-[var(--tommy-text)]"
+            type="button"
+            @click="unbindMutation.mutate(item.course.id)"
+          >
+            解绑
+          </button>
+        </div>
+
+        <div v-if="activeCourseId === item.course.id" class="mt-4 rounded-2xl border border-slate-200 bg-slate-50 p-3">
+          <input
+            v-model="targetKeyword"
+            data-testid="gpa-match-target-search"
+            class="w-full rounded-xl border border-slate-300 px-3 py-2 text-sm"
+            placeholder="搜索可匹配课程或课程组"
+          />
+          <div class="mt-3 space-y-2">
+          <button
+            v-for="course in filteredCandidateCourses(item)"
             :key="`course:${course.id}`"
-            class="w-full rounded-2xl border border-slate-200 px-3 py-2 text-left text-sm hover:border-[var(--tommy-primary)]"
+            data-testid="gpa-match-candidate-course"
+            class="w-full rounded-2xl border border-slate-200 bg-white px-3 py-2 text-left text-sm hover:border-[var(--tommy-primary)]"
             type="button"
             @click="bindCourseTarget(item, `course:${course.id}`)"
           >
@@ -155,27 +206,24 @@ function bindCourseTarget(item: GpaCourseMatchItem, target: string) {
             <span class="ml-2 text-xs text-[var(--tommy-text-secondary)]">{{ course.code }} · {{ course.credits }} 学分 · {{ course.requirementType }}</span>
           </button>
           <button
-            v-for="group in item.candidates.groups"
+            v-for="group in filteredCandidateGroups(item)"
             :key="`group:${group.id}`"
             data-testid="gpa-match-candidate-group"
-            class="w-full rounded-2xl border border-slate-200 px-3 py-2 text-left text-sm hover:border-[var(--tommy-primary)]"
+            class="w-full rounded-2xl border border-slate-200 bg-white px-3 py-2 text-left text-sm hover:border-[var(--tommy-primary)]"
             type="button"
             @click="bindCourseTarget(item, `group:${group.id}`)"
           >
             <span class="font-semibold text-[var(--tommy-text)]">课程组：{{ group.name }}</span>
             <span class="ml-2 text-xs text-[var(--tommy-text-secondary)]">{{ group.requirementType }}</span>
           </button>
+          <p
+            v-if="filteredCandidateCourses(item).length === 0 && filteredCandidateGroups(item).length === 0"
+            class="rounded-xl bg-white px-3 py-2 text-sm text-[var(--tommy-text-secondary)]"
+          >
+            没有符合条件的匹配目标。
+          </p>
+          </div>
         </div>
-
-        <button
-          v-if="item.match"
-          data-testid="gpa-match-unbind"
-          class="mt-3 rounded-xl bg-slate-100 px-3 py-2 text-sm font-semibold text-[var(--tommy-text)]"
-          type="button"
-          @click="unbindMutation.mutate(item.course.id)"
-        >
-          解绑
-        </button>
       </article>
       <p v-if="!matchesQuery.isLoading.value && filteredItems.length === 0" class="rounded-3xl bg-white p-5 text-sm text-[var(--tommy-text-secondary)] shadow-sm">没有符合条件的课程。</p>
     </section>
