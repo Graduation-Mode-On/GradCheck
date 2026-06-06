@@ -6,6 +6,7 @@ import { createLecturePracticeRepository } from "./modules/lecture-practice/lect
 import { createNewsRepository } from "./modules/news/news.repository.js";
 import { createPlazaRepository } from "./modules/plaza/plaza.repository.js";
 import { createVolunteerLaborRepository } from "./modules/volunteer-labor/volunteer-labor.repository.js";
+import { createCustomRequirementRepository } from "./modules/custom-requirements/custom-requirement.repository.js";
 
 const config = loadConfig();
 const db = createDb(config.DATABASE_URL);
@@ -15,6 +16,7 @@ const app = createApp({
   newsRepository: createNewsRepository(db),
   lecturePracticeRepository: createLecturePracticeRepository(db),
   volunteerLaborRepository: createVolunteerLaborRepository(db),
+  customRequirementRepository: createCustomRequirementRepository(db),
   corsOrigin: config.CORS_ORIGIN,
   amapWeatherKey: config.AMAP_WEATHER_KEY
 });

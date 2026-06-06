@@ -15,6 +15,8 @@ import { createUserRouter } from "./modules/users/user.routes.js";
 import type { VolunteerLaborRepository } from "./modules/volunteer-labor/volunteer-labor.repository.js";
 import { createVolunteerLaborRouter } from "./modules/volunteer-labor/volunteer-labor.routes.js";
 import { createWeatherRouter } from "./modules/weather/weather.routes.js";
+import type { CustomRequirementRepository } from "./modules/custom-requirements/custom-requirement.repository.js";
+import { createCustomRequirementRouter } from "./modules/custom-requirements/custom-requirement.routes.js";
 
 export interface AppDependencies {
   authRepository: AuthRepository;
@@ -22,6 +24,7 @@ export interface AppDependencies {
   newsRepository: NewsRepository;
   lecturePracticeRepository: LecturePracticeRepository;
   volunteerLaborRepository: VolunteerLaborRepository;
+  customRequirementRepository: CustomRequirementRepository;
   corsOrigin?: string;
   amapWeatherKey?: string;
 }
@@ -47,6 +50,13 @@ export function createApp(dependencies: AppDependencies) {
   app.use(
     "/api/volunteer-labor",
     createVolunteerLaborRouter(dependencies.authRepository, dependencies.volunteerLaborRepository)
+  );
+  app.use(
+    "/api/custom-requirements",
+    createCustomRequirementRouter({
+      authRepository: dependencies.authRepository,
+      customRequirementRepository: dependencies.customRequirementRepository
+    })
   );
   if (dependencies.amapWeatherKey) {
     app.use("/api/weather", createWeatherRouter(dependencies.amapWeatherKey));

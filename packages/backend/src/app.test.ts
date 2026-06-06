@@ -3,6 +3,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { createApp } from "./app.js";
 import type { AuthRepository } from "./modules/auth/auth.repository.js";
+import type { CustomRequirementRepository } from "./modules/custom-requirements/custom-requirement.repository.js";
 import type { NewsRepository } from "./modules/news/news.repository.js";
 import type { NewsItemRecord } from "./modules/news/news.types.js";
 import type {
@@ -147,6 +148,23 @@ function createRepository(): AuthRepository {
       };
     }
 
+    function createCustomRequirementRepository(): CustomRequirementRepository {
+      return {
+        async listByUserId() {
+          return [];
+        },
+        async create() {
+          throw new Error("not used");
+        },
+        async update() {
+          throw new Error("not used");
+        },
+        async delete() {
+          throw new Error("not used");
+        }
+      };
+    }
+
     describe("GradCheck API baseline", () => {
       function createTestApp() {
         return createApp({
@@ -154,7 +172,8 @@ function createRepository(): AuthRepository {
           plazaRepository: createPlazaRepository(),
           newsRepository: createNewsRepository(),
           lecturePracticeRepository: createLecturePracticeRepository(),
-          volunteerLaborRepository: createVolunteerLaborRepository()
+          volunteerLaborRepository: createVolunteerLaborRepository(),
+          customRequirementRepository: createCustomRequirementRepository()
         });
       }
 
