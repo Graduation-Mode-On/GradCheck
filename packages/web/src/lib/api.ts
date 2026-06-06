@@ -1,8 +1,16 @@
 import type { LoginInput, ProfileInput, RegisterInput } from "../schemas/auth";
+import type { LabExamEventInput, LabExamEventStatus, LabExamEventType } from "../schemas/labExamEvent";
 import type { LecturePracticeProgress, LecturePracticeProgressInput } from "../schemas/lecturePractice";
 import type { NewsItem, NewsItemFilters } from "../schemas/news";
 import type { PlazaPost, PlazaPostFilters, PlazaPostInput, PlazaPostStatus } from "../schemas/plaza";
 import type { CurriculumPlan, ProgramPlanPreview } from "../schemas/programPlan";
+import type {
+  ReminderCategory,
+  ReminderInput,
+  ReminderPriority,
+  ReminderSourceType,
+  ReminderStatus
+} from "../schemas/reminder";
 import type { SrtpOverview, SrtpRecord, SrtpRecordInput } from "../schemas/srtp";
 import type { VolunteerLaborProgress, VolunteerLaborProgressInput } from "../schemas/volunteerLabor";
 import type { CustomRequirementInput } from "../schemas/customRequirement";
@@ -299,6 +307,156 @@ export async function deleteCustomRequirement(id: string): Promise<void> {
   await request<void>(`/api/custom-requirements/${id}`, {
     method: "DELETE"
   });
+}
+
+export interface Reminder {
+  id: string;
+  userId: string;
+  title: string;
+  category: ReminderCategory;
+  status: ReminderStatus;
+  priority: ReminderPriority;
+  startAt: string | null;
+  dueAt: string;
+  location: string | null;
+  notes: string | null;
+  sourceType: ReminderSourceType;
+  sourceId: string | null;
+  reminderOffsets: number[];
+  smsEnabled: boolean;
+  showOnHome: boolean;
+  completedAt: string | null;
+  snoozedUntil: string | null;
+  deletedAt: string | null;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface HomeRemindersResponse {
+  reminders: Reminder[];
+  pendingCount: number;
+}
+
+export interface ReminderListFilters {
+  status?: ReminderStatus;
+  category?: ReminderCategory;
+  range?: "today" | "week" | "overdue";
+  showOnHome?: boolean;
+  includeCompleted?: boolean;
+}
+
+export async function listReminders(filters: ReminderListFilters = {}): Promise<{ reminders: Reminder[] }> {
+  const params: Record<string, string | number | undefined> = {};
+  if (filters.status) params.status = filters.status;
+  if (filters.category) params.category = filters.category;
+  if (filters.range) params.range = filters.range;
+  if (filters.showOnHome !== undefined) params.showOnHome = String(filters.showOnHome);
+  if (filters.includeCompleted !== undefined) params.includeCompleted = String(filters.includeCompleted);
+  return request<{ reminders: Reminder[] }>(`/api/reminders${toQueryString(params)}`);
+}
+
+export async function getHomeReminders(): Promise<HomeRemindersResponse> {
+  return request<HomeRemindersResponse>("/api/reminders/home");
+}
+
+export async function createReminder(input: ReminderInput): Promise<{ reminder: Reminder }> {
+  return request<{ reminder: Reminder }>("/api/reminders", {
+    method: "POST",
+    body: JSON.stringify(input)
+  });
+}
+
+export async function updateReminder(id: string, input: Partial<ReminderInput>): Promise<{ reminder: Reminder }> {
+  return request<{ reminder: Reminder }>(`/api/reminders/${id}`, {
+    method: "PUT",
+    body: JSON.stringify(input)
+  });
+}
+
+export async function completeReminder(id: string, completed: boolean): Promise<{ reminder: Reminder }> {
+  return request<{ reminder: Reminder }>(`/api/reminders/${id}/complete`, {
+    method: "PATCH",
+    body: JSON.stringify({ completed })
+  });
+}
+
+export async function snoozeReminder(id: string, snoozedUntil: string): Promise<{ reminder: Reminder }> {
+  return request<{ reminder: Reminder }>(`/api/reminders/${id}/snooze`, {
+    method: "PATCH",
+    body: JSON.stringify({ snoozedUntil })
+  });
+}
+
+export async function duplicateReminder(id: string): Promise<{ reminder: Reminder }> {
+  return request<{ reminder: Reminder }>(`/api/reminders/${id}/duplicate`, {
+    method: "POST"
+  });
+}
+
+export async function deleteReminder(id: string): Promise<void> {
+  await request<void>(`/api/reminders/${id}`, { method: "DELETE" });
+}
+
+export interface LabExamEvent {
+  id: string;
+  userId: string;
+  reminderId: string;
+  title: string;
+  courseName: string | null;
+  eventType: LabExamEventType;
+  startAt: string;
+  endAt: string | null;
+  location: string | null;
+  teacher: string | null;
+  seatOrGroup: string | null;
+  notes: string | null;
+  status: LabExamEventStatus;
+  deletedAt: string | null;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface LabExamEventListFilters {
+  status?: LabExamEventStatus;
+  eventType?: LabExamEventType;
+}
+
+export async function listLabExamEvents(filters: LabExamEventListFilters = {}): Promise<{ events: LabExamEvent[] }> {
+  const params: Record<string, string | number | undefined> = {};
+  if (filters.status) params.status = filters.status;
+  if (filters.eventType) params.eventType = filters.eventType;
+  return request<{ events: LabExamEvent[] }>(`/api/lab-exam-events${toQueryString(params)}`);
+}
+
+export async function createLabExamEvent(input: LabExamEventInput): Promise<{ event: LabExamEvent; reminder: Reminder }> {
+  return request<{ event: LabExamEvent; reminder: Reminder }>("/api/lab-exam-events", {
+    method: "POST",
+    body: JSON.stringify(input)
+  });
+}
+
+export async function updateLabExamEvent(
+  id: string,
+  input: Partial<LabExamEventInput>
+): Promise<{ event: LabExamEvent; reminder: Reminder }> {
+  return request<{ event: LabExamEvent; reminder: Reminder }>(`/api/lab-exam-events/${id}`, {
+    method: "PUT",
+    body: JSON.stringify(input)
+  });
+}
+
+export async function updateLabExamEventStatus(
+  id: string,
+  status: LabExamEventStatus
+): Promise<{ event: LabExamEvent; reminder: Reminder }> {
+  return request<{ event: LabExamEvent; reminder: Reminder }>(`/api/lab-exam-events/${id}/status`, {
+    method: "PATCH",
+    body: JSON.stringify({ status })
+  });
+}
+
+export async function deleteLabExamEvent(id: string): Promise<void> {
+  await request<void>(`/api/lab-exam-events/${id}`, { method: "DELETE" });
 }
 
 export async function getWeather(city = "320100", extensions: "base" | "all" = "base"): Promise<WeatherResponse> {

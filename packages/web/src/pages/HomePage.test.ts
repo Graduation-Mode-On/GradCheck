@@ -47,6 +47,34 @@ vi.mock("../lib/api", async () => {
         }
       }
     }),
+    getHomeReminders: async () => ({
+      pendingCount: 1,
+      reminders: [
+        {
+          id: "reminder-1",
+          userId: "user-1",
+          title: "物理实验",
+          category: "lab",
+          status: "pending",
+          priority: "normal",
+          startAt: "2026-06-07T06:00:00.000Z",
+          dueAt: "2026-06-07T06:00:00.000Z",
+          location: "教一 304",
+          notes: null,
+          sourceType: "lab_exam_event",
+          sourceId: "event-1",
+          reminderOffsets: [1440, 60],
+          smsEnabled: true,
+          showOnHome: true,
+          completedAt: null,
+          snoozedUntil: null,
+          deletedAt: null,
+          createdAt: "2026-06-06T00:00:00.000Z",
+          updatedAt: "2026-06-06T00:00:00.000Z"
+        }
+      ]
+    }),
+    completeReminder: async () => ({ reminder: {} }),
     listCustomRequirements: async () => ({
       customRequirements: [
         {
@@ -156,6 +184,7 @@ describe("HomePage dashboard layout", () => {
     const primaryCardRow = dashboard.find(".grid");
     const customSummary = wrapper.get('[data-testid="custom-requirements-home-summary"]');
     const customPrimaryText = customSummary.get('[data-testid="custom-requirement-primary-text"]');
+    const homeReminderCard = wrapper.get('[data-testid="home-reminder-card"]');
 
     expect(primaryCardRow.classes()).toContain("grid-cols-2");
     expect(customPrimaryText.classes()).toEqual(expect.arrayContaining(["break-words", "text-base", "sm:text-2xl"]));
@@ -165,8 +194,10 @@ describe("HomePage dashboard layout", () => {
     expect(dashboard.text()).not.toContain("点击卡片估算绩点 >");
     expect(dashboard.text()).not.toContain("录入课程成绩后，估算剩余课程需要达到的平均绩点。");
     expect(dashboard.text()).not.toContain("把学院特色要求或个人目标固定在首页，随时查看进度。");
-    expect(dashboard.text()).toContain("提醒事项");
-    expect(dashboard.text()).toContain("查看全部提醒 >");
+    expect(homeReminderCard.text()).toContain("提醒事项");
+    expect(homeReminderCard.get('[data-testid="home-reminder-count"]').text()).toBe("1");
+    expect(homeReminderCard.text()).toContain("物理实验");
+    expect(homeReminderCard.text()).toContain("教一 304");
     expect(dashboard.text()).toContain("机会推荐");
     expect(dashboard.text()).toContain("查看补齐机会 >");
   });

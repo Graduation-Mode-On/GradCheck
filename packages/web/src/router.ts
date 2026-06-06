@@ -4,6 +4,7 @@ import CustomRequirementsPage from "./pages/CustomRequirementsPage.vue";
 import GpaCourseMatchesPage from "./pages/GpaCourseMatchesPage.vue";
 import GpaPage from "./pages/GpaPage.vue";
 import HomePage from "./pages/HomePage.vue";
+import LabExamEventsPage from "./pages/LabExamEventsPage.vue";
 import LecturePracticePage from "./pages/LecturePracticePage.vue";
 import LoginPage from "./pages/LoginPage.vue";
 import NewsPage from "./pages/NewsPage.vue";
@@ -11,6 +12,7 @@ import PlaceholderPage from "./pages/PlaceholderPage.vue";
 import PlazaPage from "./pages/PlazaPage.vue";
 import PlansPage from "./pages/PlansPage.vue";
 import ProfilePage from "./pages/ProfilePage.vue";
+import RemindersPage from "./pages/RemindersPage.vue";
 import SportsPage from "./pages/SportsPage.vue";
 import SrtpPage from "./pages/SrtpPage.vue";
 import VolunteerPage from "./pages/VolunteerPage.vue";
@@ -59,8 +61,12 @@ export const router = createRouter({
     {
       path: "/exams",
       name: "exams",
-      component: PlaceholderPage,
-      meta: { title: "实验考试", description: "后续集中管理实验课时间段、考试信息和提前提醒。" }
+      component: LabExamEventsPage
+    },
+    {
+      path: "/reminders",
+      name: "reminders",
+      component: RemindersPage
     },
     {
       path: "/custom-requirements",
