@@ -107,6 +107,7 @@ function buildData(overrides: Partial<CoursesProgressData> = {}): CoursesProgres
     planGroups: [],
     gpaCourses: [],
     matches: [],
+    ignoredGroupIds: [],
     ...overrides
   };
 }
@@ -355,5 +356,33 @@ describe("computeCoursesProgress", () => {
     expect(result.rules.map((rule) => rule.id)).toEqual(["g-not", "g-inprog", "g-done"]);
     expect(result.overall?.satisfiedRuleCount).toBe(1);
     expect(result.overall?.totalRuleCount).toBe(3);
+  });
+
+  it("excludes ignored groups from rules and totals but lists them under ignoredRules", () => {
+    const visibleGroup = planGroup({
+      id: "g-visible",
+      requirementType: "choose_n_of",
+      minCourses: "2",
+      name: "正常规则"
+    });
+    const noisyGroup = planGroup({
+      id: "g-noisy",
+      requirementType: "choose_n_of",
+      minCourses: "1",
+      name: "误识别规则"
+    });
+
+    const result = computeCoursesProgress(
+      buildData({
+        planGroups: [visibleGroup, noisyGroup],
+        ignoredGroupIds: ["g-noisy"]
+      })
+    );
+
+    expect(result.rules.map((rule) => rule.id)).toEqual(["g-visible"]);
+    expect(result.ignoredRules).toEqual([
+      { id: "g-noisy", name: "误识别规则", requirementType: "choose_n_of" }
+    ]);
+    expect(result.overall?.totalRuleCount).toBe(1);
   });
 });

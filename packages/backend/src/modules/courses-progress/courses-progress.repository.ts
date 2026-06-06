@@ -1,4 +1,4 @@
-import { eq } from "drizzle-orm";
+import { and, eq } from "drizzle-orm";
 
 import type { Database } from "../../db/client.js";
 import {
@@ -7,6 +7,7 @@ import {
   programPlanCourses,
   programPlans,
   userCoursePlanMatches,
+  userIgnoredProgramPlanGroups,
   userProgramPlanBindings
 } from "../../db/schema.js";
 
@@ -22,10 +23,13 @@ export interface CoursesProgressData {
   planGroups: PlanCourseGroupRow[];
   gpaCourses: GpaCourseRow[];
   matches: CourseMatchRow[];
+  ignoredGroupIds: string[];
 }
 
 export interface CoursesProgressRepository {
   loadProgressData(userId: string): Promise<CoursesProgressData>;
+  ignoreGroup(userId: string, groupId: string): Promise<void>;
+  unignoreGroup(userId: string, groupId: string): Promise<void>;
 }
 
 export function createCoursesProgressRepository(db: Database): CoursesProgressRepository {
@@ -44,7 +48,8 @@ export function createCoursesProgressRepository(db: Database): CoursesProgressRe
           planCourses: [],
           planGroups: [],
           gpaCourses: gpaRows,
-          matches: []
+          matches: [],
+          ignoredGroupIds: []
         };
       }
 
@@ -54,11 +59,15 @@ export function createCoursesProgressRepository(db: Database): CoursesProgressRe
         .where(eq(programPlans.id, binding.programPlanId))
         .limit(1);
 
-      const [planCoursesRows, planGroupsRows, gpaRows, matchRows] = await Promise.all([
+      const [planCoursesRows, planGroupsRows, gpaRows, matchRows, ignoredRows] = await Promise.all([
         db.select().from(programPlanCourses).where(eq(programPlanCourses.programPlanId, binding.programPlanId)),
         db.select().from(programPlanCourseGroups).where(eq(programPlanCourseGroups.programPlanId, binding.programPlanId)),
         db.select().from(gpaCourses).where(eq(gpaCourses.userId, userId)),
-        db.select().from(userCoursePlanMatches).where(eq(userCoursePlanMatches.userId, userId))
+        db.select().from(userCoursePlanMatches).where(eq(userCoursePlanMatches.userId, userId)),
+        db
+          .select({ programPlanCourseGroupId: userIgnoredProgramPlanGroups.programPlanCourseGroupId })
+          .from(userIgnoredProgramPlanGroups)
+          .where(eq(userIgnoredProgramPlanGroups.userId, userId))
       ]);
 
       return {
@@ -66,8 +75,33 @@ export function createCoursesProgressRepository(db: Database): CoursesProgressRe
         planCourses: planCoursesRows,
         planGroups: planGroupsRows,
         gpaCourses: gpaRows,
-        matches: matchRows
+        matches: matchRows,
+        ignoredGroupIds: ignoredRows.map((row) => row.programPlanCourseGroupId)
       };
+    },
+    async ignoreGroup(userId, groupId) {
+      const existing = await db
+        .select({ id: userIgnoredProgramPlanGroups.id })
+        .from(userIgnoredProgramPlanGroups)
+        .where(
+          and(
+            eq(userIgnoredProgramPlanGroups.userId, userId),
+            eq(userIgnoredProgramPlanGroups.programPlanCourseGroupId, groupId)
+          )
+        )
+        .limit(1);
+      if (existing.length > 0) return;
+      await db.insert(userIgnoredProgramPlanGroups).values({ userId, programPlanCourseGroupId: groupId });
+    },
+    async unignoreGroup(userId, groupId) {
+      await db
+        .delete(userIgnoredProgramPlanGroups)
+        .where(
+          and(
+            eq(userIgnoredProgramPlanGroups.userId, userId),
+            eq(userIgnoredProgramPlanGroups.programPlanCourseGroupId, groupId)
+          )
+        );
     }
   };
 }

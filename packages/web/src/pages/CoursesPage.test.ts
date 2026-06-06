@@ -5,13 +5,16 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import CoursesPage from "./CoursesPage.vue";
 import type { CoursesProgressResponse, RematchGpaCoursesResponse } from "../lib/api";
 
-const { authState, replace, push, getCoursesProgress, rematchGpaCourses } = vi.hoisted(() => ({
-  authState: { token: "token" as string | null },
-  replace: vi.fn(),
-  push: vi.fn(),
-  getCoursesProgress: vi.fn(),
-  rematchGpaCourses: vi.fn()
-}));
+const { authState, replace, push, getCoursesProgress, rematchGpaCourses, ignoreCoursesRule, unignoreCoursesRule } =
+  vi.hoisted(() => ({
+    authState: { token: "token" as string | null },
+    replace: vi.fn(),
+    push: vi.fn(),
+    getCoursesProgress: vi.fn(),
+    rematchGpaCourses: vi.fn(),
+    ignoreCoursesRule: vi.fn(),
+    unignoreCoursesRule: vi.fn()
+  }));
 
 vi.mock("vue-router", () => ({
   useRouter: () => ({ replace, push }),
@@ -24,7 +27,9 @@ vi.mock("../lib/api", async () => {
     ...actual,
     getToken: () => authState.token,
     getCoursesProgress,
-    rematchGpaCourses
+    rematchGpaCourses,
+    ignoreCoursesRule,
+    unignoreCoursesRule
   };
 });
 
@@ -71,7 +76,8 @@ function emptyResponse(reason: CoursesProgressResponse["emptyReason"]): CoursesP
             totalRuleCount: 0
           },
     categories: [],
-    rules: []
+    rules: [],
+    ignoredRules: []
   };
 }
 
@@ -157,7 +163,8 @@ function fullResponse(): CoursesProgressResponse {
           }
         ]
       }
-    ]
+    ],
+    ignoredRules: []
   };
 }
 
@@ -168,6 +175,8 @@ describe("CoursesPage", () => {
     push.mockReset();
     getCoursesProgress.mockReset();
     rematchGpaCourses.mockReset();
+    ignoreCoursesRule.mockReset();
+    unignoreCoursesRule.mockReset();
   });
 
   it("redirects unauthenticated users to login", async () => {
@@ -242,5 +251,47 @@ describe("CoursesPage", () => {
 
     expect(rematchGpaCourses).toHaveBeenCalledTimes(1);
     expect(wrapper.get('[data-testid="courses-rematch-message"]').text()).toContain("3 门");
+  });
+
+  it("marks a rule as ignored and moves it into the ignored section", async () => {
+    getCoursesProgress.mockResolvedValue(fullResponse());
+    const ignoredResponse: CoursesProgressResponse = {
+      ...fullResponse(),
+      rules: fullResponse().rules.filter((rule) => rule.id !== "rule-required"),
+      ignoredRules: [{ id: "rule-required", name: "必修核心课", requirementType: "required" }]
+    };
+    ignoreCoursesRule.mockResolvedValueOnce(ignoredResponse);
+
+    const wrapper = mountPage();
+    await flushPromises();
+
+    await wrapper.get('[data-testid="courses-rule"] button').trigger("click");
+    await wrapper.get('[data-testid="courses-rule-ignore"]').trigger("click");
+    await flushPromises();
+
+    expect(ignoreCoursesRule).toHaveBeenCalledWith("rule-required");
+    expect(wrapper.findAll('[data-testid="courses-rule"]')).toHaveLength(0);
+    expect(wrapper.get('[data-testid="courses-ignored-toggle"]').text()).toContain("已忽略 1 条");
+  });
+
+  it("restores an ignored rule via the unignore button", async () => {
+    const startingResponse: CoursesProgressResponse = {
+      ...fullResponse(),
+      rules: fullResponse().rules.filter((rule) => rule.id !== "rule-required"),
+      ignoredRules: [{ id: "rule-required", name: "必修核心课", requirementType: "required" }]
+    };
+    getCoursesProgress.mockResolvedValue(startingResponse);
+    unignoreCoursesRule.mockResolvedValueOnce(fullResponse());
+
+    const wrapper = mountPage();
+    await flushPromises();
+
+    await wrapper.get('[data-testid="courses-ignored-toggle"]').trigger("click");
+    await wrapper.get('[data-testid="courses-rule-unignore"]').trigger("click");
+    await flushPromises();
+
+    expect(unignoreCoursesRule).toHaveBeenCalledWith("rule-required");
+    expect(wrapper.find('[data-testid="courses-ignored-section"]').exists()).toBe(false);
+    expect(wrapper.findAll('[data-testid="courses-rule"]')).toHaveLength(1);
   });
 });

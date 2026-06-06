@@ -505,16 +505,31 @@ export interface CoursesPlanSummaryRef {
 
 export type CoursesProgressEmptyReason = "no_plan" | "no_gpa_courses" | "no_matches";
 
+export interface CoursesIgnoredRule {
+  id: string;
+  name: string;
+  requirementType: string;
+}
+
 export interface CoursesProgressResponse {
   plan: CoursesPlanSummaryRef | null;
   emptyReason: CoursesProgressEmptyReason | null;
   overall: CoursesOverallProgress | null;
   categories: CoursesCategoryProgress[];
   rules: CoursesRuleProgress[];
+  ignoredRules: CoursesIgnoredRule[];
 }
 
 export async function getCoursesProgress(): Promise<CoursesProgressResponse> {
   return request<CoursesProgressResponse>("/api/courses/progress");
+}
+
+export async function ignoreCoursesRule(groupId: string): Promise<CoursesProgressResponse> {
+  return request<CoursesProgressResponse>(`/api/courses/rules/${groupId}/ignore`, { method: "POST" });
+}
+
+export async function unignoreCoursesRule(groupId: string): Promise<CoursesProgressResponse> {
+  return request<CoursesProgressResponse>(`/api/courses/rules/${groupId}/ignore`, { method: "DELETE" });
 }
 
 export interface RematchGpaCoursesResponse extends GpaDashboardResponse {

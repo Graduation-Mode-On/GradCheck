@@ -3,6 +3,7 @@ import type {
   CompletedPlanCourse,
   CoursesProgressEmptyReason,
   CoursesProgressResponse,
+  IgnoredRuleProgress,
   MatchedFreeCourse,
   OverallProgress,
   PlanCourseRef,
@@ -155,7 +156,8 @@ export function computeCoursesProgress(data: CoursesProgressData): CoursesProgre
       emptyReason: "no_plan",
       overall: null,
       categories: [],
-      rules: []
+      rules: [],
+      ignoredRules: []
     };
   }
 
@@ -229,7 +231,19 @@ export function computeCoursesProgress(data: CoursesProgressData): CoursesProgre
       percent: safePercent(bucket.earned, bucket.required)
     }));
 
-  const rules: RuleProgress[] = data.planGroups.map((group) => {
+  const ignoredGroupIdSet = new Set(data.ignoredGroupIds);
+  const ignoredRules: IgnoredRuleProgress[] = [];
+  const visibleGroups: PlanCourseGroupRow[] = [];
+  for (const group of data.planGroups) {
+    if (ignoredGroupIdSet.has(group.id)) {
+      ignoredRules.push({ id: group.id, name: group.name, requirementType: group.requirementType });
+    } else {
+      visibleGroups.push(group);
+    }
+  }
+  ignoredRules.sort((left, right) => left.name.localeCompare(right.name, "zh-Hans-CN"));
+
+  const rules: RuleProgress[] = visibleGroups.map((group) => {
     const planCoursesInGroup = planCoursesByGroup.get(group.id) ?? [];
     const directGroupMatches = matchedGpaByGroupId.get(group.id) ?? [];
 
@@ -303,7 +317,8 @@ export function computeCoursesProgress(data: CoursesProgressData): CoursesProgre
     emptyReason: pickEmptyReason(data),
     overall,
     categories,
-    rules
+    rules,
+    ignoredRules
   };
 }
 

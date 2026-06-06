@@ -68,10 +68,17 @@ export interface PlanSummaryRef {
 
 export type CoursesProgressEmptyReason = "no_plan" | "no_gpa_courses" | "no_matches";
 
+export interface IgnoredRuleProgress {
+  id: string;
+  name: string;
+  requirementType: string;
+}
+
 export interface CoursesProgressResponse {
   plan: PlanSummaryRef | null;
   emptyReason: CoursesProgressEmptyReason | null;
   overall: OverallProgress | null;
   categories: CategoryProgress[];
   rules: RuleProgress[];
+  ignoredRules: IgnoredRuleProgress[];
 }

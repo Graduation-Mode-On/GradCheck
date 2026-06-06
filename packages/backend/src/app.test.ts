@@ -438,8 +438,10 @@ function createGpaRepository(): GpaRepository {
         customRequirementRepository: createCustomRequirementRepository(),
         coursesProgressRepository: {
           async loadProgressData() {
-            return { plan: null, planCourses: [], planGroups: [], gpaCourses: [], matches: [] };
-          }
+            return { plan: null, planCourses: [], planGroups: [], gpaCourses: [], matches: [], ignoredGroupIds: [] };
+          },
+          async ignoreGroup() {},
+          async unignoreGroup() {}
         }
       });
     }

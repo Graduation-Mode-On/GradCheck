@@ -7,8 +7,12 @@ import AppShell from "../components/AppShell.vue";
 import {
   getCoursesProgress,
   getToken,
+  ignoreCoursesRule,
   rematchGpaCourses,
+  unignoreCoursesRule,
   type CoursesCategoryProgress,
+  type CoursesIgnoredRule,
+  type CoursesProgressResponse,
   type CoursesRuleProgress
 } from "../lib/api";
 
@@ -29,6 +33,7 @@ const { data, error, isLoading, isFetching, refetch } = useQuery({
 
 const expandedRules = ref<Set<string>>(new Set());
 const completedCollapsed = ref(true);
+const ignoredCollapsed = ref(true);
 const rematchMessage = ref("");
 
 function toggleRule(id: string) {
@@ -58,6 +63,7 @@ const pendingRules = computed(() => allRules.value.filter((rule) => rule.status 
 const completedRules = computed(() => allRules.value.filter((rule) => rule.status === "completed"));
 
 const emptyReason = computed(() => data.value?.emptyReason ?? null);
+const ignoredRules = computed<CoursesIgnoredRule[]>(() => data.value?.ignoredRules ?? []);
 
 function statusBarClass(percent: number) {
   if (percent >= 95) return "bg-[var(--tommy-success)]";
@@ -93,6 +99,28 @@ const rematchMutation = useMutation({
 function handleRematch() {
   rematchMessage.value = "";
   rematchMutation.mutate();
+}
+
+const ignoreMutation = useMutation({
+  mutationFn: (groupId: string) => ignoreCoursesRule(groupId),
+  onSuccess: (next: CoursesProgressResponse) => {
+    queryClient.setQueryData(coursesProgressKey, next);
+  }
+});
+
+const unignoreMutation = useMutation({
+  mutationFn: (groupId: string) => unignoreCoursesRule(groupId),
+  onSuccess: (next: CoursesProgressResponse) => {
+    queryClient.setQueryData(coursesProgressKey, next);
+  }
+});
+
+function handleIgnore(groupId: string) {
+  ignoreMutation.mutate(groupId);
+}
+
+function handleUnignore(groupId: string) {
+  unignoreMutation.mutate(groupId);
 }
 </script>
 
@@ -345,8 +373,55 @@ function handleRematch() {
                 >
                   暂无可显示的课程信息。
                 </p>
+
+                <div class="mt-2 flex justify-end">
+                  <button
+                    type="button"
+                    class="inline-flex items-center gap-1 rounded-full border border-slate-200 px-2.5 py-1 text-[11px] font-medium text-[var(--tommy-text-secondary)] hover:bg-slate-50 disabled:opacity-50"
+                    data-testid="courses-rule-ignore"
+                    :data-rule-id="rule.id"
+                    :disabled="ignoreMutation.isPending.value"
+                    @click="handleIgnore(rule.id)"
+                  >
+                    误识别？标记为忽略
+                  </button>
+                </div>
               </div>
             </article>
+          </div>
+
+          <div v-if="ignoredRules.length" class="mt-3 rounded-2xl border border-slate-200 bg-white" data-testid="courses-ignored-section">
+            <button
+              type="button"
+              class="flex w-full items-center justify-between px-3 py-2.5 text-left text-sm"
+              data-testid="courses-ignored-toggle"
+              :aria-expanded="!ignoredCollapsed"
+              @click="ignoredCollapsed = !ignoredCollapsed"
+            >
+              <span class="font-semibold text-[var(--tommy-text)]">已忽略 {{ ignoredRules.length }} 条</span>
+              <span class="text-xs text-[var(--tommy-text-secondary)]">{{ ignoredCollapsed ? "展开" : "收起" }}</span>
+            </button>
+            <div v-if="!ignoredCollapsed" class="flex flex-col gap-2 border-t border-slate-100 px-3 py-2.5">
+              <article
+                v-for="rule in ignoredRules"
+                :key="rule.id"
+                class="flex items-center justify-between gap-2 rounded-xl bg-slate-50 px-2.5 py-1.5 text-[11px] text-[var(--tommy-text-secondary)]"
+                data-testid="courses-rule-ignored"
+                :data-rule-id="rule.id"
+              >
+                <span class="truncate">{{ rule.name }}</span>
+                <button
+                  type="button"
+                  class="shrink-0 rounded-full border border-slate-200 bg-white px-2 py-0.5 text-[10px] font-semibold text-[var(--tommy-primary)] hover:bg-slate-100 disabled:opacity-50"
+                  data-testid="courses-rule-unignore"
+                  :data-rule-id="rule.id"
+                  :disabled="unignoreMutation.isPending.value"
+                  @click="handleUnignore(rule.id)"
+                >
+                  恢复
+                </button>
+              </article>
+            </div>
           </div>
 
           <div v-if="completedRules.length" class="mt-3 rounded-2xl border border-slate-200 bg-white">
