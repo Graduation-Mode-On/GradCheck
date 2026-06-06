@@ -22,6 +22,28 @@ export async function createGpaCourse(repository: GpaRepository, userId: string,
   return repository.createCourseAndRecalculate(userId, input);
 }
 
+export async function importGpaTranscriptCourses(repository: GpaRepository, userId: string, input: GpaCourseInput[]) {
+  const existingCourses = await repository.listCourses(userId);
+  const existingKeys = new Set(existingCourses.map(courseDedupKey));
+  const coursesToImport: GpaCourseInput[] = [];
+
+  for (const course of input) {
+    const key = courseDedupKey(course);
+    if (existingKeys.has(key)) {
+      continue;
+    }
+    existingKeys.add(key);
+    coursesToImport.push(course);
+  }
+
+  const dashboard = await repository.createCoursesAndRecalculate(userId, coursesToImport);
+  return {
+    importedCount: coursesToImport.length,
+    skippedCount: input.length - coursesToImport.length,
+    dashboard
+  };
+}
+
 export async function updateGpaCourse(repository: GpaRepository, userId: string, courseId: string, input: GpaCourseInput) {
   let dashboard;
   try {
@@ -38,6 +60,10 @@ export async function updateGpaCourse(repository: GpaRepository, userId: string,
   }
 
   return dashboard;
+}
+
+function courseDedupKey(course: GpaCourseInput) {
+  return [course.term, course.name.trim(), course.credit, course.score].join("|");
 }
 
 export async function deleteGpaCourse(repository: GpaRepository, userId: string, courseId: string) {

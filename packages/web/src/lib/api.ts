@@ -61,6 +61,29 @@ export interface GpaDashboardResponse {
   result: GpaCalculationResult;
 }
 
+export interface GpaTranscriptCoursePreview extends GpaCourseInput {
+  rawName: string;
+  rawGrade: string;
+  exclusionReason: string | null;
+  warnings: string[];
+}
+
+export interface GpaTranscriptPreviewResponse {
+  preview: {
+    sourceFilename: string;
+    courseCount: number;
+    importableCourseCount: number;
+    courses: GpaTranscriptCoursePreview[];
+    warnings: string[];
+  };
+}
+
+export interface GpaTranscriptImportResponse {
+  importedCount: number;
+  skippedCount: number;
+  dashboard: GpaDashboardResponse;
+}
+
 interface ApiErrorBody {
   error?: {
     message?: string;
@@ -162,6 +185,33 @@ export async function updateGpaCourse(courseId: string, input: GpaCourseInput): 
 export async function deleteGpaCourse(courseId: string): Promise<GpaDashboardResponse> {
   return request<GpaDashboardResponse>(`/api/gpa/courses/${courseId}`, {
     method: "DELETE"
+  });
+}
+
+export async function uploadGpaTranscript(file: File): Promise<GpaTranscriptPreviewResponse> {
+  const form = new FormData();
+  form.set("file", file);
+  const token = getToken();
+  const headers = new Headers();
+  if (token) {
+    headers.set("Authorization", `Bearer ${token}`);
+  }
+  const response = await fetch(`${API_BASE_URL}/api/gpa/transcript/preview`, {
+    method: "POST",
+    headers,
+    body: form
+  });
+  if (!response.ok) {
+    const body = (await response.json().catch(() => ({}))) as ApiErrorBody;
+    throw new Error(body.error?.message ?? `Request failed with status ${response.status}`);
+  }
+  return (await response.json()) as GpaTranscriptPreviewResponse;
+}
+
+export async function importGpaTranscriptCourses(courses: GpaCourseInput[]): Promise<GpaTranscriptImportResponse> {
+  return request<GpaTranscriptImportResponse>("/api/gpa/transcript/import", {
+    method: "POST",
+    body: JSON.stringify({ courses })
   });
 }
 
