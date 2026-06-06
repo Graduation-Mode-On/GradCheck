@@ -1,13 +1,14 @@
 import request from "supertest";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-import { createApp } from "./app.js";
+import { createApp, type AppDependencies } from "./app.js";
 import type { AuthRepository } from "./modules/auth/auth.repository.js";
 import type { CustomRequirementRepository } from "./modules/custom-requirements/custom-requirement.repository.js";
 import { calculateGpaResult } from "./modules/gpa/gpa.calculator.js";
 import { matchGpaCourseToPlanRequirement } from "./modules/gpa/course-plan-matcher.js";
 import type { GpaDashboard, GpaRepository } from "./modules/gpa/gpa.repository.js";
 import type { GpaCourse, GpaCourseInput } from "./modules/gpa/gpa.types.js";
+import type { LabExamEventRepository } from "./modules/lab-exam-events/lab-exam-events.types.js";
 import type { NewsRepository } from "./modules/news/news.repository.js";
 import type { NewsItemRecord } from "./modules/news/news.types.js";
 import type {
@@ -22,6 +23,7 @@ import type { PlazaPostStatus } from "./modules/plaza/plaza.types.js";
 import type { ProgramPlanBinding, ProgramPlanRepository } from "./modules/program-plans/program-plans.repository.js";
 import type { CurriculumPlan, ProgramPlanSummary } from "./modules/program-plans/program-plans.schemas.js";
 import { normalizeProgramPlanCourses } from "./modules/program-plans/program-plan-normalizer.js";
+import type { ReminderRepository } from "./modules/reminders/reminders.types.js";
 import type { SrtpRepository } from "./modules/srtp/srtp.repository.js";
 import type { SrtpRecord, SrtpRecordInput } from "./modules/srtp/srtp.schemas.js";
 import type { UserProfile } from "./modules/users/user.repository.js";
@@ -408,6 +410,70 @@ function createGpaRepository(): GpaRepository {
       };
     }
 
+    function createReminderRepositoryStub(): ReminderRepository {
+      return {
+        async listByUserId() {
+          return [];
+        },
+        async findById() {
+          return null;
+        },
+        async create() {
+          throw new Error("not used");
+        },
+        async update() {
+          return null;
+        },
+        async softDelete() {
+          return false;
+        },
+        async listDueSmsCandidates() {
+          return [];
+        },
+        async findDeliveryLog() {
+          return null;
+        },
+        async createDeliveryLog() {
+          throw new Error("not used");
+        }
+      };
+    }
+
+    function createLabExamEventRepositoryStub(): LabExamEventRepository {
+      return {
+        async listByUserId() {
+          return [];
+        },
+        async findById() {
+          return null;
+        },
+        async create() {
+          throw new Error("not used");
+        },
+        async update() {
+          return null;
+        },
+        async softDelete() {
+          return false;
+        }
+      };
+    }
+
+    function createLabExamEventsDeps(): AppDependencies["labExamEvents"] {
+      const reminderRepository = createReminderRepositoryStub();
+      const labExamEventRepository = createLabExamEventRepositoryStub();
+      const stubDb = {
+        async transaction<T>(fn: (tx: unknown) => Promise<T>): Promise<T> {
+          return fn({});
+        }
+      } as unknown as AppDependencies["labExamEvents"]["db"];
+      return {
+        db: stubDb,
+        createLabExamEventRepository: () => labExamEventRepository,
+        createReminderRepository: () => reminderRepository
+      };
+    }
+
     describe("GradCheck API baseline", () => {
       function createTestApp() {
         return createApp({
@@ -419,7 +485,9 @@ function createGpaRepository(): GpaRepository {
           gpaRepository: createGpaRepository(),
           lecturePracticeRepository: createLecturePracticeRepository(),
           volunteerLaborRepository: createVolunteerLaborRepository(),
-          customRequirementRepository: createCustomRequirementRepository()
+          customRequirementRepository: createCustomRequirementRepository(),
+          reminderRepository: createReminderRepositoryStub(),
+          labExamEvents: createLabExamEventsDeps()
         });
       }
 
@@ -434,6 +502,13 @@ function createGpaRepository(): GpaRepository {
 
     expect(response.status).toBe(200);
     expect(response.body).toEqual({ status: "ok", service: "gradcheck-backend" });
+  });
+
+  it("mounts reminder and lab exam routes behind authentication", async () => {
+    const app = createTestApp();
+
+    await request(app).get("/api/reminders").expect(401);
+    await request(app).get("/api/lab-exam-events").expect(401);
   });
 
   it("registers a user, returns the current user, and updates profile data", async () => {

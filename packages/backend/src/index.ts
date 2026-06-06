@@ -10,6 +10,8 @@ import { createProgramPlanRepository } from "./modules/program-plans/program-pla
 import { createSrtpRepository } from "./modules/srtp/srtp.repository.js";
 import { createVolunteerLaborRepository } from "./modules/volunteer-labor/volunteer-labor.repository.js";
 import { createCustomRequirementRepository } from "./modules/custom-requirements/custom-requirement.repository.js";
+import { createLabExamEventRepository } from "./modules/lab-exam-events/lab-exam-events.repository.js";
+import { createReminderRepository } from "./modules/reminders/reminders.repository.js";
 
 const config = loadConfig();
 const db = createDb(config.DATABASE_URL);
@@ -23,6 +25,12 @@ const app = createApp({
   volunteerLaborRepository: createVolunteerLaborRepository(db),
   customRequirementRepository: createCustomRequirementRepository(db),
   gpaRepository: createGpaRepository(db),
+  reminderRepository: createReminderRepository(db),
+  labExamEvents: {
+    db,
+    createLabExamEventRepository,
+    createReminderRepository
+  },
   corsOrigin: config.CORS_ORIGIN,
   amapWeatherKey: config.AMAP_WEATHER_KEY
 });
