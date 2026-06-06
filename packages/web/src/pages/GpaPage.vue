@@ -37,7 +37,7 @@ if (!authToken) {
 }
 
 const gpaDashboardQueryKey = ["gpa-dashboard", authToken] as const;
-const { data, isLoading } = useQuery({
+const { data, error, isLoading } = useQuery({
   queryKey: gpaDashboardQueryKey,
   queryFn: getGpaDashboard,
   enabled: computed(() => Boolean(authToken))
@@ -45,6 +45,15 @@ const { data, isLoading } = useQuery({
 
 const courses = computed(() => data.value?.courses ?? []);
 const result = computed(() => data.value?.result ?? null);
+const dashboardErrorMessage = computed(() => {
+  const dashboardError = error.value;
+
+  if (!dashboardError) {
+    return "";
+  }
+
+  return dashboardError instanceof Error ? dashboardError.message : "加载 GPA 数据失败";
+});
 
 function resetForm() {
   editingCourseId.value = null;
@@ -149,6 +158,7 @@ function scopeSubtitle(scope: GpaScopeResult | undefined): string {
       <article class="rounded-3xl bg-white p-5 shadow-sm">
         <h2 class="text-lg font-bold text-[var(--tommy-text)]">我的课程</h2>
         <p v-if="isLoading" class="mt-4 text-sm text-[var(--tommy-text-secondary)]">正在加载课程...</p>
+        <p v-else-if="dashboardErrorMessage" class="mt-4 rounded-xl bg-[color-mix(in_srgb,var(--tommy-primary)_12%,white)] px-3 py-2 text-sm text-[var(--tommy-info)]">{{ dashboardErrorMessage }}</p>
         <p v-else-if="courses.length === 0" class="mt-4 rounded-2xl bg-slate-50 p-4 text-sm text-[var(--tommy-text-secondary)]">
           还没有课程，先添加一门课程开始计算。
         </p>

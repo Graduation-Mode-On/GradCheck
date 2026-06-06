@@ -124,6 +124,16 @@ describe("GpaPage", () => {
     expect(wrapper.get('[data-testid="gpa-course-list"]').text()).toContain("2025-2026 春");
   });
 
+  it("shows initial load errors instead of the empty course state", async () => {
+    getGpaDashboard.mockRejectedValueOnce(new Error("GPA service unavailable"));
+
+    const wrapper = mountPage();
+    await flushPromises();
+
+    expect(wrapper.text()).toContain("GPA service unavailable");
+    expect(wrapper.text()).not.toContain("还没有课程，先添加一门课程开始计算。");
+  });
+
   it("submits a new course through the API", async () => {
     createGpaCourse.mockResolvedValueOnce(createDashboard("程序设计"));
 
