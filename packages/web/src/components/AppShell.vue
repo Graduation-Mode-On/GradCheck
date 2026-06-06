@@ -38,7 +38,10 @@ function logout() {
   <div class="min-h-screen bg-slate-100 text-[var(--tommy-text)]">
     <header class="sticky top-0 z-10 border-b border-slate-200 bg-white/95 backdrop-blur">
       <nav data-testid="desktop-navigation" class="mx-auto hidden max-w-5xl items-center justify-between px-4 py-3 sm:flex">
-        <RouterLink to="/" class="text-lg font-bold text-[var(--tommy-primary)]">GradCheck</RouterLink>
+        <RouterLink to="/" class="flex items-center gap-2 text-lg font-bold text-[var(--tommy-primary)]">
+          <img src="/logo.png" alt="GradCheck logo" class="h-8 w-8 rounded-lg shadow-sm" />
+          <span>GradCheck</span>
+        </RouterLink>
         <div class="flex items-center gap-3 text-sm font-medium text-[var(--tommy-text-secondary)]">
           <RouterLink to="/" class="hover:text-[var(--tommy-primary)]">首页</RouterLink>
           <RouterLink to="/profile" class="hover:text-[var(--tommy-primary)]">个人信息</RouterLink>
@@ -49,7 +52,10 @@ function logout() {
       </nav>
 
       <nav data-testid="mobile-navigation" class="mx-auto flex max-w-5xl items-center justify-between px-4 py-3 sm:hidden">
-        <RouterLink to="/" class="text-lg font-bold text-[var(--tommy-primary)]">GradCheck</RouterLink>
+        <RouterLink to="/" class="flex items-center gap-2 text-lg font-bold text-[var(--tommy-primary)]">
+          <img src="/logo.png" alt="GradCheck logo" class="h-7 w-7 rounded-lg shadow-sm" />
+          <span>GradCheck</span>
+        </RouterLink>
         <RouterLink
           to="/"
           data-testid="mobile-graduation-prompt"

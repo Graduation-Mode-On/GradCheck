@@ -73,8 +73,11 @@ function submit() {
 <template>
   <main class="flex min-h-screen items-center justify-center bg-slate-100 px-4 py-8">
     <section class="w-full max-w-md rounded-3xl bg-white p-6 shadow-xl">
-      <p class="text-sm font-semibold text-[var(--tommy-primary)]">GradCheck</p>
-      <h1 class="mt-2 text-2xl font-bold text-[var(--tommy-text)]">{{ submitLabel }}</h1>
+      <div class="flex items-center gap-3">
+        <img src="/logo.png" alt="GradCheck logo" class="h-12 w-12 rounded-2xl shadow-sm" />
+        <p class="text-sm font-semibold text-[var(--tommy-primary)]">GradCheck</p>
+      </div>
+      <h1 class="mt-3 text-2xl font-bold text-[var(--tommy-text)]">{{ submitLabel }}</h1>
       <p class="mt-2 text-sm text-[var(--tommy-text-secondary)]">先建立账号和个人信息，后续毕业进度模块会复用这些基础资料。</p>
 
       <div class="mt-5 grid grid-cols-2 rounded-full bg-slate-100 p-1 text-sm font-medium">
