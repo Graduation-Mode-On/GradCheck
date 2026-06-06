@@ -46,7 +46,7 @@ function statusClass(statusText: string): string {
       </div>
       <span
         :data-testid="`progress-${fieldKey}-status`"
-        class="rounded-full px-3 py-1 text-xs font-semibold"
+        class="whitespace-nowrap rounded-full px-3 py-1 text-xs font-semibold"
         :class="statusClass(statusText)"
       >
         {{ statusText }}

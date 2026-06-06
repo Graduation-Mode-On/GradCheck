@@ -146,7 +146,7 @@ function removeRecord(record: SrtpRecord) {
             <h1 class="mt-1 text-2xl font-bold text-[var(--tommy-text)]">{{ summary?.totalCredits ?? "0.00" }} 学分</h1>
             <p class="mt-2 text-sm text-[var(--tommy-text-secondary)]">2.00 分及格 · 6.00 分优秀 · {{ missingText }}</p>
           </div>
-          <span data-testid="srtp-status-badge" class="rounded-full px-3 py-1 text-xs font-semibold" :class="statusClass">
+          <span data-testid="srtp-status-badge" class="whitespace-nowrap rounded-full px-3 py-1 text-xs font-semibold" :class="statusClass">
             {{ statusText }}
           </span>
         </div>

@@ -86,6 +86,7 @@ describe("SrtpPage", () => {
     expect(wrapper.get('[data-testid="srtp-status-badge"]').classes()).toEqual(
       expect.arrayContaining(["bg-[color-mix(in_srgb,var(--tommy-error)_14%,white)]", "text-[var(--tommy-error)]"])
     );
+    expect(wrapper.get('[data-testid="srtp-status-badge"]').classes()).toContain("whitespace-nowrap");
   });
 
   it("opens create form and submits a SRTP record with 0.1 credit input", async () => {
