@@ -50,6 +50,20 @@
       "when": 1780738343787,
       "tag": "0006_square_sleeper",
       "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "7",
+      "when": 1780748172796,
+      "tag": "0007_misty_colleen_wing",
+      "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "7",
+      "when": 1780759674290,
+      "tag": "0008_fix_missing_conflicts",
+      "breakpoints": true
     }
   ]
 }

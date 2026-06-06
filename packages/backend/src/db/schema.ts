@@ -1,5 +1,7 @@
 import { boolean, integer, jsonb, numeric, pgTable, text, timestamp, uuid, varchar } from "drizzle-orm/pg-core";
 
+import type { CourseConflictDto } from "../modules/course-recommendations/course-recommendations.types.js";
+
 export const users = pgTable("users", {
   id: uuid("id").defaultRandom().primaryKey(),
   email: varchar("email", { length: 320 }).notNull().unique(),
@@ -199,6 +201,62 @@ export const userProgramPlanBindings = pgTable("user_program_plan_bindings", {
     .notNull()
     .references(() => programPlans.id, { onDelete: "cascade" }),
   confirmedAt: timestamp("confirmed_at", { withTimezone: true }).defaultNow().notNull(),
+  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull()
+});
+
+export const semesterCourses = pgTable("semester_courses", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  userId: uuid("user_id")
+    .notNull()
+    .references(() => users.id, { onDelete: "cascade" }),
+  term: varchar("term", { length: 20 }).notNull(),
+  courseCode: varchar("course_code", { length: 20 }),
+  courseName: varchar("course_name", { length: 160 }).notNull(),
+  credits: numeric("credits", { precision: 5, scale: 2 }).notNull(),
+  teacher: varchar("teacher", { length: 80 }),
+  classroom: varchar("classroom", { length: 80 }),
+  schedule: jsonb("schedule")
+    .$type<
+      Array<{
+        dayOfWeek: number;
+        startPeriod: number;
+        endPeriod: number;
+        startWeek?: number;
+        endWeek?: number;
+        weekLabel?: string;
+      }>
+    >()
+    .notNull()
+    .default([]),
+  category: varchar("category", { length: 32 }),
+  source: varchar("source", { length: 20 }).notNull().default("manual"),
+  selected: boolean("selected").notNull().default(false),
+  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull()
+});
+
+export const courseRecommendations = pgTable("course_recommendations", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  userId: uuid("user_id")
+    .notNull()
+    .references(() => users.id, { onDelete: "cascade" }),
+  term: varchar("term", { length: 20 }).notNull(),
+  preferences: jsonb("preferences")
+    .$type<Record<string, unknown>>()
+    .notNull()
+    .default({}),
+  recommendedCourses: jsonb("recommended_courses")
+    .$type<Array<Record<string, unknown>>>()
+    .notNull()
+    .default([]),
+  totalCredits: numeric("total_credits", { precision: 6, scale: 2 }),
+  summary: text("summary"),
+  warnings: jsonb("warnings").$type<string[]>().notNull().default([]),
+  conflicts: jsonb("conflicts")
+    .$type<CourseConflictDto[]>()
+    .notNull()
+    .default([]),
   createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
   updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull()
 });

@@ -47,6 +47,7 @@ const mutation = useMutation({
   onSuccess: async () => {
     message.value = "个人信息已保存";
     await queryClient.invalidateQueries({ queryKey: ["current-user"] });
+    await queryClient.invalidateQueries({ queryKey: ["candidate-courses"] });
   },
   onError: (error) => {
     if (error instanceof ZodError) {
@@ -84,11 +85,12 @@ async function logout() {
           <input v-model="form.major" class="mt-1 w-full rounded-xl border border-slate-300 px-3 py-2" />
         </label>
         <label class="block text-sm font-medium text-[var(--tommy-text-secondary)]">
-          年级
+          入学年份
           <input
             v-model.number="form.grade"
             class="mt-1 w-full rounded-xl border border-slate-300 px-3 py-2"
             type="number"
+            placeholder="如 2023"
           />
         </label>
         <label class="block text-sm font-medium text-[var(--tommy-text-secondary)]">

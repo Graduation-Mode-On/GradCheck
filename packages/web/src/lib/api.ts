@@ -377,3 +377,202 @@ export async function importProgramPlan(input: {
     body: JSON.stringify(input)
   });
 }
+
+// === Course Recommendations ===
+
+export interface SemesterCourse {
+  id: string;
+  courseCode: string | null;
+  courseName: string;
+  credits: string;
+  teacher: string | null;
+  classroom: string | null;
+  schedule: ScheduleSlot[];
+  category: string | null;
+  source: string;
+  selected: boolean;
+}
+
+export interface ScheduleSlot {
+  dayOfWeek: number;
+  startPeriod: number;
+  endPeriod: number;
+  startWeek?: number;
+  endWeek?: number;
+  weekLabel?: string;
+}
+
+export interface CandidateCourse {
+  code: string;
+  name: string;
+  credits: number;
+  category: string | null;
+  subcategory: string | null;
+  term: { year?: string | null; semester?: string | null };
+  status: "completed" | "available";
+  isRequired: boolean;
+}
+
+export interface CandidateTermContext {
+  requestedTerm: string | null;
+  planYear: string | null;
+  planSemester: string | null;
+  label: string | null;
+  canInfer: boolean;
+  gradeYear: number | null;
+  gradeSource: "profile" | "program_plan" | "unknown";
+  profileGradeYear: number | null;
+  planGradeYear: number | null;
+}
+
+export interface CandidateCourseStats {
+  totalCount: number;
+  totalCredits: number;
+  completedCount: number;
+  completedCredits: number;
+  remainingCount: number;
+  remainingCredits: number;
+  requiredRemainingCount: number;
+  requiredRemainingCredits: number;
+  electiveRemainingCount: number;
+  electiveRemainingCredits: number;
+}
+
+export interface CandidateCoursesResponse {
+  hasPlan: boolean;
+  termContext: CandidateTermContext;
+  courses: CandidateCourse[];
+  candidates: CandidateCourse[];
+  stats: CandidateCourseStats;
+}
+
+export interface RecommendationPreferences {
+  avoidDays: number[];
+  avoidEarlyMorning: boolean;
+  scheduleStyle: "compact" | "spread";
+  maxCoursesPerDay?: number;
+  notes?: string;
+}
+
+export interface RecommendedCourse {
+  courseCode?: string;
+  courseName: string;
+  credits: number;
+  teacher?: string;
+  classroom?: string;
+  schedule: ScheduleSlot[];
+  reason: string;
+}
+
+export interface CourseConflict {
+  id: string;
+  incoming: RecommendedCourse;
+  existing: RecommendedCourse[];
+  defaultChoice: "incoming" | "existing";
+  reason: string;
+}
+
+export interface RecommendationResult {
+  id: string;
+  userId: string;
+  term: string;
+  preferences: Record<string, unknown>;
+  recommendedCourses: RecommendedCourse[];
+  totalCredits: string | null;
+  summary: string | null;
+  warnings: string[];
+  conflicts: CourseConflict[];
+  createdAt: string;
+  updatedAt: string;
+}
+
+export async function getCandidateCourses(term?: string): Promise<CandidateCoursesResponse> {
+  return request<CandidateCoursesResponse>(`/api/course-recommendations/candidates${toQueryString({ term })}`);
+}
+
+export async function parseCourseImage(imageBase64: string, term: string): Promise<{ courses: Array<Partial<SemesterCourse>> }> {
+  return request<{ courses: Array<Partial<SemesterCourse>> }>("/api/course-recommendations/parse-image", {
+    method: "POST",
+    body: JSON.stringify({ imageBase64, term })
+  });
+}
+
+export async function batchCreateSemesterCourses(
+  term: string,
+  courses: Array<{
+    courseName: string;
+    courseCode?: string | null;
+    credits: number;
+    teacher?: string | null;
+    classroom?: string | null;
+    schedule: ScheduleSlot[];
+    category?: string | null;
+    source?: string;
+  }>
+): Promise<{ courses: SemesterCourse[] }> {
+  return request<{ courses: SemesterCourse[] }>("/api/course-recommendations/semester-courses/batch", {
+    method: "POST",
+    body: JSON.stringify({ term, courses })
+  });
+}
+
+export async function listSemesterCourses(term: string): Promise<{ courses: SemesterCourse[] }> {
+  return request<{ courses: SemesterCourse[] }>(`/api/course-recommendations/semester-courses${toQueryString({ term })}`);
+}
+
+export async function createSemesterCourse(input: {
+  term: string;
+  courseName: string;
+  courseCode?: string | null;
+  credits: number;
+  teacher?: string | null;
+  classroom?: string | null;
+  schedule: ScheduleSlot[];
+  category?: string | null;
+}): Promise<{ course: SemesterCourse }> {
+  return request<{ course: SemesterCourse }>("/api/course-recommendations/semester-courses", {
+    method: "POST",
+    body: JSON.stringify(input)
+  });
+}
+
+export async function updateSemesterCourse(
+  id: string,
+  input: Partial<{
+    term: string;
+    courseName: string;
+    courseCode: string | null;
+    credits: number;
+    teacher: string | null;
+    classroom: string | null;
+    schedule: ScheduleSlot[];
+    category: string | null;
+    selected: boolean;
+  }>
+): Promise<{ course: SemesterCourse }> {
+  return request<{ course: SemesterCourse }>(`/api/course-recommendations/semester-courses/${id}`, {
+    method: "PUT",
+    body: JSON.stringify(input)
+  });
+}
+
+export async function deleteSemesterCourse(id: string): Promise<void> {
+  await request<void>(`/api/course-recommendations/semester-courses/${id}`, {
+    method: "DELETE"
+  });
+}
+
+export async function generateRecommendation(input: {
+  term: string;
+  preferences: RecommendationPreferences;
+  candidateCourseIds?: string[];
+}): Promise<{ recommendation: RecommendationResult }> {
+  return request<{ recommendation: RecommendationResult }>("/api/course-recommendations/generate", {
+    method: "POST",
+    body: JSON.stringify(input)
+  });
+}
+
+export async function listRecommendationHistory(term: string): Promise<{ recommendations: RecommendationResult[] }> {
+  return request<{ recommendations: RecommendationResult[] }>(`/api/course-recommendations/history${toQueryString({ term })}`);
+}

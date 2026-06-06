@@ -3,6 +3,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { createApp } from "./app.js";
 import type { AuthRepository } from "./modules/auth/auth.repository.js";
+import type { CourseRecommendationRepository } from "./modules/course-recommendations/course-recommendations.repository.js";
 import type { CustomRequirementRepository } from "./modules/custom-requirements/custom-requirement.repository.js";
 import { calculateGpaResult } from "./modules/gpa/gpa.calculator.js";
 import type { GpaDashboard, GpaRepository } from "./modules/gpa/gpa.repository.js";
@@ -305,6 +306,32 @@ function createGpaRepository(): GpaRepository {
       };
     }
 
+    function createCourseRecommendationRepository(): CourseRecommendationRepository {
+      return {
+        async listSemesterCourses() {
+          return [];
+        },
+        async createSemesterCourse() {
+          throw new Error("not used");
+        },
+        async updateSemesterCourse() {
+          throw new Error("not used");
+        },
+        async deleteSemesterCourse() {
+          return false;
+        },
+        async batchCreateSemesterCourses() {
+          return [];
+        },
+        async saveRecommendation() {
+          throw new Error("not used");
+        },
+        async listRecommendations() {
+          return [];
+        }
+      };
+    }
+
     describe("GradCheck API baseline", () => {
       function createTestApp() {
         return createApp({
@@ -316,7 +343,8 @@ function createGpaRepository(): GpaRepository {
           gpaRepository: createGpaRepository(),
           lecturePracticeRepository: createLecturePracticeRepository(),
           volunteerLaborRepository: createVolunteerLaborRepository(),
-          customRequirementRepository: createCustomRequirementRepository()
+          customRequirementRepository: createCustomRequirementRepository(),
+          courseRecommendationRepository: createCourseRecommendationRepository()
         });
       }
 
