@@ -504,6 +504,70 @@ function createGpaRepository(): GpaRepository {
       };
     }
 
+    function createReminderRepositoryStub(): ReminderRepository {
+      return {
+        async listByUserId() {
+          return [];
+        },
+        async findById() {
+          return null;
+        },
+        async create() {
+          throw new Error("not used");
+        },
+        async update() {
+          return null;
+        },
+        async softDelete() {
+          return false;
+        },
+        async listDueSmsCandidates() {
+          return [];
+        },
+        async findDeliveryLog() {
+          return null;
+        },
+        async createDeliveryLog() {
+          throw new Error("not used");
+        }
+      };
+    }
+
+    function createLabExamEventRepositoryStub(): LabExamEventRepository {
+      return {
+        async listByUserId() {
+          return [];
+        },
+        async findById() {
+          return null;
+        },
+        async create() {
+          throw new Error("not used");
+        },
+        async update() {
+          return null;
+        },
+        async softDelete() {
+          return false;
+        }
+      };
+    }
+
+    function createLabExamEventsDeps(): AppDependencies["labExamEvents"] {
+      const reminderRepository = createReminderRepositoryStub();
+      const labExamEventRepository = createLabExamEventRepositoryStub();
+      const stubDb = {
+        async transaction<T>(fn: (tx: unknown) => Promise<T>): Promise<T> {
+          return fn({});
+        }
+      } as unknown as AppDependencies["labExamEvents"]["db"];
+      return {
+        db: stubDb,
+        createLabExamEventRepository: () => labExamEventRepository,
+        createReminderRepository: () => reminderRepository
+      };
+    }
+
     describe("GradCheck API baseline", () => {
       function createTestApp() {
         return createApp({

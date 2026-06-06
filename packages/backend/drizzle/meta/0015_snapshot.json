@@ -1,6 +1,6 @@
 {
-  "id": "f3e15162-f3a5-4bc9-a8b8-1cae805f08d6",
-  "prevId": "00ae212c-0d50-4a57-aef0-66141fc57739",
+  "id": "786335d9-68d5-4e27-ad04-f6b2fc7db35f",
+  "prevId": "f3e15162-f3a5-4bc9-a8b8-1cae805f08d6",
   "version": "7",
   "dialect": "postgresql",
   "tables": {
@@ -1660,6 +1660,12 @@
           "primaryKey": false,
           "notNull": true,
           "default": "now()"
+        },
+        "pushplus_token": {
+          "name": "pushplus_token",
+          "type": "varchar(64)",
+          "primaryKey": false,
+          "notNull": false
         }
       },
       "indexes": {},
