@@ -398,6 +398,14 @@ export async function getCurrentProgramPlan(): Promise<{ plan: ProgramPlanPrevie
   return request<{ plan: ProgramPlanPreview | null }>("/api/program-plans/me");
 }
 
+export async function listReusableProgramPlans(): Promise<{ plans: ProgramPlanPreview[] }> {
+  return request<{ plans: ProgramPlanPreview[] }>("/api/program-plans/reusable");
+}
+
+export async function bindProgramPlan(id: string): Promise<{ plan: ProgramPlanPreview; binding: unknown }> {
+  return request<{ plan: ProgramPlanPreview; binding: unknown }>(`/api/program-plans/${id}/bind`, { method: "POST" });
+}
+
 export async function mockUploadProgramPlan(file: File): Promise<{ preview: ProgramPlanPreview }> {
   const form = new FormData();
   form.set("file", file);

@@ -1,7 +1,7 @@
-import { eq } from "drizzle-orm";
+import { and, desc, eq } from "drizzle-orm";
 
 import type { Database } from "../../db/client.js";
-import { programPlanCourseGroups, programPlanCourses, programPlans, userProgramPlanBindings } from "../../db/schema.js";
+import { programPlanCourseGroups, programPlanCourses, programPlans, userProfiles, userProgramPlanBindings } from "../../db/schema.js";
 import { normalizeProgramPlanCourses } from "./program-plan-normalizer.js";
 import type { CurriculumPlan, ProgramPlanSummary } from "./program-plans.schemas.js";
 
@@ -20,6 +20,11 @@ export interface ProgramPlanRepository {
     normalized: ProgramPlanNormalizedStats;
   }>;
   getBoundPlan(userId: string): Promise<ProgramPlanSummary | null>;
+  listReusablePlans(userId: string): Promise<ProgramPlanSummary[]>;
+  bindExistingPlan(userId: string, programPlanId: string): Promise<{
+    plan: ProgramPlanSummary;
+    binding: ProgramPlanBinding;
+  } | null>;
   getNormalizedStats(programPlanId: string): Promise<ProgramPlanNormalizedStats | null>;
   backfillNormalizedCourses(): Promise<{ planCount: number }>;
 }
@@ -75,6 +80,39 @@ export function createProgramPlanRepository(db: Database): ProgramPlanRepository
         .where(eq(programPlans.id, binding.programPlanId))
         .limit(1);
       return (plan as ProgramPlanSummary | undefined) ?? null;
+    },
+
+    async listReusablePlans(userId) {
+      const [profile] = await db.select().from(userProfiles).where(eq(userProfiles.userId, userId)).limit(1);
+      if (!profile) return [];
+      const grade = `${profile.grade}级`;
+      return (await db
+        .select()
+        .from(programPlans)
+        .where(and(eq(programPlans.major, profile.major), eq(programPlans.grade, grade)))
+        .orderBy(desc(programPlans.createdAt))) as ProgramPlanSummary[];
+    },
+
+    async bindExistingPlan(userId, programPlanId) {
+      return db.transaction(async (tx) => {
+        const [profile] = await tx.select().from(userProfiles).where(eq(userProfiles.userId, userId)).limit(1);
+        if (!profile) return null;
+        const [plan] = await tx
+          .select()
+          .from(programPlans)
+          .where(and(eq(programPlans.id, programPlanId), eq(programPlans.major, profile.major), eq(programPlans.grade, `${profile.grade}级`)))
+          .limit(1);
+        if (!plan) return null;
+        const [binding] = await tx
+          .insert(userProgramPlanBindings)
+          .values({ userId, programPlanId })
+          .onConflictDoUpdate({
+            target: userProgramPlanBindings.userId,
+            set: { programPlanId, confirmedAt: new Date(), updatedAt: new Date() }
+          })
+          .returning();
+        return { plan: plan as ProgramPlanSummary, binding };
+      });
     },
 
     async getNormalizedStats(programPlanId) {

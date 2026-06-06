@@ -118,6 +118,22 @@ function createProgramPlanRepository(): ProgramPlanRepository {
     async getBoundPlan(userId: string) {
       const binding = bindings.get(userId);
       return binding ? (plans.get(binding.programPlanId) ?? null) : null;
+    },
+    async listReusablePlans() {
+      return [...plans.values()];
+    },
+    async bindExistingPlan(userId: string, programPlanId: string) {
+      const plan = plans.get(programPlanId);
+      if (!plan) return null;
+      const binding: ProgramPlanBinding = {
+        userId,
+        programPlanId,
+        confirmedAt: now,
+        createdAt: bindings.get(userId)?.createdAt ?? now,
+        updatedAt: now
+      };
+      bindings.set(userId, binding);
+      return { plan, binding };
     }
   };
 }
@@ -1240,6 +1256,47 @@ const app = createTestApp();
       });
 
       const currentResponse = await request(app).get("/api/program-plans/me").set("Authorization", `Bearer ${token}`);
+      expect(currentResponse.body.plan.id).toBe(importResponse.body.plan.id);
+    });
+
+    it("lets users reuse a program plan uploaded for the same major and grade", async () => {
+      const app = createTestApp();
+      const ownerToken = await registerAndToken(app, "plan-reuse-owner@example.com");
+      const uploadResponse = await request(app)
+        .post("/api/program-plans/mock-upload")
+        .set("Authorization", `Bearer ${ownerToken}`)
+        .attach("file", Buffer.from("%PDF-1.4"), "software-plan.pdf");
+      const importResponse = await request(app)
+        .post("/api/program-plans/import")
+        .set("Authorization", `Bearer ${ownerToken}`)
+        .send({
+          sourceFilename: uploadResponse.body.preview.sourceFilename,
+          planJson: uploadResponse.body.preview.planJson
+        });
+      const reuseToken = await registerAndToken(app, "plan-reuse-peer@example.com");
+
+      const optionsResponse = await request(app)
+        .get("/api/program-plans/reusable")
+        .set("Authorization", `Bearer ${reuseToken}`);
+
+      expect(optionsResponse.status).toBe(200);
+      expect(optionsResponse.body.plans).toEqual([
+        expect.objectContaining({
+          id: importResponse.body.plan.id,
+          major: "软件工程",
+          grade: "2022级",
+          courseCount: 134
+        })
+      ]);
+
+      const bindResponse = await request(app)
+        .post(`/api/program-plans/${importResponse.body.plan.id}/bind`)
+        .set("Authorization", `Bearer ${reuseToken}`);
+
+      expect(bindResponse.status).toBe(200);
+      expect(bindResponse.body.plan.id).toBe(importResponse.body.plan.id);
+
+      const currentResponse = await request(app).get("/api/program-plans/me").set("Authorization", `Bearer ${reuseToken}`);
       expect(currentResponse.body.plan.id).toBe(importResponse.body.plan.id);
     });
 
