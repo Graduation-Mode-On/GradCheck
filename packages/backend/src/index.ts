@@ -15,9 +15,13 @@ import { createCourseRecommendationRepository } from "./modules/course-recommend
 import { createCoursesProgressRepository } from "./modules/courses-progress/courses-progress.repository.js";
 import { createLabExamEventRepository } from "./modules/lab-exam-events/lab-exam-events.repository.js";
 import { createReminderRepository } from "./modules/reminders/reminders.repository.js";
+import { PushPlusAdapter } from "./modules/reminders/pushplus-adapter.js";
+import { createPushplusTokenResolver } from "./modules/reminders/pushplus-token-resolver.js";
+import { startReminderScheduler } from "./modules/reminders/start-reminder-scheduler.js";
 
 const config = loadConfig();
 const db = createDb(config.DATABASE_URL);
+const reminderRepository = createReminderRepository(db);
 const app = createApp({
   authRepository: createAuthRepository(db),
   plazaRepository: createPlazaRepository(db),
@@ -31,7 +35,7 @@ const app = createApp({
   gpaRepository: createGpaRepository(db),
   courseRecommendationRepository: createCourseRecommendationRepository(db),
   coursesProgressRepository: createCoursesProgressRepository(db),
-  reminderRepository: createReminderRepository(db),
+  reminderRepository,
   labExamEvents: {
     db,
     createLabExamEventRepository,
@@ -41,6 +45,26 @@ const app = createApp({
   amapWeatherKey: config.AMAP_WEATHER_KEY
 });
 
-app.listen(config.PORT, () => {
+const scheduler = startReminderScheduler({
+  repository: reminderRepository,
+  smsAdapter: new PushPlusAdapter({ publicBaseUrl: config.REMINDER_PUBLIC_BASE_URL }),
+  tokenResolver: createPushplusTokenResolver(db),
+  intervalMs: config.REMINDER_SCHEDULER_INTERVAL_MS,
+  enabled: config.REMINDER_SCHEDULER_ENABLED
+});
+
+const server = app.listen(config.PORT, () => {
   console.log(`GradCheck backend listening on port ${config.PORT}`);
 });
+
+function shutdown(signal: string): void {
+  console.log(`Received ${signal}, shutting down…`);
+  scheduler.stop();
+  server.close(() => {
+    process.exit(0);
+  });
+  setTimeout(() => process.exit(1), 10_000).unref();
+}
+
+process.on("SIGTERM", () => shutdown("SIGTERM"));
+process.on("SIGINT", () => shutdown("SIGINT"));
