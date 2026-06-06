@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { useMutation, useQuery, useQueryClient } from "@tanstack/vue-query";
-import { computed, ref } from "vue";
+import { computed, nextTick, ref, watch } from "vue";
 import { useRouter } from "vue-router";
 
 import AppShell from "../components/AppShell.vue";
@@ -19,9 +19,11 @@ const selectedFile = ref<File | null>(null);
 const preview = ref<ProgramPlanPreview | null>(null);
 const message = ref("");
 const errorMessage = ref("");
+const importPanel = ref<HTMLElement | null>(null);
 const courseSearch = ref("");
 const categoryFilter = ref("all");
 const semesterFilter = ref("all");
+const coursesExpanded = ref(false);
 const isReimporting = ref(false);
 
 const currentQuery = useQuery({
@@ -67,6 +69,7 @@ const activePlan = computed(() => preview.value ?? boundPlan.value);
 const showImportFlow = computed(() => !boundPlan.value || isReimporting.value || Boolean(preview.value));
 const uploadTitle = computed(() => (boundPlan.value ? "重新导入培养方案" : "首次导入培养方案"));
 const displayTitle = computed(() => (preview.value ? "解析预览" : "我的培养方案"));
+const selectedFileName = computed(() => selectedFile.value?.name ?? "未选择文件");
 const categories = computed(() => [
   "all",
   ...new Set((activePlan.value?.planJson.courses ?? []).map((course) => course.category).filter(Boolean) as string[])
@@ -93,6 +96,11 @@ const filteredCourses = computed(() => {
     return matchesQuery && matchesCategory && matchesSemester;
   });
 });
+const displayedCourses = computed(() => (coursesExpanded.value ? filteredCourses.value : filteredCourses.value.slice(0, 3)));
+
+watch([courseSearch, categoryFilter, semesterFilter], () => {
+  coursesExpanded.value = false;
+});
 
 function getSemesterKey(course: ProgramCourse) {
   return `${course.term?.year ?? ""}-${course.term?.semester ?? ""}`;
@@ -117,11 +125,13 @@ function onFileChange(event: Event) {
   selectedFile.value = (event.target as HTMLInputElement).files?.[0] ?? null;
 }
 
-function startReimport() {
+async function startReimport() {
   isReimporting.value = true;
   preview.value = null;
   message.value = "";
   errorMessage.value = "";
+  await nextTick();
+  importPanel.value?.scrollIntoView?.({ behavior: "smooth", block: "start" });
 }
 </script>
 
@@ -138,7 +148,6 @@ function startReimport() {
         {{ activePlan.school }} · {{ activePlan.college }} · {{ activePlan.grade }} · {{ activePlan.major }}
       </p>
       <div class="mt-4 flex flex-wrap gap-2 text-xs font-semibold">
-        <span class="rounded-full bg-white/20 px-3 py-1">{{ preview ? "待确认导入" : "当前绑定方案" }}</span>
         <span class="rounded-full bg-white/20 px-3 py-1">总学分 {{ activePlan.totalCredits }}</span>
         <span class="rounded-full bg-white/20 px-3 py-1">{{ activePlan.courseCount }} 门课程</span>
       </div>
@@ -152,10 +161,31 @@ function startReimport() {
       </p>
     </section>
 
-    <section v-if="showImportFlow" class="rounded-3xl bg-white p-5 shadow-sm">
+    <section v-if="showImportFlow" ref="importPanel" class="scroll-mt-24 rounded-3xl bg-white p-5 shadow-sm">
       <h2 class="text-lg font-bold text-[var(--tommy-text)]">{{ uploadTitle }}</h2>
       <p class="mt-1 text-sm text-[var(--tommy-text-secondary)]">当前使用 pdf-extract 示例 JSON 模拟解析结果，真实 PDF 解析会在后续接入。</p>
-      <input data-testid="program-plan-file" class="mt-4 w-full rounded-xl border border-slate-300 px-3 py-2" type="file" accept=".pdf,application/pdf" @change="onFileChange" />
+      <div class="mt-4 flex min-w-0 items-center gap-2 rounded-xl border border-slate-200 bg-slate-50 p-1.5">
+        <label
+          class="shrink-0 cursor-pointer rounded-lg border border-[color-mix(in_srgb,var(--tommy-primary)_28%,white)] bg-[color-mix(in_srgb,var(--tommy-primary)_12%,white)] px-4 py-2 text-sm font-semibold text-[var(--tommy-primary)] transition hover:bg-[color-mix(in_srgb,var(--tommy-primary)_18%,white)]"
+          for="program-plan-file"
+        >
+          选择文件
+        </label>
+        <input
+          id="program-plan-file"
+          data-testid="program-plan-file"
+          class="sr-only"
+          type="file"
+          accept=".pdf,application/pdf"
+          @change="onFileChange"
+        />
+        <span
+          class="min-w-0 flex-1 truncate px-2 text-sm"
+          :class="selectedFile ? 'text-[var(--tommy-text)]' : 'text-[var(--tommy-text-secondary)]'"
+        >
+          {{ selectedFileName }}
+        </span>
+      </div>
       <button
         data-testid="program-plan-mock-upload"
         class="mt-4 w-full rounded-xl bg-[var(--tommy-primary)] px-4 py-2.5 text-sm font-semibold text-white"
@@ -199,17 +229,17 @@ function startReimport() {
             按课程名、课程号、类别和学期快速查看培养方案中的课程安排。
           </p>
 
-          <div class="mt-4 grid gap-3 sm:grid-cols-[1fr_12rem_12rem]">
+          <div class="mt-4 grid gap-3 lg:grid-cols-[minmax(0,1.4fr)_minmax(0,1fr)_minmax(0,1fr)]">
             <input
               v-model="courseSearch"
               data-testid="program-course-search"
-              class="rounded-xl border border-slate-300 px-3 py-2"
+              class="min-w-0 rounded-xl border border-slate-300 px-3 py-2"
               placeholder="搜索课程名或课程号"
             />
             <select
               v-model="categoryFilter"
               data-testid="program-course-category"
-              class="rounded-xl border border-slate-300 px-3 py-2"
+              class="min-w-0 rounded-xl border border-slate-300 px-3 py-2"
             >
               <option value="all">全部类别</option>
               <option v-for="category in categories.filter((item) => item !== 'all')" :key="category" :value="category">
@@ -219,7 +249,7 @@ function startReimport() {
             <select
               v-model="semesterFilter"
               data-testid="program-course-semester"
-              class="rounded-xl border border-slate-300 px-3 py-2"
+              class="min-w-0 rounded-xl border border-slate-300 px-3 py-2"
             >
               <option value="all">全部学期</option>
               <option v-for="semester in semesterOptions" :key="semester.value" :value="semester.value">
@@ -229,13 +259,22 @@ function startReimport() {
           </div>
 
           <div class="mt-4 grid gap-3 md:grid-cols-2">
-            <article v-for="course in filteredCourses" :key="course.code" class="rounded-2xl border border-slate-200 p-4">
+            <article v-for="course in displayedCourses" :key="course.code" class="rounded-2xl border border-slate-200 p-4">
               <h3 class="font-bold text-[var(--tommy-text)]">{{ course.name }}</h3>
               <p class="mt-1 text-sm text-[var(--tommy-text-secondary)]">
                 {{ course.code }} · {{ course.credits }} 学分 · {{ course.category ?? "未分类" }}
               </p>
             </article>
           </div>
+
+          <button
+            v-if="filteredCourses.length > 3"
+            class="mt-4 w-full rounded-xl bg-[color-mix(in_srgb,var(--tommy-primary)_12%,white)] px-4 py-2.5 text-sm font-semibold text-[var(--tommy-primary)]"
+            type="button"
+            @click="coursesExpanded = !coursesExpanded"
+          >
+            {{ coursesExpanded ? "收起课程" : `展开全部 ${filteredCourses.length} 门课程` }}
+          </button>
 
           <div class="mt-5">
             <h3 class="font-bold text-[var(--tommy-text)]">毕业要求清单</h3>
@@ -248,7 +287,7 @@ function startReimport() {
         </section>
 
         <section v-if="preview" class="rounded-3xl bg-white p-5 shadow-sm">
-          <h2 class="text-lg font-bold text-[var(--tommy-text)]">3. 确认导入</h2>
+          <h2 class="text-lg font-bold text-[var(--tommy-text)]">确认导入</h2>
           <button
             data-testid="program-plan-import"
             class="mt-4 w-full rounded-xl bg-[var(--tommy-primary)] px-4 py-2.5 text-sm font-semibold text-white"
