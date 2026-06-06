@@ -47,7 +47,7 @@ const featureEntries = [
   {
     title: "讲座实践",
     iconPath: "M12 14a4 4 0 0 0 4-4V5a4 4 0 0 0-8 0v5a4 4 0 0 0 4 4Zm-7-4a7 7 0 0 0 14 0M12 17v4M8 21h8",
-    to: "/news"
+    to: "/lecture-practice"
   },
   {
     title: "志愿劳育",

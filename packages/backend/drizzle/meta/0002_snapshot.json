@@ -1,5 +1,5 @@
 {
-  "id": "9b60cdad-4462-4be5-9ac1-5ebbecbcd3f9",
+  "id": "61df6ff1-c0c0-43cf-a6ad-b3a679d13d54",
   "prevId": "6531645e-cfc6-4db3-a154-283bb6d9936e",
   "version": "7",
   "dialect": "postgresql",
@@ -76,108 +76,43 @@
       "checkConstraints": {},
       "isRLSEnabled": false
     },
-    "public.news_items": {
-      "name": "news_items",
+    "public.lecture_practice_progress": {
+      "name": "lecture_practice_progress",
       "schema": "",
       "columns": {
-        "id": {
-          "name": "id",
+        "user_id": {
+          "name": "user_id",
           "type": "uuid",
           "primaryKey": true,
-          "notNull": true,
-          "default": "gen_random_uuid()"
-        },
-        "title": {
-          "name": "title",
-          "type": "varchar(200)",
-          "primaryKey": false,
           "notNull": true
         },
-        "type": {
-          "name": "type",
-          "type": "varchar(32)",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "organizer": {
-          "name": "organizer",
-          "type": "varchar(200)",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "location": {
-          "name": "location",
-          "type": "varchar(200)",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "start_time": {
-          "name": "start_time",
-          "type": "timestamp with time zone",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "end_time": {
-          "name": "end_time",
-          "type": "timestamp with time zone",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "registration_url": {
-          "name": "registration_url",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "target_audience": {
-          "name": "target_audience",
-          "type": "varchar(200)",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "credit_category": {
-          "name": "credit_category",
-          "type": "varchar(100)",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "description": {
-          "name": "description",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "source_url": {
-          "name": "source_url",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "source_name": {
-          "name": "source_name",
-          "type": "varchar(100)",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "data_quality": {
-          "name": "data_quality",
-          "type": "varchar(20)",
+        "human_lecture_count": {
+          "name": "human_lecture_count",
+          "type": "integer",
           "primaryKey": false,
           "notNull": true,
-          "default": "'complete'"
+          "default": 0
         },
-        "status": {
-          "name": "status",
-          "type": "varchar(20)",
+        "book_report_count": {
+          "name": "book_report_count",
+          "type": "integer",
           "primaryKey": false,
           "notNull": true,
-          "default": "'active'"
+          "default": 0
         },
-        "scraped_at": {
-          "name": "scraped_at",
-          "type": "timestamp with time zone",
+        "social_practice_credits": {
+          "name": "social_practice_credits",
+          "type": "numeric(5, 2)",
           "primaryKey": false,
-          "notNull": false
+          "notNull": true,
+          "default": "'0.00'"
+        },
+        "social_practice_course_count": {
+          "name": "social_practice_course_count",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "default": 0
         },
         "created_at": {
           "name": "created_at",
@@ -195,7 +130,21 @@
         }
       },
       "indexes": {},
-      "foreignKeys": {},
+      "foreignKeys": {
+        "lecture_practice_progress_user_id_users_id_fk": {
+          "name": "lecture_practice_progress_user_id_users_id_fk",
+          "tableFrom": "lecture_practice_progress",
+          "tableTo": "users",
+          "columnsFrom": [
+            "user_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        }
+      },
       "compositePrimaryKeys": {},
       "uniqueConstraints": {},
       "policies": {},
@@ -488,6 +437,74 @@
           ]
         }
       },
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.volunteer_labor_progress": {
+      "name": "volunteer_labor_progress",
+      "schema": "",
+      "columns": {
+        "user_id": {
+          "name": "user_id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "volunteer_hours": {
+          "name": "volunteer_hours",
+          "type": "numeric(6, 2)",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'0.00'"
+        },
+        "ordinary_labor_count": {
+          "name": "ordinary_labor_count",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "default": 0
+        },
+        "special_labor_count": {
+          "name": "special_labor_count",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "default": 0
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "volunteer_labor_progress_user_id_users_id_fk": {
+          "name": "volunteer_labor_progress_user_id_users_id_fk",
+          "tableFrom": "volunteer_labor_progress",
+          "tableTo": "users",
+          "columnsFrom": [
+            "user_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
       "policies": {},
       "checkConstraints": {},
       "isRLSEnabled": false

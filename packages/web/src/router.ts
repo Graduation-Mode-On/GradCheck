@@ -1,11 +1,13 @@
 import { createRouter, createWebHistory } from "vue-router";
 
 import HomePage from "./pages/HomePage.vue";
+import LecturePracticePage from "./pages/LecturePracticePage.vue";
 import LoginPage from "./pages/LoginPage.vue";
 import NewsPage from "./pages/NewsPage.vue";
 import PlaceholderPage from "./pages/PlaceholderPage.vue";
 import PlazaPage from "./pages/PlazaPage.vue";
 import ProfilePage from "./pages/ProfilePage.vue";
+import VolunteerPage from "./pages/VolunteerPage.vue";
 
 export const router = createRouter({
   history: createWebHistory(),
@@ -41,14 +43,10 @@ export const router = createRouter({
       component: PlaceholderPage,
       meta: { title: "体育跑操", description: "后续用于记录体测、跑操次数和体育毕业风险。" }
     },
+    { path: "/lecture-practice", name: "lecture-practice", component: LecturePracticePage },
     { path: "/news", name: "news", component: NewsPage },
     { path: "/plaza", name: "plaza", component: PlazaPage },
-    {
-      path: "/volunteer",
-      name: "volunteer",
-      component: PlaceholderPage,
-      meta: { title: "志愿劳育", description: "后续管理志愿时长、心得提交、劳育理论课和实践课完成情况。" }
-    },
+    { path: "/volunteer", name: "volunteer", component: VolunteerPage },
     {
       path: "/exams",
       name: "exams",

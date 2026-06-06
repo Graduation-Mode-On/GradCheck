@@ -77,3 +77,26 @@ export const newsItems = pgTable("news_items", {
   createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
   updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull()
 });
+
+export const lecturePracticeProgress = pgTable("lecture_practice_progress", {
+  userId: uuid("user_id")
+    .primaryKey()
+    .references(() => users.id, { onDelete: "cascade" }),
+  humanLectureCount: integer("human_lecture_count").notNull().default(0),
+  bookReportCount: integer("book_report_count").notNull().default(0),
+  socialPracticeCredits: numeric("social_practice_credits", { precision: 5, scale: 2 }).notNull().default("0.00"),
+  socialPracticeCourseCount: integer("social_practice_course_count").notNull().default(0),
+  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull()
+});
+
+export const volunteerLaborProgress = pgTable("volunteer_labor_progress", {
+  userId: uuid("user_id")
+    .primaryKey()
+    .references(() => users.id, { onDelete: "cascade" }),
+  volunteerHours: numeric("volunteer_hours", { precision: 6, scale: 2 }).notNull().default("0.00"),
+  ordinaryLaborCount: integer("ordinary_labor_count").notNull().default(0),
+  specialLaborCount: integer("special_labor_count").notNull().default(0),
+  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull()
+});
