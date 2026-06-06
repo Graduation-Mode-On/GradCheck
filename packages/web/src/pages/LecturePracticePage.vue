@@ -4,13 +4,12 @@ import { computed, reactive, ref, watchEffect } from "vue";
 import { useRouter } from "vue-router";
 
 import AppShell from "../components/AppShell.vue";
-import RequirementProgressCard from "../components/RequirementProgressCard.vue";
+import LecturePracticeCard from "../components/LecturePracticeCard.vue";
 import { getLecturePracticeProgress, getToken, updateLecturePracticeProgress } from "../lib/api";
 import {
   decimalToFixedText,
   lecturePracticeCompleted,
-  lecturePracticeProgressSchema,
-  socialPracticeStatus
+  lecturePracticeProgressSchema
 } from "../schemas/lecturePractice";
 
 const router = useRouter();
@@ -81,28 +80,57 @@ const missingItems = computed(() =>
   ].filter((item) => !item).length
 );
 
-function updateCount(key: "humanLectureCount" | "bookReportCount" | "socialPracticeCourseCount", value: string) {
+function updateCountAndSave(key: "humanLectureCount" | "bookReportCount" | "socialPracticeCourseCount", value: string) {
   form[key] = Math.max(0, Math.floor(Number(value || 0)));
+  saveProgress(key);
 }
 
-function updateCredits(value: string) {
+function updateCreditsAndSave(value: string) {
   form.socialPracticeCredits = String(Math.max(0, Number(value || 0)));
+  saveProgress("socialPracticeCredits");
 }
 
-function countStatus(value: number, target: number) {
-  return value >= target ? "已完成" : `还差 ${target - value}`;
-}
 </script>
 
 <template>
   <AppShell>
     <section class="space-y-4">
-      <div class="rounded-3xl bg-white p-5 shadow-sm">
-        <p class="text-sm font-semibold text-[var(--tommy-primary)]">讲座实践</p>
-        <h1 class="mt-1 text-2xl font-bold text-[var(--tommy-text)]">讲座实践进度</h1>
-        <p class="mt-2 text-sm leading-6 text-[var(--tommy-text-secondary)]">
-          {{ completed ? "已满足毕业要求" : `还差 ${missingItems} 项要求` }}
-        </p>
+      <!-- 模块说明 Banner -->
+      <div class="relative overflow-hidden rounded-3xl bg-gradient-to-r from-[color-mix(in_srgb,var(--tommy-primary)_8%,white)] to-[color-mix(in_srgb,var(--tommy-info)_4%,white)] p-6 shadow-sm border border-[color-mix(in_srgb,var(--tommy-primary)_10%,white)]">
+        <!-- 装饰背景圆圈 -->
+        <div class="absolute -right-8 -top-8 h-32 w-32 rounded-full bg-[var(--tommy-primary)]/5" />
+        <div class="absolute -bottom-6 -left-6 h-24 w-24 rounded-full bg-[var(--tommy-info)]/5" />
+
+        <div class="relative flex items-start justify-between gap-4">
+          <div class="flex-1">
+            <div class="flex items-center gap-3">
+              <!-- 装饰图标 -->
+              <div class="flex h-10 w-10 items-center justify-center rounded-xl bg-[color-mix(in_srgb,var(--tommy-primary)_12%,white)]">
+                <svg class="h-5 w-5 text-[var(--tommy-primary)]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M12 14a4 4 0 0 0 4-4V5a4 4 0 0 0-8 0v5a4 4 0 0 0 4 4Zm-7-4a7 7 0 0 0 14 0M12 17v4M8 21h8" />
+                </svg>
+              </div>
+              <span class="text-xs font-semibold uppercase tracking-wider text-[var(--tommy-primary)]">讲座实践</span>
+            </div>
+
+            <h1 class="mt-3 text-2xl font-bold text-[var(--tommy-text)]">
+              讲座实践进度
+            </h1>
+            <p class="mt-1.5 text-sm leading-relaxed text-[var(--tommy-text-secondary)]">
+              记录人文讲座、读书报告、社会实践学分等完成情况，追踪毕业要求
+            </p>
+          </div>
+
+          <!-- 统计数字 -->
+          <div class="shrink-0 text-right">
+            <div class="text-3xl font-bold text-[var(--tommy-primary)]">
+              {{ missingItems }}
+            </div>
+            <div class="mt-0.5 text-xs text-[var(--tommy-text-secondary)]">
+              {{ completed ? '全部达标' : `待完成项` }}
+            </div>
+          </div>
+        </div>
       </div>
 
       <p v-if="mutation.error.value" class="rounded-xl bg-[color-mix(in_srgb,var(--tommy-error)_12%,white)] px-3 py-2 text-sm text-[var(--tommy-error)]">
@@ -110,54 +138,50 @@ function countStatus(value: number, target: number) {
       </p>
 
       <div class="grid gap-4 md:grid-cols-2">
-        <RequirementProgressCard
+        <LecturePracticeCard
           field-key="humanLectureCount"
           title="人文讲座"
-          :value="String(form.humanLectureCount)"
-          target-text="8 次"
+          icon="M12 14a4 4 0 0 0 4-4V5a4 4 0 0 0-8 0v5a4 4 0 0 0 4 4Zm-7-4a7 7 0 0 0 14 0M12 17v4M8 21h8"
+          variant="dots"
+          :current="form.humanLectureCount"
+          :target="8"
           unit="次"
-          :status-text="countStatus(form.humanLectureCount, 8)"
-          :missing-text="form.humanLectureCount >= 8 ? '人文讲座已满足毕业要求' : `还差 ${8 - form.humanLectureCount} 次人文讲座`"
           :saved="savedField === 'humanLectureCount'"
-          @update-value="updateCount('humanLectureCount', $event)"
-          @save="saveProgress('humanLectureCount')"
+          @update-value="updateCountAndSave('humanLectureCount', $event)"
         />
-        <RequirementProgressCard
+        <LecturePracticeCard
           field-key="bookReportCount"
           title="读书报告"
-          :value="String(form.bookReportCount)"
-          target-text="2 次"
+          icon="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2zM22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"
+          variant="dots"
+          :current="form.bookReportCount"
+          :target="2"
           unit="次"
-          :status-text="countStatus(form.bookReportCount, 2)"
-          :missing-text="form.bookReportCount >= 2 ? '读书报告已满足毕业要求' : `还差 ${2 - form.bookReportCount} 次读书报告`"
           :saved="savedField === 'bookReportCount'"
-          @update-value="updateCount('bookReportCount', $event)"
-          @save="saveProgress('bookReportCount')"
+          @update-value="updateCountAndSave('bookReportCount', $event)"
         />
-        <RequirementProgressCard
+        <LecturePracticeCard
           field-key="socialPracticeCredits"
           title="社会实践学分"
-          :value="String(Number(form.socialPracticeCredits))"
-          target-text="1 学分"
+          icon="M12 2a4 4 0 0 0-4 4c0 2.5 2 3.5 4 6 2-2.5 4-3.5 4-6a4 4 0 0 0-4-4zM6 22l6-3 6 3v-5l-6 3-6-3v5z"
+          variant="gauge"
+          :current="Number(form.socialPracticeCredits)"
+          :target="1"
           unit="学分"
           :step="0.1"
-          :status-text="Number(form.socialPracticeCredits) >= 1 ? '已及格' : '未及格'"
-          :missing-text="socialPracticeStatus(form.socialPracticeCredits)"
           :saved="savedField === 'socialPracticeCredits'"
-          @update-value="updateCredits"
-          @save="saveProgress('socialPracticeCredits')"
+          @update-value="updateCreditsAndSave($event)"
         />
-        <RequirementProgressCard
+        <LecturePracticeCard
           field-key="socialPracticeCourseCount"
           title="社会实践公开课"
-          :value="String(form.socialPracticeCourseCount)"
-          target-text="1 次"
+          icon="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"
+          variant="toggle"
+          :current="form.socialPracticeCourseCount"
+          :target="1"
           unit="次"
-          :status-text="countStatus(form.socialPracticeCourseCount, 1)"
-          :missing-text="form.socialPracticeCourseCount >= 1 ? '公开课已满足毕业要求' : '还差 1 次社会实践公开课'"
           :saved="savedField === 'socialPracticeCourseCount'"
-          @update-value="updateCount('socialPracticeCourseCount', $event)"
-          @save="saveProgress('socialPracticeCourseCount')"
+          @update-value="updateCountAndSave('socialPracticeCourseCount', $event)"
         />
       </div>
     </section>

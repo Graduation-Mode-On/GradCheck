@@ -74,70 +74,66 @@ describe("LecturePracticePage", () => {
 
     expect(wrapper.text()).toContain("讲座实践");
     expect(wrapper.text()).toContain("人文讲座");
-    expect(wrapper.text()).toContain("8 次");
+    expect(wrapper.text()).toContain("8");
     expect(wrapper.text()).toContain("读书报告");
-    expect(wrapper.text()).toContain("2 次");
+    expect(wrapper.text()).toContain("2");
     expect(wrapper.text()).toContain("社会实践学分");
-    expect(wrapper.text()).toContain("1 学分");
+    expect(wrapper.text()).toContain("学分");
     expect(wrapper.text()).toContain("距优秀还差 2 学分");
     expect(wrapper.text()).toContain("社会实践公开课");
   });
 
-  it("uses different badge colors for incomplete and completed statuses", async () => {
+  it("increments count via +1 button and auto-saves", async () => {
     mocks.token = "token";
     const wrapper = mountPage();
 
     await flushPromises();
 
-    expect(wrapper.get('[data-testid="progress-humanLectureCount-status"]').classes()).toEqual(
-      expect.arrayContaining(["bg-[color-mix(in_srgb,var(--tommy-warning)_14%,white)]", "text-[var(--tommy-warning)]"])
-    );
-
-    await wrapper.get('[data-testid="progress-humanLectureCount-input"]').setValue("8");
-
-    expect(wrapper.get('[data-testid="progress-humanLectureCount-status"]').classes()).toEqual(
-      expect.arrayContaining(["bg-[color-mix(in_srgb,var(--tommy-success)_14%,white)]", "text-[var(--tommy-success)]"])
-    );
-  });
-
-  it("supports plus minus controls, manual input, and save", async () => {
-    mocks.token = "token";
-    const wrapper = mountPage();
-
-    await flushPromises();
-
-    const lectureInput = wrapper.get('[data-testid="progress-humanLectureCount-input"]');
     await wrapper.get('[data-testid="progress-humanLectureCount-increment"]').trigger("click");
-    expect((lectureInput.element as HTMLInputElement).value).toBe("1");
-    await wrapper.get('[data-testid="progress-humanLectureCount-decrement"]').trigger("click");
-    await wrapper.get('[data-testid="progress-humanLectureCount-decrement"]').trigger("click");
-    expect((lectureInput.element as HTMLInputElement).value).toBe("0");
-    await lectureInput.setValue("8");
-    await wrapper.get('[data-testid="progress-humanLectureCount-save"]').trigger("click");
+    await flushPromises();
 
     expect(mocks.updateLecturePracticeProgress).toHaveBeenCalledWith(
-      expect.objectContaining({ humanLectureCount: 8 })
+      expect.objectContaining({ humanLectureCount: 1 })
     );
   });
 
-  it("shows a temporary saved state after saving progress", async () => {
+  it("decrements count via -1 button and auto-saves", async () => {
+    mocks.token = "token";
+    mocks.getLecturePracticeProgress.mockResolvedValue({
+      progress: {
+        humanLectureCount: 5,
+        bookReportCount: 0,
+        socialPracticeCredits: "1.00",
+        socialPracticeCourseCount: 0
+      }
+    });
+    const wrapper = mountPage();
+
+    await flushPromises();
+
+    await wrapper.get('[data-testid="progress-humanLectureCount-decrement"]').trigger("click");
+    await flushPromises();
+
+    expect(mocks.updateLecturePracticeProgress).toHaveBeenCalledWith(
+      expect.objectContaining({ humanLectureCount: 4 })
+    );
+  });
+
+  it("shows a temporary saved state after auto-saving", async () => {
     vi.useFakeTimers();
     mocks.token = "token";
     const wrapper = mountPage();
 
     await flushPromises();
-    await wrapper.get('[data-testid="progress-humanLectureCount-save"]').trigger("click");
+    await wrapper.get('[data-testid="progress-humanLectureCount-increment"]').trigger("click");
     await flushPromises();
 
-    const saveButton = wrapper.get('[data-testid="progress-humanLectureCount-save"]');
-    expect(saveButton.text()).toBe("已保存");
-    expect(saveButton.classes()).toContain("bg-[var(--tommy-success)]");
+    expect(wrapper.text()).toContain("已保存");
 
     vi.advanceTimersByTime(1000);
     await flushPromises();
 
-    expect(saveButton.text()).toBe("保存");
-    expect(saveButton.classes()).toContain("bg-[var(--tommy-primary)]");
+    expect(wrapper.text()).not.toContain("已保存");
     vi.useRealTimers();
   });
 
@@ -151,17 +147,48 @@ describe("LecturePracticePage", () => {
         socialPracticeCourseCount: 0
       }
     });
+    mocks.updateLecturePracticeProgress.mockResolvedValue({
+      progress: {
+        humanLectureCount: 0,
+        bookReportCount: 0,
+        socialPracticeCredits: "0.10",
+        socialPracticeCourseCount: 0
+      }
+    });
     const wrapper = mountPage();
 
     await flushPromises();
 
-    const creditsInput = wrapper.get('[data-testid="progress-socialPracticeCredits-input"]');
-    expect(wrapper.get('[data-testid="progress-socialPracticeCredits-increment"]').text()).toBe("+");
-    expect(wrapper.get('[data-testid="progress-socialPracticeCredits-decrement"]').text()).toBe("-");
+    expect(wrapper.get('[data-testid="progress-socialPracticeCredits-increment"]').text()).toBe("+0.1");
+    expect(wrapper.get('[data-testid="progress-socialPracticeCredits-decrement"]').text()).toBe("-0.1");
+
     await wrapper.get('[data-testid="progress-socialPracticeCredits-increment"]').trigger("click");
-    expect((creditsInput.element as HTMLInputElement).value).toBe("0.1");
-    await wrapper.get('[data-testid="progress-socialPracticeCredits-decrement"]').trigger("click");
-    await wrapper.get('[data-testid="progress-socialPracticeCredits-decrement"]').trigger("click");
-    expect((creditsInput.element as HTMLInputElement).value).toBe("0");
+    await flushPromises();
+
+    expect(mocks.updateLecturePracticeProgress).toHaveBeenCalledWith(
+      expect.objectContaining({ socialPracticeCredits: "0.10" })
+    );
+  });
+
+  it("toggles social practice course completion", async () => {
+    mocks.token = "token";
+    mocks.updateLecturePracticeProgress.mockResolvedValue({
+      progress: {
+        humanLectureCount: 0,
+        bookReportCount: 0,
+        socialPracticeCredits: "1.00",
+        socialPracticeCourseCount: 1
+      }
+    });
+    const wrapper = mountPage();
+
+    await flushPromises();
+
+    await wrapper.get('[data-testid="progress-socialPracticeCourseCount-toggle"]').trigger("click");
+    await flushPromises();
+
+    expect(mocks.updateLecturePracticeProgress).toHaveBeenCalledWith(
+      expect.objectContaining({ socialPracticeCourseCount: 1 })
+    );
   });
 });
