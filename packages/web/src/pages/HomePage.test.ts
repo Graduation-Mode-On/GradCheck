@@ -66,6 +66,9 @@ describe("HomePage dashboard layout", () => {
     expect(featureGrid.classes()).toContain("grid-cols-5");
     expect(entries).toHaveLength(10);
     expect(featureGrid.findAll('[data-testid="feature-entry-icon"]')).toHaveLength(10);
+    expect(featureGrid.findAll('[data-testid="feature-entry-icon"]')[0]?.classes()).toEqual(expect.arrayContaining(["h-7", "w-7"]));
+    expect(entries[0]?.get('[data-testid="feature-entry-icon-shell"]').classes()).toEqual(expect.arrayContaining(["h-14", "w-14"]));
+    expect(entries[0]?.get('[data-testid="feature-entry-label"]').classes()).toContain("text-[10px]");
     expect(featureGrid.text()).not.toMatch(/[📘✅🎯🧭🏃🎤🤝🧪⚙️🎁]/u);
     expect(entries.map((entry) => entry.get('[data-testid="feature-entry-label"]').text())).toEqual([
       "培养方案",

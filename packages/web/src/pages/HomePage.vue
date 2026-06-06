@@ -142,12 +142,12 @@ const dashboardCards = [
           :key="entry.title"
           :to="entry.to"
           data-testid="feature-entry"
-          class="rounded-2xl p-3 text-center transition hover:bg-[color-mix(in_srgb,var(--tommy-primary)_8%,white)]"
+          class="rounded-2xl px-2 py-3 text-center transition hover:bg-[color-mix(in_srgb,var(--tommy-primary)_8%,white)]"
         >
-          <div class="mx-auto mb-2 flex h-10 w-10 items-center justify-center rounded-2xl bg-[color-mix(in_srgb,var(--tommy-primary)_10%,white)] text-[var(--tommy-info)]">
+          <div data-testid="feature-entry-icon-shell" class="mx-auto mb-1.5 flex h-14 w-14 items-center justify-center rounded-2xl bg-[color-mix(in_srgb,var(--tommy-primary)_10%,white)] text-[var(--tommy-info)]">
             <svg
               data-testid="feature-entry-icon"
-              class="h-5 w-5"
+              class="h-7 w-7"
               viewBox="0 0 24 24"
               fill="none"
               stroke="currentColor"
@@ -159,7 +159,7 @@ const dashboardCards = [
               <path :d="entry.iconPath" />
             </svg>
           </div>
-          <p data-testid="feature-entry-label" class="text-xs font-semibold text-[var(--tommy-text)]">{{ entry.title }}</p>
+          <p data-testid="feature-entry-label" class="text-[10px] font-semibold leading-4 text-[var(--tommy-text)]">{{ entry.title }}</p>
         </RouterLink>
       </div>
     </section>
