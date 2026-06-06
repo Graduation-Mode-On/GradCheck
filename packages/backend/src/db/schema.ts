@@ -267,3 +267,15 @@ export const userProgramPlanBindings = pgTable("user_program_plan_bindings", {
   createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
   updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull()
 });
+
+export const userIgnoredProgramPlanGroups = pgTable("user_ignored_program_plan_groups", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  userId: uuid("user_id")
+    .notNull()
+    .references(() => users.id, { onDelete: "cascade" }),
+  programPlanCourseGroupId: uuid("program_plan_course_group_id")
+    .notNull()
+    .references(() => programPlanCourseGroups.id, { onDelete: "cascade" }),
+  note: text("note"),
+  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull()
+});

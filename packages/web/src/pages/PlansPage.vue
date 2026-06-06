@@ -4,7 +4,7 @@ import { computed, nextTick, ref, watch } from "vue";
 import { useRouter } from "vue-router";
 
 import AppShell from "../components/AppShell.vue";
-import { getCurrentProgramPlan, getToken, importProgramPlan, mockUploadProgramPlan } from "../lib/api";
+import { bindProgramPlan, getCurrentProgramPlan, getToken, importProgramPlan, listReusableProgramPlans, mockUploadProgramPlan } from "../lib/api";
 import type { ProgramCourse, ProgramPlanPreview } from "../schemas/programPlan";
 
 const router = useRouter();
@@ -29,6 +29,11 @@ const isReimporting = ref(false);
 const currentQuery = useQuery({
   queryKey: ["current-program-plan"],
   queryFn: getCurrentProgramPlan,
+  enabled: Boolean(getToken())
+});
+const reusablePlansQuery = useQuery({
+  queryKey: ["reusable-program-plans"],
+  queryFn: listReusableProgramPlans,
   enabled: Boolean(getToken())
 });
 
@@ -63,8 +68,24 @@ const importMutation = useMutation({
     errorMessage.value = error instanceof Error ? error.message : "导入失败";
   }
 });
+const bindExistingMutation = useMutation({
+  mutationFn: (planId: string) => bindProgramPlan(planId),
+  onSuccess: async () => {
+    message.value = "已绑定同专业年级培养方案";
+    isReimporting.value = false;
+    preview.value = null;
+    await Promise.all([
+      queryClient.invalidateQueries({ queryKey: ["current-program-plan"] }),
+      queryClient.invalidateQueries({ queryKey: ["reusable-program-plans"] })
+    ]);
+  },
+  onError: (error) => {
+    errorMessage.value = error instanceof Error ? error.message : "绑定培养方案失败";
+  }
+});
 
 const boundPlan = computed(() => currentQuery.data.value?.plan ?? null);
+const reusablePlans = computed(() => (reusablePlansQuery.data.value?.plans ?? []).filter((plan) => plan.id !== boundPlan.value?.id));
 const activePlan = computed(() => preview.value ?? boundPlan.value);
 const showImportFlow = computed(() => !boundPlan.value || isReimporting.value || Boolean(preview.value));
 const uploadTitle = computed(() => (boundPlan.value ? "重新导入培养方案" : "首次导入培养方案"));
@@ -163,7 +184,27 @@ async function startReimport() {
 
     <section v-if="showImportFlow" ref="importPanel" class="scroll-mt-24 rounded-3xl bg-white p-5 shadow-sm">
       <h2 class="text-lg font-bold text-[var(--tommy-text)]">{{ uploadTitle }}</h2>
-      <p class="mt-1 text-sm text-[var(--tommy-text-secondary)]">当前使用 pdf-extract 示例 JSON 模拟解析结果，真实 PDF 解析会在后续接入。</p>
+      <p class="mt-1 text-sm text-[var(--tommy-text-secondary)]">可以直接使用同专业同年级已上传的培养方案；没有合适方案时再上传 PDF 解析导入。</p>
+      <div v-if="reusablePlans.length > 0" data-testid="program-plan-reusable-list" class="mt-4 space-y-3">
+        <article v-for="plan in reusablePlans" :key="plan.id" class="rounded-2xl border border-slate-200 p-4">
+          <div class="flex flex-wrap items-start justify-between gap-3">
+            <div>
+              <h3 class="font-bold text-[var(--tommy-text)]">{{ plan.major }} · {{ plan.grade }}</h3>
+              <p class="mt-1 text-sm text-[var(--tommy-text-secondary)]">
+                {{ plan.school }} · {{ plan.college ?? "未标注学院" }} · {{ plan.courseCount }} 门课程 · 总学分 {{ plan.totalCredits ?? "未知" }}
+              </p>
+            </div>
+            <button
+              data-testid="program-plan-bind-existing"
+              class="rounded-xl bg-slate-900 px-3 py-2 text-sm font-semibold text-white"
+              type="button"
+              @click="bindExistingMutation.mutate(plan.id ?? '')"
+            >
+              直接使用
+            </button>
+          </div>
+        </article>
+      </div>
       <div class="mt-4 flex min-w-0 items-center gap-2 rounded-xl border border-slate-200 bg-slate-50 p-1.5">
         <label
           class="shrink-0 cursor-pointer rounded-lg border border-[color-mix(in_srgb,var(--tommy-primary)_28%,white)] bg-[color-mix(in_srgb,var(--tommy-primary)_12%,white)] px-4 py-2 text-sm font-semibold text-[var(--tommy-primary)] transition hover:bg-[color-mix(in_srgb,var(--tommy-primary)_18%,white)]"

@@ -15,6 +15,8 @@ import { createPlazaRouter } from "./modules/plaza/plaza.routes.js";
 import type { ProgramPlanRepository } from "./modules/program-plans/program-plans.repository.js";
 import { createProgramPlansRouter } from "./modules/program-plans/program-plans.routes.js";
 import { createProgramRulesRouter } from "./modules/program-rules/expressRouter.js";
+import type { CoursesProgressRepository } from "./modules/courses-progress/courses-progress.repository.js";
+import { createCoursesProgressRouter } from "./modules/courses-progress/courses-progress.routes.js";
 import type { SrtpRepository } from "./modules/srtp/srtp.repository.js";
 import { createSrtpRouter } from "./modules/srtp/srtp.routes.js";
 import type { SportsRepository } from "./modules/sports/sports.repository.js";
@@ -25,6 +27,7 @@ import { createVolunteerLaborRouter } from "./modules/volunteer-labor/volunteer-
 import { createWeatherRouter } from "./modules/weather/weather.routes.js";
 import type { CustomRequirementRepository } from "./modules/custom-requirements/custom-requirement.repository.js";
 import { createCustomRequirementRouter } from "./modules/custom-requirements/custom-requirement.routes.js";
+import { createHomeSummaryRouter } from "./modules/home-summary/home-summary.routes.js";
 
 export interface AppDependencies {
   authRepository: AuthRepository;
@@ -37,6 +40,7 @@ export interface AppDependencies {
   sportsRepository: SportsRepository;
   programPlanRepository: ProgramPlanRepository;
   gpaRepository: GpaRepository;
+  coursesProgressRepository: CoursesProgressRepository;
   corsOrigin?: string;
   amapWeatherKey?: string;
 }
@@ -60,6 +64,10 @@ export function createApp(dependencies: AppDependencies) {
   app.use("/api/sports", createSportsRouter(dependencies.authRepository, dependencies.sportsRepository));
   app.use("/api/program-plans", createProgramPlansRouter(dependencies.authRepository, dependencies.programPlanRepository));
   app.use(
+    "/api/courses",
+    createCoursesProgressRouter(dependencies.authRepository, dependencies.coursesProgressRepository)
+  );
+  app.use(
     "/api/lecture-practice",
     createLecturePracticeRouter(dependencies.authRepository, dependencies.lecturePracticeRepository)
   );
@@ -71,6 +79,17 @@ export function createApp(dependencies: AppDependencies) {
     "/api/custom-requirements",
     createCustomRequirementRouter({
       authRepository: dependencies.authRepository,
+      customRequirementRepository: dependencies.customRequirementRepository
+    })
+  );
+  app.use(
+    "/api/home",
+    createHomeSummaryRouter(dependencies.authRepository, {
+      coursesProgressRepository: dependencies.coursesProgressRepository,
+      gpaRepository: dependencies.gpaRepository,
+      lecturePracticeRepository: dependencies.lecturePracticeRepository,
+      volunteerLaborRepository: dependencies.volunteerLaborRepository,
+      srtpRepository: dependencies.srtpRepository,
       customRequirementRepository: dependencies.customRequirementRepository
     })
   );

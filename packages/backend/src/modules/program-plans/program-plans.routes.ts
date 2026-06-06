@@ -24,6 +24,27 @@ export function createProgramPlansRouter(
     }
   });
 
+  router.get("/reusable", async (req, res, next) => {
+    try {
+      res.json({ plans: await programPlanRepository.listReusablePlans(req.userId ?? "") });
+    } catch (error) {
+      next(error);
+    }
+  });
+
+  router.post("/:id/bind", async (req, res, next) => {
+    try {
+      const result = await programPlanRepository.bindExistingPlan(req.userId ?? "", req.params.id);
+      if (!result) {
+        res.status(404).json({ error: { message: "Program plan was not found" } });
+        return;
+      }
+      res.json(result);
+    } catch (error) {
+      next(error);
+    }
+  });
+
   router.post("/mock-upload", upload.single("file"), async (req, res, next) => {
     try {
       if (!req.file?.originalname.toLowerCase().endsWith(".pdf")) {

@@ -4,7 +4,15 @@ import { computed } from "vue";
 import { useRouter } from "vue-router";
 
 import AppShell from "../components/AppShell.vue";
-import { getCurrentUser, getGpaDashboard, getToken, listCustomRequirements } from "../lib/api";
+import {
+  getCurrentUser,
+  getGpaDashboard,
+  getGraduationSummary,
+  getToken,
+  listCustomRequirements,
+  type GraduationDimension,
+  type GraduationDimensionStatus
+} from "../lib/api";
 
 const router = useRouter();
 
@@ -30,6 +38,12 @@ const { data: gpaDashboard } = useQuery({
   enabled: computed(() => Boolean(getToken()))
 });
 
+const { data: graduationSummary } = useQuery({
+  queryKey: ["graduation-summary", getToken()],
+  queryFn: getGraduationSummary,
+  enabled: computed(() => Boolean(getToken()))
+});
+
 const homeCustomRequirements = computed(() =>
   (customRequirementsData.value?.customRequirements ?? []).filter((requirement) => requirement.showOnHome).slice(0, 3)
 );
@@ -47,6 +61,33 @@ const customRequirementPrimaryText = computed(
 const currentGpaText = computed(() => {
   const currentGpa = gpaDashboard.value?.result.requiredFirstAttempt.weightedGpa ?? null;
   return currentGpa === null ? "暂无" : currentGpa.toFixed(2);
+});
+
+const coursesPercent = computed(() => graduationSummary.value?.overall.coursesPercent ?? 0);
+const completedDimensions = computed(() => graduationSummary.value?.overall.completedDimensions ?? 0);
+const totalDimensions = computed(() => graduationSummary.value?.overall.totalDimensions ?? 0);
+const unfinishedCount = computed(() => graduationSummary.value?.overall.unfinishedCount ?? 0);
+const dimensions = computed<GraduationDimension[]>(() => graduationSummary.value?.dimensions ?? []);
+
+const dotClassByStatus: Record<GraduationDimensionStatus, string> = {
+  completed: "bg-[var(--tommy-success)]",
+  in_progress: "bg-[var(--tommy-warning)]",
+  not_started: "bg-slate-300",
+  unknown: "bg-slate-200"
+};
+
+const labelClassByStatus: Record<GraduationDimensionStatus, string> = {
+  completed: "text-[var(--tommy-text)]",
+  in_progress: "text-[var(--tommy-text)]",
+  not_started: "text-[var(--tommy-text-secondary)]",
+  unknown: "text-[var(--tommy-text-secondary)]"
+};
+
+const progressFooterText = computed(() => {
+  if (!graduationSummary.value) return "正在加载毕业进度…";
+  if (totalDimensions.value === 0) return "暂无可统计的毕业要求。";
+  if (unfinishedCount.value === 0) return "全部毕业要求已满足，记得保持数据更新。";
+  return `还有 ${unfinishedCount.value} 项未完成 · 点击下方圆点查看详情`;
 });
 
 const featureEntries = [
@@ -122,13 +163,6 @@ const featureEntries = [
   }
 ];
 
-const progressSegments = [
-  { label: "已完成", value: "42 项", color: "bg-[var(--tommy-success)]" },
-  { label: "进行中", value: "8 项", color: "bg-[var(--tommy-primary)]" },
-  { label: "待确认", value: "3 项", color: "bg-[var(--tommy-warning)]" },
-  { label: "未满足", value: "6 项", color: "bg-[var(--tommy-error)]" }
-];
-
 const dashboardCards = computed(() => [
   {
     title: "GPA计算器",
@@ -167,23 +201,59 @@ const dashboardCards = computed(() => [
             {{ data?.user.profile?.displayName ?? data?.user.email ?? "GradCheck 用户" }}，录入数据后这里会实时更新你的毕业任务状态。
           </p>
         </div>
-        <div class="rounded-2xl bg-[color-mix(in_srgb,var(--tommy-primary)_12%,white)] px-4 py-3 text-right">
-          <p class="text-xs font-semibold text-[var(--tommy-info)]">当前估算</p>
-          <p class="text-2xl font-bold text-[var(--tommy-primary)]">68%</p>
+        <div
+          data-testid="graduation-dimension-count"
+          class="rounded-2xl bg-[color-mix(in_srgb,var(--tommy-primary)_12%,white)] px-4 py-3 text-right"
+        >
+          <p class="text-xs font-semibold text-[var(--tommy-info)]">已完成</p>
+          <p class="text-2xl font-bold text-[var(--tommy-primary)]">
+            {{ completedDimensions }} <span class="text-base font-semibold text-[var(--tommy-text-secondary)]">/ {{ totalDimensions }}</span>
+          </p>
         </div>
       </div>
 
-      <div class="mt-5 h-3 overflow-hidden rounded-full bg-slate-100">
-        <div class="h-full w-[68%] rounded-full bg-gradient-to-r from-[var(--tommy-success)] to-[var(--tommy-primary)]" />
-      </div>
-
-      <div class="mt-4 grid grid-cols-4 gap-2">
-        <div v-for="segment in progressSegments" :key="segment.label" class="rounded-2xl bg-slate-50 p-3">
-          <div class="mb-2 h-1.5 w-8 rounded-full" :class="segment.color" />
-          <p class="text-xs text-[var(--tommy-text-secondary)]">{{ segment.label }}</p>
-          <p class="mt-1 text-sm font-bold text-[var(--tommy-text)]">{{ segment.value }}</p>
+      <div class="mt-5">
+        <div class="flex items-center justify-between text-xs text-[var(--tommy-text-secondary)]">
+          <span>课程学分进度</span>
+          <span data-testid="courses-percent" class="font-semibold text-[var(--tommy-primary)]">{{ coursesPercent }}%</span>
+        </div>
+        <div class="mt-2 h-3 overflow-hidden rounded-full bg-slate-100">
+          <div
+            data-testid="courses-percent-bar"
+            class="h-full rounded-full bg-gradient-to-r from-[var(--tommy-success)] to-[var(--tommy-primary)] transition-all duration-300"
+            :style="{ width: `${coursesPercent}%` }"
+          />
         </div>
       </div>
+
+      <div v-if="dimensions.length > 0" data-testid="graduation-dimension-grid" class="mt-4 grid grid-cols-5 gap-2">
+        <RouterLink
+          v-for="dimension in dimensions"
+          :key="dimension.id"
+          :to="dimension.route"
+          data-testid="graduation-dimension"
+          :data-key="dimension.key"
+          :data-status="dimension.status"
+          :title="dimension.detail"
+          class="group flex flex-col items-center rounded-2xl bg-slate-50 px-2 py-2.5 transition hover:-translate-y-0.5 hover:bg-white hover:shadow-sm"
+        >
+          <span
+            data-testid="graduation-dimension-dot"
+            class="mb-1.5 inline-block h-2 w-2 rounded-full"
+            :class="dotClassByStatus[dimension.status]"
+          />
+          <span
+            class="line-clamp-1 text-[11px] font-semibold leading-4"
+            :class="labelClassByStatus[dimension.status]"
+          >
+            {{ dimension.label }}
+          </span>
+        </RouterLink>
+      </div>
+
+      <p data-testid="graduation-progress-footer" class="mt-4 text-xs text-[var(--tommy-text-secondary)]">
+        {{ progressFooterText }}
+      </p>
     </section>
 
     <section data-testid="feature-entry-grid-card" class="mb-5 rounded-3xl border border-slate-200 bg-white p-3 shadow-sm">
