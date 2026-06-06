@@ -2,6 +2,7 @@ import { createDb } from "./db/client.js";
 import { loadConfig } from "./lib/config.js";
 import { createApp } from "./app.js";
 import { createAuthRepository } from "./modules/auth/auth.repository.js";
+import { createGpaRepository } from "./modules/gpa/gpa.repository.js";
 import { createLecturePracticeRepository } from "./modules/lecture-practice/lecture-practice.repository.js";
 import { createNewsRepository } from "./modules/news/news.repository.js";
 import { createPlazaRepository } from "./modules/plaza/plaza.repository.js";
@@ -21,6 +22,7 @@ const app = createApp({
   lecturePracticeRepository: createLecturePracticeRepository(db),
   volunteerLaborRepository: createVolunteerLaborRepository(db),
   customRequirementRepository: createCustomRequirementRepository(db),
+  gpaRepository: createGpaRepository(db),
   corsOrigin: config.CORS_ORIGIN,
   amapWeatherKey: config.AMAP_WEATHER_KEY
 });

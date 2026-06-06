@@ -4,6 +4,9 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import { createApp } from "./app.js";
 import type { AuthRepository } from "./modules/auth/auth.repository.js";
 import type { CustomRequirementRepository } from "./modules/custom-requirements/custom-requirement.repository.js";
+import { calculateGpaResult } from "./modules/gpa/gpa.calculator.js";
+import type { GpaDashboard, GpaRepository } from "./modules/gpa/gpa.repository.js";
+import type { GpaCourse, GpaCourseInput } from "./modules/gpa/gpa.types.js";
 import type { NewsRepository } from "./modules/news/news.repository.js";
 import type { NewsItemRecord } from "./modules/news/news.types.js";
 import type {
@@ -162,6 +165,51 @@ function createRepository(): AuthRepository {
   };
 }
 
+function createGpaRepository(): GpaRepository {
+  const courses = new Map<string, GpaCourse>();
+
+  function dashboard(userId: string): GpaDashboard {
+    const userCourses = [...courses.values()].filter((course) => course.userId === userId);
+    return {
+      courses: userCourses,
+      result: calculateGpaResult(userCourses)
+    };
+  }
+
+  return {
+    async listCourses(userId) {
+      return dashboard(userId).courses;
+    },
+    async createCourseAndRecalculate(userId, input: GpaCourseInput) {
+      const course: GpaCourse = {
+        id: `course-${courses.size + 1}`,
+        userId,
+        ...input,
+        createdAt: now,
+        updatedAt: now
+      };
+      courses.set(course.id, course);
+      return dashboard(userId);
+    },
+    async updateCourseAndRecalculate(userId, courseId, input) {
+      const existing = courses.get(courseId);
+      if (!existing || existing.userId !== userId) {
+        return null;
+      }
+      courses.set(courseId, { ...existing, ...input, updatedAt: now });
+      return dashboard(userId);
+    },
+    async deleteCourseAndRecalculate(userId, courseId) {
+      const existing = courses.get(courseId);
+      if (!existing || existing.userId !== userId) {
+        return null;
+      }
+      courses.delete(courseId);
+      return dashboard(userId);
+    }
+  };
+}
+
     function createLecturePracticeRepository() {
       const progressByUser = new Map<string, TestLecturePracticeProgress>();
 
@@ -252,6 +300,7 @@ function createRepository(): AuthRepository {
           newsRepository: createNewsRepository(),
           srtpRepository: createSrtpRepository(),
           programPlanRepository: createProgramPlanRepository(),
+          gpaRepository: createGpaRepository(),
           lecturePracticeRepository: createLecturePracticeRepository(),
           volunteerLaborRepository: createVolunteerLaborRepository(),
           customRequirementRepository: createCustomRequirementRepository()
@@ -1072,6 +1121,121 @@ const app = createTestApp();
 
       const currentResponse = await request(app).get("/api/program-plans/me").set("Authorization", `Bearer ${token}`);
       expect(currentResponse.body.plan.id).toBe(importResponse.body.plan.id);
+    });
+
+    describe("GPA API", () => {
+      beforeEach(() => {
+        vi.stubEnv("JWT_SECRET", "test-secret-that-is-long-enough");
+      });
+
+      it("persists GPA courses and recalculates latest results after changes", async () => {
+        const app = createTestApp();
+        const token = await registerAndToken(app, "gpa@example.com");
+
+        const emptyResponse = await request(app).get("/api/gpa").set("Authorization", `Bearer ${token}`);
+
+        expect(emptyResponse.status).toBe(200);
+        expect(emptyResponse.body).toEqual({
+          courses: [],
+          result: {
+            requiredFirstAttempt: {
+              weightedGpa: null,
+              weightedAverageScore: null,
+              totalCredits: 0,
+              courseCount: 0
+            },
+            overall: {
+              weightedGpa: null,
+              weightedAverageScore: null,
+              totalCredits: 0,
+              courseCount: 0
+            }
+          }
+        });
+
+        const createResponse = await request(app)
+          .post("/api/gpa/courses")
+          .set("Authorization", `Bearer ${token}`)
+          .send({
+            term: "2025-2026 春",
+            name: "高等数学",
+            credit: "3.00",
+            score: "96.00",
+            isRequired: true,
+            isFirstAttempt: true,
+            isGpaEligible: true
+          });
+
+        expect(createResponse.status).toBe(201);
+        expect(createResponse.body.courses).toHaveLength(1);
+        expect(createResponse.body.result.requiredFirstAttempt).toEqual({
+          weightedGpa: 4.8,
+          weightedAverageScore: 96,
+          totalCredits: 3,
+          courseCount: 1
+        });
+
+        const courseId = createResponse.body.courses[0].id as string;
+        const updateResponse = await request(app)
+          .put(`/api/gpa/courses/${courseId}`)
+          .set("Authorization", `Bearer ${token}`)
+          .send({
+            term: "2025-2026 秋",
+            name: "高等数学",
+            credit: "3.00",
+            score: "90.00",
+            isRequired: true,
+            isFirstAttempt: true,
+            isGpaEligible: true
+          });
+
+        expect(updateResponse.status).toBe(200);
+        expect(updateResponse.body.result.requiredFirstAttempt.weightedGpa).toBe(4);
+        expect(updateResponse.body.result.requiredFirstAttempt.weightedAverageScore).toBe(90);
+
+        const deleteResponse = await request(app)
+          .delete(`/api/gpa/courses/${courseId}`)
+          .set("Authorization", `Bearer ${token}`);
+
+        expect(deleteResponse.status).toBe(200);
+        expect(deleteResponse.body.courses).toEqual([]);
+        expect(deleteResponse.body.result.overall.weightedGpa).toBeNull();
+      });
+
+      it("does not allow users to update another user's GPA course", async () => {
+        const app = createTestApp();
+        const firstToken = await registerAndToken(app, "gpa-owner@example.com");
+        const secondToken = await registerAndToken(app, "gpa-other@example.com");
+
+        const createResponse = await request(app)
+          .post("/api/gpa/courses")
+          .set("Authorization", `Bearer ${firstToken}`)
+          .send({
+            term: "2025-2026 春",
+            name: "大学物理",
+            credit: "2.00",
+            score: "88.00",
+            isRequired: true,
+            isFirstAttempt: true,
+            isGpaEligible: true
+          });
+
+        const courseId = createResponse.body.courses[0].id as string;
+
+        await request(app)
+          .put(`/api/gpa/courses/${courseId}`)
+          .set("Authorization", `Bearer ${secondToken}`)
+          .send({
+            term: "2025-2026 春",
+            name: "大学物理",
+            credit: "2.00",
+            score: "100.00",
+            isRequired: true,
+            isFirstAttempt: true,
+            isGpaEligible: true
+          })
+          .expect(404);
+      });
     });
   });
 });

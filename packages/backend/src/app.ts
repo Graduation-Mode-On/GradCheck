@@ -8,6 +8,8 @@ import type { AuthRepository } from "./modules/auth/auth.repository.js";
 import { createAuthRouter } from "./modules/auth/auth.routes.js";
 import type { NewsRepository } from "./modules/news/news.repository.js";
 import { createNewsRouter } from "./modules/news/news.routes.js";
+import type { GpaRepository } from "./modules/gpa/gpa.repository.js";
+import { createGpaRouter } from "./modules/gpa/gpa.routes.js";
 import type { PlazaRepository } from "./modules/plaza/plaza.repository.js";
 import { createPlazaRouter } from "./modules/plaza/plaza.routes.js";
 import type { ProgramPlanRepository } from "./modules/program-plans/program-plans.repository.js";
@@ -31,6 +33,7 @@ export interface AppDependencies {
   customRequirementRepository: CustomRequirementRepository;
   srtpRepository: SrtpRepository;
   programPlanRepository: ProgramPlanRepository;
+  gpaRepository: GpaRepository;
   corsOrigin?: string;
   amapWeatherKey?: string;
 }
@@ -47,6 +50,7 @@ export function createApp(dependencies: AppDependencies) {
 
   app.use("/api/auth", createAuthRouter(dependencies.authRepository));
   app.use("/api/users", createUserRouter(dependencies.authRepository));
+  app.use("/api/gpa", createGpaRouter(dependencies.authRepository, dependencies.gpaRepository));
   app.use("/api/plaza/posts", createPlazaRouter(dependencies.authRepository, dependencies.plazaRepository));
   app.use("/api/news", createNewsRouter(dependencies.newsRepository));
   app.use("/api/srtp", createSrtpRouter(dependencies.authRepository, dependencies.srtpRepository));

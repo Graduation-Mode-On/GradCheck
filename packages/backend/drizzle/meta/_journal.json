@@ -43,6 +43,13 @@
       "when": 1780736578451,
       "tag": "0005_nebulous_gorgon",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1780738343787,
+      "tag": "0006_square_sleeper",
+      "breakpoints": true
     }
   ]
 }

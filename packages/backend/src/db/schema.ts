@@ -135,6 +135,46 @@ export const srtpRecords = pgTable("srtp_records", {
   updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull()
 });
 
+export const gpaCourses = pgTable("gpa_courses", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  userId: uuid("user_id")
+    .notNull()
+    .references(() => users.id, { onDelete: "cascade" }),
+  term: varchar("term", { length: 20 }).notNull(),
+  name: varchar("name", { length: 160 }).notNull(),
+  credit: numeric("credit", { precision: 5, scale: 2 }).notNull(),
+  score: numeric("score", { precision: 5, scale: 2 }).notNull(),
+  isRequired: boolean("is_required").notNull().default(false),
+  isFirstAttempt: boolean("is_first_attempt").notNull().default(true),
+  isGpaEligible: boolean("is_gpa_eligible").notNull().default(true),
+  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull()
+});
+
+export const gpaCalculationResults = pgTable("gpa_calculation_results", {
+  userId: uuid("user_id")
+    .primaryKey()
+    .references(() => users.id, { onDelete: "cascade" }),
+  requiredFirstAttempt: jsonb("required_first_attempt")
+    .$type<{
+      weightedGpa: number | null;
+      weightedAverageScore: number | null;
+      totalCredits: number;
+      courseCount: number;
+    }>()
+    .notNull(),
+  overall: jsonb("overall")
+    .$type<{
+      weightedGpa: number | null;
+      weightedAverageScore: number | null;
+      totalCredits: number;
+      courseCount: number;
+    }>()
+    .notNull(),
+  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull()
+});
+
 export const programPlans = pgTable("program_plans", {
   id: uuid("id").defaultRandom().primaryKey(),
   sourceFilename: varchar("source_filename", { length: 240 }).notNull(),

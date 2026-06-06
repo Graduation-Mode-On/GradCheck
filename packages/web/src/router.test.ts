@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 
+import PlaceholderPage from "./pages/PlaceholderPage.vue";
 import { router } from "./router";
 
 describe("router placeholders for mobile tabs", () => {
@@ -45,6 +46,10 @@ describe("router placeholders for homepage feature entries", () => {
     for (const [name, path] of expectedRoutes) {
       expect(router.hasRoute(name)).toBe(true);
       expect(router.resolve({ name }).path).toBe(path);
+      if (name === "gpa") {
+        expect(router.resolve({ name }).matched[0]?.components?.default).toBeTruthy();
+        expect(router.resolve({ name }).matched[0]?.components?.default).not.toBe(PlaceholderPage);
+      }
     }
   });
 });
