@@ -1,11 +1,16 @@
 import { mount, RouterLinkStub, flushPromises } from "@vue/test-utils";
-import { VueQueryPlugin } from "@tanstack/vue-query";
-import { describe, expect, it, vi } from "vitest";
+import { QueryClient, VueQueryPlugin } from "@tanstack/vue-query";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import GpaPage from "./GpaPage.vue";
+import type { GpaDashboardResponse } from "../lib/api";
 
-const { replace, createGpaCourse, updateGpaCourse, deleteGpaCourse } = vi.hoisted(() => ({
+const { authState, replace, getGpaDashboard, createGpaCourse, updateGpaCourse, deleteGpaCourse } = vi.hoisted(() => ({
+  authState: {
+    token: "token" as string | null
+  },
   replace: vi.fn(),
+  getGpaDashboard: vi.fn(),
   createGpaCourse: vi.fn(),
   updateGpaCourse: vi.fn(),
   deleteGpaCourse: vi.fn()
@@ -23,48 +28,74 @@ vi.mock("../lib/api", async () => {
 
   return {
     ...actual,
-    getToken: () => "token",
-    getGpaDashboard: async () => ({
-      courses: [
-        {
-          id: "course-1",
-          userId: "user-1",
-          term: "2025-2026 春",
-          name: "高等数学",
-          credit: "3.00",
-          score: "96.00",
-          isRequired: true,
-          isFirstAttempt: true,
-          isGpaEligible: true,
-          createdAt: "2026-06-06T00:00:00.000Z",
-          updatedAt: "2026-06-06T00:00:00.000Z"
-        }
-      ],
-      result: {
-        requiredFirstAttempt: {
-          weightedGpa: 4.8,
-          weightedAverageScore: 96,
-          totalCredits: 3,
-          courseCount: 1
-        },
-        overall: {
-          weightedGpa: 4.8,
-          weightedAverageScore: 96,
-          totalCredits: 3,
-          courseCount: 1
-        }
-      }
-    }),
+    getToken: () => authState.token,
+    getGpaDashboard,
     createGpaCourse,
     updateGpaCourse,
     deleteGpaCourse
   };
 });
 
-function mountPage() {
+function createDashboard(name = "高等数学", term = "2025-2026 春"): GpaDashboardResponse {
+  return {
+    courses: [
+      {
+        id: "course-1",
+        userId: "user-1",
+        term,
+        name,
+        credit: "3.00",
+        score: "96.00",
+        isRequired: true,
+        isFirstAttempt: true,
+        isGpaEligible: true,
+        createdAt: "2026-06-06T00:00:00.000Z",
+        updatedAt: "2026-06-06T00:00:00.000Z"
+      }
+    ],
+    result: {
+      requiredFirstAttempt: {
+        weightedGpa: 4.8,
+        weightedAverageScore: 96,
+        totalCredits: 3,
+        courseCount: 1
+      },
+      overall: {
+        weightedGpa: 4.8,
+        weightedAverageScore: 96,
+        totalCredits: 3,
+        courseCount: 1
+      }
+    }
+  };
+}
+
+function createTestQueryClient() {
+  return new QueryClient({
+    defaultOptions: {
+      queries: {
+        retry: false
+      },
+      mutations: {
+        retry: false
+      }
+    }
+  });
+}
+
+function createDeferredDashboard() {
+  let resolve: (dashboard: GpaDashboardResponse) => void = () => {};
+  const promise = new Promise<GpaDashboardResponse>((promiseResolve) => {
+    resolve = promiseResolve;
+  });
+
+  return { promise, resolve };
+}
+
+function mountPage(queryClient = createTestQueryClient()) {
   return mount(GpaPage, {
     global: {
-      plugins: [VueQueryPlugin],
+      plugins: [[VueQueryPlugin, { queryClient }]],
       stubs: {
         RouterLink: RouterLinkStub
       }
@@ -73,6 +104,16 @@ function mountPage() {
 }
 
 describe("GpaPage", () => {
+  beforeEach(() => {
+    authState.token = "token";
+    replace.mockReset();
+    getGpaDashboard.mockReset();
+    createGpaCourse.mockReset();
+    updateGpaCourse.mockReset();
+    deleteGpaCourse.mockReset();
+    getGpaDashboard.mockResolvedValue(createDashboard());
+  });
+
   it("shows persisted GPA results and courses", async () => {
     const wrapper = mountPage();
     await flushPromises();
@@ -84,13 +125,7 @@ describe("GpaPage", () => {
   });
 
   it("submits a new course through the API", async () => {
-    createGpaCourse.mockResolvedValueOnce({
-      courses: [],
-      result: {
-        requiredFirstAttempt: { weightedGpa: null, weightedAverageScore: null, totalCredits: 0, courseCount: 0 },
-        overall: { weightedGpa: null, weightedAverageScore: null, totalCredits: 0, courseCount: 0 }
-      }
-    });
+    createGpaCourse.mockResolvedValueOnce(createDashboard("程序设计"));
 
     const wrapper = mountPage();
     await flushPromises();
@@ -109,5 +144,67 @@ describe("GpaPage", () => {
       isFirstAttempt: true,
       isGpaEligible: true
     });
+  });
+
+  it("does not render cached courses when the auth token changes", async () => {
+    const queryClient = createTestQueryClient();
+    authState.token = "token-a";
+    getGpaDashboard.mockResolvedValueOnce(createDashboard("高等数学"));
+
+    const firstWrapper = mountPage(queryClient);
+    await flushPromises();
+    expect(firstWrapper.get('[data-testid="gpa-course-list"]').text()).toContain("高等数学");
+    firstWrapper.unmount();
+
+    authState.token = "token-b";
+    getGpaDashboard.mockResolvedValueOnce(createDashboard("大学英语"));
+    const secondWrapper = mountPage(queryClient);
+
+    expect(secondWrapper.text()).not.toContain("高等数学");
+
+    await flushPromises();
+    expect(secondWrapper.get('[data-testid="gpa-course-list"]').text()).toContain("大学英语");
+  });
+
+  it("keeps mutation results in the GPA query cache after remounting", async () => {
+    const queryClient = createTestQueryClient();
+    createGpaCourse.mockResolvedValueOnce(createDashboard("程序设计"));
+
+    const wrapper = mountPage(queryClient);
+    await flushPromises();
+
+    await wrapper.get('[data-testid="gpa-course-name"]').setValue("程序设计");
+    await wrapper.get('[data-testid="gpa-course-credit"]').setValue("4.00");
+    await wrapper.get('[data-testid="gpa-course-score"]').setValue("90.00");
+    await wrapper.get('[data-testid="gpa-course-form"]').trigger("submit");
+    await flushPromises();
+
+    expect(wrapper.get('[data-testid="gpa-course-list"]').text()).toContain("程序设计");
+    wrapper.unmount();
+
+    const remountedWrapper = mountPage(queryClient);
+    expect(remountedWrapper.get('[data-testid="gpa-course-list"]').text()).toContain("程序设计");
+  });
+
+  it("keeps stale in-flight dashboard fetches from overwriting mutation results", async () => {
+    const pendingDashboard = createDeferredDashboard();
+    getGpaDashboard.mockReturnValueOnce(pendingDashboard.promise);
+    createGpaCourse.mockResolvedValueOnce(createDashboard("程序设计"));
+
+    const wrapper = mountPage();
+
+    await wrapper.get('[data-testid="gpa-course-name"]').setValue("程序设计");
+    await wrapper.get('[data-testid="gpa-course-credit"]').setValue("4.00");
+    await wrapper.get('[data-testid="gpa-course-score"]').setValue("90.00");
+    await wrapper.get('[data-testid="gpa-course-form"]').trigger("submit");
+    await flushPromises();
+
+    expect(wrapper.get('[data-testid="gpa-course-list"]').text()).toContain("程序设计");
+
+    pendingDashboard.resolve(createDashboard("高等数学"));
+    await flushPromises();
+
+    expect(wrapper.get('[data-testid="gpa-course-list"]').text()).toContain("程序设计");
+    expect(wrapper.get('[data-testid="gpa-course-list"]').text()).not.toContain("高等数学");
   });
 });

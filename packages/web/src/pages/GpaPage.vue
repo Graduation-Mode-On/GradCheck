@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { useMutation, useQuery } from "@tanstack/vue-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/vue-query";
 import { computed, reactive, ref } from "vue";
 import { useRouter } from "vue-router";
 import { ZodError } from "zod";
@@ -18,9 +18,10 @@ import {
 import { gpaCourseSchema, gpaTerms, type GpaCourseInput } from "../schemas/gpa";
 
 const router = useRouter();
+const queryClient = useQueryClient();
+const authToken = getToken();
 const message = ref("");
 const editingCourseId = ref<string | null>(null);
-const dashboard = ref<GpaDashboardResponse | null>(null);
 const form = reactive<GpaCourseInput>({
   term: "2025-2026 春",
   name: "",
@@ -31,19 +32,19 @@ const form = reactive<GpaCourseInput>({
   isGpaEligible: true
 });
 
-if (!getToken()) {
+if (!authToken) {
   void router.replace("/login");
 }
 
+const gpaDashboardQueryKey = ["gpa-dashboard", authToken] as const;
 const { data, isLoading } = useQuery({
-  queryKey: ["gpa-dashboard"],
+  queryKey: gpaDashboardQueryKey,
   queryFn: getGpaDashboard,
-  enabled: computed(() => Boolean(getToken()))
+  enabled: computed(() => Boolean(authToken))
 });
 
-const currentDashboard = computed(() => dashboard.value ?? data.value ?? null);
-const courses = computed(() => currentDashboard.value?.courses ?? []);
-const result = computed(() => currentDashboard.value?.result ?? null);
+const courses = computed(() => data.value?.courses ?? []);
+const result = computed(() => data.value?.result ?? null);
 
 function resetForm() {
   editingCourseId.value = null;
@@ -56,8 +57,9 @@ function resetForm() {
   form.isGpaEligible = true;
 }
 
-function applyDashboard(response: GpaDashboardResponse) {
-  dashboard.value = response;
+async function applyDashboard(response: GpaDashboardResponse) {
+  await queryClient.cancelQueries({ queryKey: gpaDashboardQueryKey });
+  queryClient.setQueryData(gpaDashboardQueryKey, response);
   message.value = "GPA 数据已更新";
   resetForm();
 }
