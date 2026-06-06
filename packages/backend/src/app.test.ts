@@ -209,6 +209,9 @@ function createGpaRepository(): GpaRepository {
     async listCourses(userId) {
       return dashboard(userId).courses;
     },
+    async listUserIdsWithGpaCourses() {
+      return [...new Set([...courses.values()].map((course) => course.userId))];
+    },
     async createCourseAndRecalculate(userId, input: GpaCourseInput) {
       const course: GpaCourse = {
         id: `course-${courses.size + 1}`,

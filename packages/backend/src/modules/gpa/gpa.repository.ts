@@ -13,6 +13,7 @@ export interface GpaDashboard {
 
 export interface GpaRepository {
   listCourses(userId: string): Promise<GpaCourse[]>;
+  listUserIdsWithGpaCourses(): Promise<string[]>;
   createCourseAndRecalculate(userId: string, input: GpaCourseInput): Promise<GpaDashboard>;
   createCoursesAndRecalculate(userId: string, input: GpaCourseInput[]): Promise<GpaDashboard>;
   matchCoursesToProgramPlan(userId: string): Promise<GpaDashboard & { matchedCount: number }>;
@@ -59,6 +60,10 @@ export function createGpaRepository(db: Database): GpaRepository {
   return {
     async listCourses(userId) {
       return listCourses(db, userId);
+    },
+    async listUserIdsWithGpaCourses() {
+      const rows = await db.selectDistinct({ userId: gpaCourses.userId }).from(gpaCourses);
+      return rows.map((row) => row.userId);
     },
     async createCourseAndRecalculate(userId, input) {
       return db.transaction(async (tx) => {
