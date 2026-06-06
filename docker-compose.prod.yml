@@ -12,6 +12,8 @@ services:
       PORT: "3000"
     expose:
       - "3000"
+    volumes:
+      - backend_data:/app/packages/backend/data
     restart: unless-stopped
     healthcheck:
       test: ["CMD", "node", "-e", "fetch('http://127.0.0.1:3000/health').then((response) => process.exit(response.ok ? 0 : 1)).catch(() => process.exit(1))"]
@@ -47,5 +49,6 @@ services:
     restart: unless-stopped
 
 volumes:
+  backend_data:
   caddy_data:
   caddy_config:
