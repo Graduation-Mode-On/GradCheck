@@ -69,26 +69,46 @@ const totalDimensions = computed(() => graduationSummary.value?.overall.totalDim
 const unfinishedCount = computed(() => graduationSummary.value?.overall.unfinishedCount ?? 0);
 const dimensions = computed<GraduationDimension[]>(() => graduationSummary.value?.dimensions ?? []);
 
-const dotClassByStatus: Record<GraduationDimensionStatus, string> = {
+const segmentClassByStatus: Record<GraduationDimensionStatus, string> = {
   completed: "bg-[var(--tommy-success)]",
   in_progress: "bg-[var(--tommy-warning)]",
   not_started: "bg-slate-300",
   unknown: "bg-slate-200"
 };
 
-const labelClassByStatus: Record<GraduationDimensionStatus, string> = {
-  completed: "text-[var(--tommy-text)]",
-  in_progress: "text-[var(--tommy-text)]",
-  not_started: "text-[var(--tommy-text-secondary)]",
-  unknown: "text-[var(--tommy-text-secondary)]"
-};
+interface LegendEntry {
+  status: GraduationDimensionStatus;
+  label: string;
+  count: number;
+  swatchClass: string;
+}
+
+const statusCounts = computed(() => {
+  const counts: Record<GraduationDimensionStatus, number> = {
+    completed: 0,
+    in_progress: 0,
+    not_started: 0,
+    unknown: 0
+  };
+  for (const dimension of dimensions.value) {
+    counts[dimension.status] += 1;
+  }
+  return counts;
+});
+
+const legendEntries = computed<LegendEntry[]>(() => [
+  { status: "completed", label: "已完成", count: statusCounts.value.completed, swatchClass: segmentClassByStatus.completed },
+  { status: "in_progress", label: "进行中", count: statusCounts.value.in_progress, swatchClass: segmentClassByStatus.in_progress },
+  { status: "not_started", label: "未开始", count: statusCounts.value.not_started, swatchClass: segmentClassByStatus.not_started }
+]);
 
 const progressFooterText = computed(() => {
   if (!graduationSummary.value) return "正在加载毕业进度…";
   if (totalDimensions.value === 0) return "暂无可统计的毕业要求。";
   if (unfinishedCount.value === 0) return "全部毕业要求已满足，记得保持数据更新。";
-  return `还有 ${unfinishedCount.value} 项未完成 · 点击下方圆点查看详情`;
+  return `还有 ${unfinishedCount.value} 项未完成`;
 });
+
 
 const featureEntries = [
   {
@@ -226,29 +246,35 @@ const dashboardCards = computed(() => [
         </div>
       </div>
 
-      <div v-if="dimensions.length > 0" data-testid="graduation-dimension-grid" class="mt-4 grid grid-cols-5 gap-2">
-        <RouterLink
-          v-for="dimension in dimensions"
-          :key="dimension.id"
-          :to="dimension.route"
-          data-testid="graduation-dimension"
-          :data-key="dimension.key"
-          :data-status="dimension.status"
-          :title="dimension.detail"
-          class="group flex flex-col items-center rounded-2xl bg-slate-50 px-2 py-2.5 transition hover:-translate-y-0.5 hover:bg-white hover:shadow-sm"
+      <div v-if="dimensions.length > 0" data-testid="graduation-status-bar-section" class="mt-4">
+        <div
+          data-testid="graduation-status-bar"
+          class="flex h-2.5 w-full overflow-hidden rounded-full bg-slate-100"
         >
-          <span
-            data-testid="graduation-dimension-dot"
-            class="mb-1.5 inline-block h-2 w-2 rounded-full"
-            :class="dotClassByStatus[dimension.status]"
+          <div
+            v-for="dimension in dimensions"
+            :key="dimension.id"
+            data-testid="graduation-status-segment"
+            :data-key="dimension.key"
+            :data-status="dimension.status"
+            :title="`${dimension.label} · ${dimension.detail}`"
+            class="h-full flex-1 border-r border-white last:border-r-0"
+            :class="segmentClassByStatus[dimension.status]"
           />
+        </div>
+        <div data-testid="graduation-status-legend" class="mt-3 flex flex-wrap gap-x-4 gap-y-2 text-xs text-[var(--tommy-text-secondary)]">
           <span
-            class="line-clamp-1 text-[11px] font-semibold leading-4"
-            :class="labelClassByStatus[dimension.status]"
+            v-for="entry in legendEntries"
+            :key="entry.status"
+            data-testid="graduation-status-legend-entry"
+            :data-status="entry.status"
+            class="inline-flex items-center gap-1.5"
           >
-            {{ dimension.label }}
+            <span class="inline-block h-2 w-2 rounded-full" :class="entry.swatchClass" />
+            <span>{{ entry.label }}</span>
+            <span class="font-semibold text-[var(--tommy-text)]">{{ entry.count }}</span>
           </span>
-        </RouterLink>
+        </div>
       </div>
 
       <p data-testid="graduation-progress-footer" class="mt-4 text-xs text-[var(--tommy-text-secondary)]">

@@ -151,16 +151,30 @@ describe("HomePage dashboard layout", () => {
     const bar = card.get('[data-testid="courses-percent-bar"]');
     expect(bar.attributes("style")).toContain("width: 64%");
 
-    const dots = card.findAll('[data-testid="graduation-dimension"]');
-    expect(dots).toHaveLength(11);
-    expect(dots[0].attributes("data-status")).toBe("in_progress");
-    expect(dots[0].attributes("data-key")).toBe("courses");
-    expect(dots[1].attributes("data-status")).toBe("completed");
-    expect(dots[3].attributes("data-status")).toBe("not_started");
-    expect(dots[3].get('[data-testid="graduation-dimension-dot"]').classes()).toContain("bg-slate-300");
+    const segments = card.findAll('[data-testid="graduation-status-segment"]');
+    expect(segments).toHaveLength(11);
+    expect(segments[0].attributes("data-status")).toBe("in_progress");
+    expect(segments[0].attributes("data-key")).toBe("courses");
+    expect(segments[1].attributes("data-status")).toBe("completed");
+    expect(segments[1].classes()).toContain("bg-[var(--tommy-success)]");
+    expect(segments[3].attributes("data-status")).toBe("not_started");
+    expect(segments[3].classes()).toContain("bg-slate-300");
+
+    const legendEntries = card.findAll('[data-testid="graduation-status-legend-entry"]');
+    expect(legendEntries).toHaveLength(3);
+    expect(legendEntries[0].attributes("data-status")).toBe("completed");
+    expect(legendEntries[0].text()).toContain("已完成");
+    expect(legendEntries[0].text()).toContain("3");
+    expect(legendEntries[1].attributes("data-status")).toBe("in_progress");
+    expect(legendEntries[1].text()).toContain("进行中");
+    expect(legendEntries[1].text()).toContain("4");
+    expect(legendEntries[2].attributes("data-status")).toBe("not_started");
+    expect(legendEntries[2].text()).toContain("未开始");
+    expect(legendEntries[2].text()).toContain("4");
 
     const footer = card.get('[data-testid="graduation-progress-footer"]');
     expect(footer.text()).toContain("还有 8 项未完成");
+    expect(footer.text()).not.toContain("圆点");
   });
 
   it("renders the 10 PRD feature entries in a 5-column grid", () => {
