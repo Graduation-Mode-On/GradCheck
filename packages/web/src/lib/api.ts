@@ -1,4 +1,5 @@
 import type { LoginInput, ProfileInput, RegisterInput } from "../schemas/auth";
+import type { CustomRequirementInput } from "../schemas/customRequirement";
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL ?? "";
 const TOKEN_KEY = "gradcheck.token";
@@ -59,6 +60,10 @@ async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
     throw new Error(body.error?.message ?? `Request failed with status ${response.status}`);
   }
 
+  if (response.status === 204) {
+    return undefined as T;
+  }
+
   return (await response.json()) as T;
 }
 
@@ -84,5 +89,41 @@ export async function updateProfile(input: ProfileInput): Promise<{ profile: Use
   return request<{ profile: UserProfile }>("/api/users/me/profile", {
     method: "PUT",
     body: JSON.stringify(input)
+  });
+}
+
+export interface CustomRequirement extends CustomRequirementInput {
+  id: string;
+  userId: string;
+  status: "pending_confirmation" | "completed" | "at_risk" | "in_progress" | "not_started";
+  progressPercent: number;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export async function listCustomRequirements(): Promise<{ customRequirements: CustomRequirement[] }> {
+  return request<{ customRequirements: CustomRequirement[] }>("/api/custom-requirements");
+}
+
+export async function createCustomRequirement(input: CustomRequirementInput): Promise<{ customRequirement: CustomRequirement }> {
+  return request<{ customRequirement: CustomRequirement }>("/api/custom-requirements", {
+    method: "POST",
+    body: JSON.stringify(input)
+  });
+}
+
+export async function updateCustomRequirement(
+  id: string,
+  input: Partial<CustomRequirementInput>
+): Promise<{ customRequirement: CustomRequirement }> {
+  return request<{ customRequirement: CustomRequirement }>(`/api/custom-requirements/${id}`, {
+    method: "PUT",
+    body: JSON.stringify(input)
+  });
+}
+
+export async function deleteCustomRequirement(id: string): Promise<void> {
+  await request<void>(`/api/custom-requirements/${id}`, {
+    method: "DELETE"
   });
 }

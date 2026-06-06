@@ -1,5 +1,6 @@
 import { createRouter, createWebHistory } from "vue-router";
 
+import CustomRequirementsPage from "./pages/CustomRequirementsPage.vue";
 import HomePage from "./pages/HomePage.vue";
 import LoginPage from "./pages/LoginPage.vue";
 import NewsPage from "./pages/NewsPage.vue";
@@ -58,7 +59,7 @@ export const router = createRouter({
     {
       path: "/custom-requirements",
       name: "custom-requirements",
-      component: PlaceholderPage,
+      component: CustomRequirementsPage,
       meta: { title: "自定义要求", description: "后续支持学院特色要求和用户自定义毕业要求。" }
     },
     {
