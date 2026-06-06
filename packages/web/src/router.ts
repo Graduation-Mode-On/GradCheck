@@ -6,6 +6,7 @@ import NewsPage from "./pages/NewsPage.vue";
 import PlaceholderPage from "./pages/PlaceholderPage.vue";
 import PlazaPage from "./pages/PlazaPage.vue";
 import ProfilePage from "./pages/ProfilePage.vue";
+import SportsPage from "./pages/SportsPage.vue";
 
 export const router = createRouter({
   history: createWebHistory(),
@@ -38,7 +39,7 @@ export const router = createRouter({
     {
       path: "/sports",
       name: "sports",
-      component: PlaceholderPage,
+      component: SportsPage,
       meta: { title: "体育跑操", description: "后续用于记录体测、跑操次数和体育毕业风险。" }
     },
     { path: "/news", name: "news", component: NewsPage },

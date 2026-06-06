@@ -106,7 +106,8 @@ export async function updateProfile(input: ProfileInput): Promise<{ profile: Use
   });
 }
 
-export async function getWeather(city = "320100", extensions: "base" | "all" = "base"): Promise<WeatherResponse> {
+export async function getWeather(extensions: "base" | "all" = "base"): Promise<WeatherResponse> {
+  const city = "320100";
   const params = new URLSearchParams({ city, extensions });
   return request<WeatherResponse>(`/api/weather?${params.toString()}`);
 }
