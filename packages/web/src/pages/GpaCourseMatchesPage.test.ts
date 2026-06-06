@@ -129,4 +129,17 @@ describe("GpaCourseMatchesPage", () => {
     expect(wrapper.get('[data-testid="gpa-match-list"]').text()).not.toContain("高等数学");
     expect(wrapper.get('[data-testid="gpa-match-list"]').text()).not.toContain("电影艺术理论与实践");
   });
+
+  it("confirms an automatic match without opening the picker", async () => {
+    upsertGpaCourseMatch.mockResolvedValueOnce({ match: { confirmedByUser: true }, dashboard: { courses: [], result: { requiredFirstAttempt: { weightedGpa: null, weightedAverageScore: null, totalCredits: 0, courseCount: 0 }, overall: { weightedGpa: null, weightedAverageScore: null, totalCredits: 0, courseCount: 0 } } } });
+    const wrapper = mountPage();
+    await flushPromises();
+
+    await wrapper.get('[data-testid="gpa-match-confirm"]').trigger("click");
+
+    expect(upsertGpaCourseMatch).toHaveBeenCalledWith("c1", {
+      matchTargetType: "course",
+      programPlanCourseId: "p1"
+    });
+  });
 });

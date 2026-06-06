@@ -130,6 +130,17 @@ function filteredCandidateGroups(item: GpaCourseMatchItem) {
 function bindCourseTarget(item: GpaCourseMatchItem, target: string) {
   bindMutation.mutate({ courseId: item.course.id, target });
 }
+
+function confirmCurrentMatch(item: GpaCourseMatchItem) {
+  if (!item.match) return;
+  if (item.match.matchTargetType === "group" && item.match.programPlanCourseGroupId) {
+    bindCourseTarget(item, `group:${item.match.programPlanCourseGroupId}`);
+    return;
+  }
+  if (item.match.programPlanCourseId) {
+    bindCourseTarget(item, `course:${item.match.programPlanCourseId}`);
+  }
+}
 </script>
 
 <template>
@@ -176,6 +187,15 @@ function bindCourseTarget(item: GpaCourseMatchItem, target: string) {
         <p class="mt-3 rounded-2xl bg-slate-50 px-3 py-2 text-sm text-[var(--tommy-text-secondary)]">当前匹配：{{ currentMatchText(item) }}</p>
 
         <div class="mt-3 flex flex-wrap gap-2">
+          <button
+            v-if="item.match && !item.match.confirmedByUser"
+            data-testid="gpa-match-confirm"
+            class="rounded-xl bg-[var(--tommy-primary)] px-3 py-2 text-sm font-semibold text-white"
+            type="button"
+            @click="confirmCurrentMatch(item)"
+          >
+            确认匹配
+          </button>
           <button
             data-testid="gpa-match-open"
             class="rounded-xl bg-slate-900 px-3 py-2 text-sm font-semibold text-white"
