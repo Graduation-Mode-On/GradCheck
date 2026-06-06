@@ -37,11 +37,14 @@ function toggle() {
 // gauge 模式：目标值
 const creditGoal = ref(1.0);
 const gaugeGoal = computed(() => (props.simple ? props.target : creditGoal.value));
-const gaugeSegments = 10;
-const filledSegments = computed(() => {
-  const pct = Math.min(props.current / gaugeGoal.value, 1);
-  return Math.round(pct * gaugeSegments);
-});
+const gaugeSegments = computed(() => (props.simple ? Math.ceil(props.target) : 10));
+
+/** 计算第 index 个格子（从0开始）的填充比例 0~1 */
+function segmentFillRatio(index: number): number {
+  const totalRatio = Math.min(props.current / gaugeGoal.value, 1);
+  const segmentRatio = totalRatio * gaugeSegments.value;
+  return Math.max(0, Math.min(1, segmentRatio - index));
+}
 
 // 提示文字
 const hintText = computed(() => {
@@ -201,13 +204,13 @@ const goalOptions = [
           <div
             v-for="i in gaugeSegments"
             :key="i"
-            class="h-2.5 flex-1 rounded-full transition"
-            :class="
-              i <= filledSegments
-                ? 'bg-[var(--tommy-primary)]'
-                : 'bg-slate-200'
-            "
-          />
+            class="relative h-2.5 flex-1 rounded-full bg-slate-200 overflow-hidden"
+          >
+            <div
+              class="absolute inset-y-0 left-0 rounded-full bg-[var(--tommy-primary)] transition-all duration-300"
+              :style="{ width: (segmentFillRatio(i - 1) * 100) + '%' }"
+            />
+          </div>
         </div>
 
         <p class="mt-3 text-center text-sm text-[var(--tommy-text-secondary)]">
