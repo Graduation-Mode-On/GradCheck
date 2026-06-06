@@ -18,6 +18,7 @@ if (!getToken()) {
 
 const formOpen = ref(false);
 const editingRecord = ref<SrtpRecord | null>(null);
+const pendingDeleteRecord = ref<SrtpRecord | null>(null);
 const actionMenuId = ref("");
 const message = ref("");
 const errorMessage = ref("");
@@ -86,6 +87,7 @@ const updateMutation = useMutation({
 const deleteMutation = useMutation({
   mutationFn: (id: string) => deleteSrtpRecord(id),
   onSuccess: async () => {
+    pendingDeleteRecord.value = null;
     message.value = "SRTP 记录已删除";
     await queryClient.invalidateQueries({ queryKey: ["srtp-overview"] });
   }
@@ -130,8 +132,18 @@ function submitForm() {
 
 function removeRecord(record: SrtpRecord) {
   actionMenuId.value = "";
-  if (window.confirm("确定删除这条 SRTP 记录吗？")) {
-    deleteMutation.mutate(record.id);
+  pendingDeleteRecord.value = record;
+}
+
+function closeDeleteDialog() {
+  if (!deleteMutation.isPending.value) {
+    pendingDeleteRecord.value = null;
+  }
+}
+
+function confirmDeleteRecord() {
+  if (pendingDeleteRecord.value) {
+    deleteMutation.mutate(pendingDeleteRecord.value.id);
   }
 }
 </script>
@@ -237,6 +249,41 @@ function removeRecord(record: SrtpRecord) {
           保存记录
         </button>
       </form>
+    </div>
+
+    <div
+      v-if="pendingDeleteRecord"
+      class="fixed inset-0 z-40 flex items-center justify-center bg-slate-900/45 px-4 py-6"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="srtp-delete-dialog-title"
+    >
+      <div class="w-full max-w-sm rounded-3xl bg-white p-5 shadow-xl">
+        <h2 id="srtp-delete-dialog-title" class="text-lg font-bold text-[var(--tommy-text)]">删除 SRTP 记录</h2>
+        <p class="mt-2 text-sm leading-6 text-[var(--tommy-text-secondary)]">
+          确定删除「<span class="font-bold text-[var(--tommy-text)]">{{ pendingDeleteRecord.title }}</span>」吗？删除后这条记录将不再计入 SRTP 学分。
+        </p>
+        <div class="mt-5 flex justify-end gap-2">
+          <button
+            data-testid="srtp-delete-cancel"
+            class="rounded-xl bg-slate-100 px-4 py-2.5 text-sm font-semibold text-[var(--tommy-text)] disabled:opacity-60"
+            type="button"
+            :disabled="deleteMutation.isPending.value"
+            @click="closeDeleteDialog"
+          >
+            取消
+          </button>
+          <button
+            data-testid="srtp-delete-confirm"
+            class="rounded-xl bg-[var(--tommy-error)] px-4 py-2.5 text-sm font-semibold text-white disabled:opacity-60"
+            type="button"
+            :disabled="deleteMutation.isPending.value"
+            @click="confirmDeleteRecord"
+          >
+            {{ deleteMutation.isPending.value ? "删除中..." : "确认删除" }}
+          </button>
+        </div>
+      </div>
     </div>
   </AppShell>
 </template>

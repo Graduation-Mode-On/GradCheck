@@ -29,6 +29,7 @@ const status = ref<PlazaPostStatus>("open");
 const keyword = ref("");
 const isFormOpen = ref(false);
 const editingPost = ref<PlazaPost | null>(null);
+const pendingDeletePost = ref<PlazaPost | null>(null);
 const formError = ref("");
 
 const filters = computed<PlazaPostFilters>(() => ({
@@ -80,6 +81,7 @@ const statusMutation = useMutation({
 const deleteMutation = useMutation({
   mutationFn: (post: PlazaPost) => deletePlazaPost(post.id),
   onSuccess: async () => {
+    pendingDeletePost.value = null;
     await queryClient.invalidateQueries({ queryKey: ["plaza-posts"] });
   }
 });
@@ -106,8 +108,18 @@ function submitPost(input: PlazaPostInput) {
 }
 
 function deletePost(post: PlazaPost) {
-  if (window.confirm("确定删除这条帖子吗？")) {
-    deleteMutation.mutate(post);
+  pendingDeletePost.value = post;
+}
+
+function closeDeleteDialog() {
+  if (!deleteMutation.isPending.value) {
+    pendingDeletePost.value = null;
+  }
+}
+
+function confirmDeletePost() {
+  if (pendingDeletePost.value) {
+    deleteMutation.mutate(pendingDeletePost.value);
   }
 }
 </script>
@@ -207,5 +219,40 @@ function deletePost(post: PlazaPost) {
       @close="isFormOpen = false"
       @submit="submitPost"
     />
+
+    <div
+      v-if="pendingDeletePost"
+      class="fixed inset-0 z-40 flex items-center justify-center bg-slate-900/45 px-4 py-6"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="plaza-delete-dialog-title"
+    >
+      <div class="w-full max-w-sm rounded-3xl bg-white p-5 shadow-xl">
+        <h2 id="plaza-delete-dialog-title" class="text-lg font-bold text-[var(--tommy-text)]">删除广场帖子</h2>
+        <p class="mt-2 text-sm leading-6 text-[var(--tommy-text-secondary)]">
+          确定删除「<span class="font-bold text-[var(--tommy-text)]">{{ pendingDeletePost.title }}</span>」吗？删除后这条帖子将不再展示。
+        </p>
+        <div class="mt-5 flex justify-end gap-2">
+          <button
+            data-testid="plaza-delete-cancel"
+            class="rounded-xl bg-slate-100 px-4 py-2.5 text-sm font-semibold text-[var(--tommy-text)] disabled:opacity-60"
+            type="button"
+            :disabled="deleteMutation.isPending.value"
+            @click="closeDeleteDialog"
+          >
+            取消
+          </button>
+          <button
+            data-testid="plaza-delete-confirm"
+            class="rounded-xl bg-[var(--tommy-error)] px-4 py-2.5 text-sm font-semibold text-white disabled:opacity-60"
+            type="button"
+            :disabled="deleteMutation.isPending.value"
+            @click="confirmDeletePost"
+          >
+            {{ deleteMutation.isPending.value ? "删除中..." : "确认删除" }}
+          </button>
+        </div>
+      </div>
+    </div>
   </AppShell>
 </template>
