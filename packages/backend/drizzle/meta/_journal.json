@@ -50,6 +50,13 @@
       "when": 1780738343787,
       "tag": "0006_square_sleeper",
       "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "7",
+      "when": 1780746327453,
+      "tag": "0007_faulty_synch",
+      "breakpoints": true
     }
   ]
 }

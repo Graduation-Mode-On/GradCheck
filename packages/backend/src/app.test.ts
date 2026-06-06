@@ -20,6 +20,7 @@ import type {
 import type { PlazaPostStatus } from "./modules/plaza/plaza.types.js";
 import type { ProgramPlanBinding, ProgramPlanRepository } from "./modules/program-plans/program-plans.repository.js";
 import type { CurriculumPlan, ProgramPlanSummary } from "./modules/program-plans/program-plans.schemas.js";
+import { normalizeProgramPlanCourses } from "./modules/program-plans/program-plan-normalizer.js";
 import type { SrtpRepository } from "./modules/srtp/srtp.repository.js";
 import type { SrtpRecord, SrtpRecordInput } from "./modules/srtp/srtp.schemas.js";
 import type { UserProfile } from "./modules/users/user.repository.js";
@@ -48,6 +49,7 @@ interface TestVolunteerLaborProgress {
 function createProgramPlanRepository(): ProgramPlanRepository {
   const plans = new Map<string, ProgramPlanSummary>();
   const bindings = new Map<string, ProgramPlanBinding>();
+  const normalizedStats = new Map<string, { groupCount: number; courseCount: number }>();
 
   return {
     async createAndBind(userId: string, sourceFilename: string, planJson: CurriculumPlan) {
@@ -67,6 +69,8 @@ function createProgramPlanRepository(): ProgramPlanRepository {
         updatedAt: now
       };
       plans.set(plan.id, plan);
+      const normalized = normalizeProgramPlanCourses(planJson);
+      normalizedStats.set(plan.id, { groupCount: normalized.groups.length, courseCount: normalized.courses.length });
       const binding: ProgramPlanBinding = {
         userId,
         programPlanId: plan.id,
@@ -75,7 +79,17 @@ function createProgramPlanRepository(): ProgramPlanRepository {
         updatedAt: now
       };
       bindings.set(userId, binding);
-      return { plan, binding };
+      return { plan, binding, normalized: normalizedStats.get(plan.id) ?? { groupCount: 0, courseCount: 0 } };
+    },
+    async getNormalizedStats(programPlanId: string) {
+      return normalizedStats.get(programPlanId) ?? null;
+    },
+    async backfillNormalizedCourses() {
+      for (const plan of plans.values()) {
+        const normalized = normalizeProgramPlanCourses(plan.planJson);
+        normalizedStats.set(plan.id, { groupCount: normalized.groups.length, courseCount: normalized.courses.length });
+      }
+      return { planCount: plans.size };
     },
     async getBoundPlan(userId: string) {
       const binding = bindings.get(userId);
@@ -1130,6 +1144,10 @@ const app = createTestApp();
         major: "软件工程",
         courseCount: 134,
         requirementCount: 13
+      });
+      expect(importResponse.body.normalized).toMatchObject({
+        groupCount: expect.any(Number),
+        courseCount: 134
       });
 
       const currentResponse = await request(app).get("/api/program-plans/me").set("Authorization", `Bearer ${token}`);
