@@ -435,9 +435,14 @@ function createGpaRepository(): GpaRepository {
           gpaRepository: createGpaRepository(),
           lecturePracticeRepository: createLecturePracticeRepository(),
           volunteerLaborRepository: createVolunteerLaborRepository(),
-          customRequirementRepository: createCustomRequirementRepository()
-        });
-      }
+        customRequirementRepository: createCustomRequirementRepository(),
+        coursesProgressRepository: {
+          async loadProgressData() {
+            return { plan: null, planCourses: [], planGroups: [], gpaCourses: [], matches: [] };
+          }
+        }
+      });
+    }
 
       beforeEach(() => {
     vi.stubEnv("JWT_SECRET", "test-secret-that-is-long-enough");
