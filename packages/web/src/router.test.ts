@@ -46,11 +46,22 @@ describe("router placeholders for homepage feature entries", () => {
     for (const [name, path] of expectedRoutes) {
       expect(router.hasRoute(name)).toBe(true);
       expect(router.resolve({ name }).path).toBe(path);
-      if (name === "gpa") {
+      if (name === "gpa" || name === "exams") {
         expect(router.resolve({ name }).matched[0]?.components?.default).toBeTruthy();
         expect(router.resolve({ name }).matched[0]?.components?.default).not.toBe(PlaceholderPage);
       }
     }
+  });
+});
+
+describe("router for reminders and lab exam events", () => {
+  it("registers real reminders and lab exam events routes", () => {
+    expect(router.hasRoute("reminders")).toBe(true);
+    expect(router.hasRoute("exams")).toBe(true);
+    expect(router.resolve({ name: "reminders" }).path).toBe("/reminders");
+    expect(router.resolve({ name: "exams" }).path).toBe("/exams");
+    expect(router.resolve({ name: "reminders" }).matched[0]?.components?.default).not.toBe(PlaceholderPage);
+    expect(router.resolve({ name: "exams" }).matched[0]?.components?.default).not.toBe(PlaceholderPage);
   });
 });
 

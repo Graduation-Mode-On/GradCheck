@@ -55,6 +55,7 @@ describe("LoginPage", () => {
     await wrapper.get('[data-testid="login-email"]').setValue("user@example.com");
     await wrapper.get('[data-testid="login-password"]').setValue("password123");
     await wrapper.get('[data-testid="register-display-name"]').setValue("同学");
+    await wrapper.get('[data-testid="register-student-id"]').setValue("213220001");
     await collegeSelect.setValue("软件学院");
     await wrapper.get('[data-testid="register-major"]').setValue("软件工程");
     const gradeSelect = wrapper.get('[data-testid="register-grade"]');
@@ -72,7 +73,9 @@ describe("LoginPage", () => {
         college: "软件学院",
         major: "软件工程",
         grade: 2024,
-        gpaGoal: "2.00"
+        gpaGoal: "2.00",
+        studentId: "213220001",
+        pushplusToken: null
       }
     });
   });

@@ -15,6 +15,8 @@ const queryClient = useQueryClient();
 const message = ref("");
 const form = reactive({
   displayName: "",
+  studentId: "",
+  pushplusToken: "",
   college: "",
   major: "",
   grade: new Date().getFullYear(),
@@ -42,6 +44,8 @@ watchEffect(() => {
   form.major = profile.major;
   form.grade = profile.grade;
   form.gpaGoal = profile.gpaGoal;
+  form.studentId = profile.studentId ?? "";
+  form.pushplusToken = profile.pushplusToken ?? "";
 });
 
 const mutation = useMutation({
@@ -77,6 +81,31 @@ async function logout() {
         <label class="block text-sm font-medium text-[var(--tommy-text-secondary)]">
           显示名称
           <input v-model="form.displayName" class="mt-1 w-full rounded-xl border border-slate-300 px-3 py-2" />
+        </label>
+        <label class="block text-sm font-medium text-[var(--tommy-text-secondary)]">
+          学生一卡通（9 位数字）
+          <input
+            data-testid="profile-student-id"
+            v-model="form.studentId"
+            class="mt-1 w-full rounded-xl border border-slate-300 px-3 py-2"
+            inputmode="numeric"
+            pattern="\d{9}"
+            maxlength="9"
+            placeholder="例如 213220001"
+          />
+        </label>
+        <label class="block text-sm font-medium text-[var(--tommy-text-secondary)] sm:col-span-2">
+          PushPlus 推送 token（可选）
+          <input
+            data-testid="profile-pushplus-token"
+            v-model="form.pushplusToken"
+            class="mt-1 w-full rounded-xl border border-slate-300 px-3 py-2 font-mono text-xs"
+            maxlength="32"
+            placeholder="32 位十六进制，留空表示不接收微信推送"
+          />
+          <span class="mt-1 block text-xs text-[var(--tommy-text-secondary)]">
+            关注公众号「pushplus 推送加」→ 个人中心 → 复制你的 token 填到这里。绑定后实验/考试到期前会推送提醒。
+          </span>
         </label>
         <label class="block text-sm font-medium text-[var(--tommy-text-secondary)]">
           学院

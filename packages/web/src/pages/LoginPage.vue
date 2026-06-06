@@ -15,6 +15,8 @@ const form = reactive({
   email: "",
   password: "",
   displayName: "",
+  studentId: "",
+  pushplusToken: "",
   college: "",
   major: "",
   grade: new Date().getFullYear(),
@@ -35,7 +37,9 @@ const mutation = useMutation({
       college: form.college,
       major: form.major,
       grade: form.grade,
-      gpaGoal: form.gpaGoal
+      gpaGoal: form.gpaGoal,
+      studentId: form.studentId,
+      pushplusToken: form.pushplusToken
     });
 
     return register(
@@ -112,6 +116,31 @@ function submit() {
           <label class="block text-sm font-medium text-[var(--tommy-text-secondary)]">
             显示名称
             <input data-testid="register-display-name" v-model="form.displayName" class="mt-1 w-full rounded-xl border border-slate-300 px-3 py-2" />
+          </label>
+          <label class="block text-sm font-medium text-[var(--tommy-text-secondary)]">
+            学生一卡通（9 位数字）
+            <input
+              data-testid="register-student-id"
+              v-model="form.studentId"
+              class="mt-1 w-full rounded-xl border border-slate-300 px-3 py-2"
+              inputmode="numeric"
+              pattern="\d{9}"
+              maxlength="9"
+              placeholder="例如 213220001"
+            />
+          </label>
+          <label class="block text-sm font-medium text-[var(--tommy-text-secondary)]">
+            PushPlus 推送 token（可选）
+            <input
+              data-testid="register-pushplus-token"
+              v-model="form.pushplusToken"
+              class="mt-1 w-full rounded-xl border border-slate-300 px-3 py-2 font-mono text-xs"
+              maxlength="32"
+              placeholder="32 位十六进制，留空可稍后绑定"
+            />
+            <span class="mt-1 block text-xs text-[var(--tommy-text-secondary)]">
+              关注微信公众号「pushplus 推送加」获取，绑定后实验/考试提醒会推送到你的微信。
+            </span>
           </label>
           <label class="block text-sm font-medium text-[var(--tommy-text-secondary)]">
             学院

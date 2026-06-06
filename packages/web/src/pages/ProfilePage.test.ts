@@ -26,7 +26,9 @@ vi.mock("../lib/api", async () => {
           college: "计算机科学与工程学院",
           major: "软件工程",
           grade: 2022,
-          gpaGoal: "3.50"
+          gpaGoal: "3.50",
+          studentId: "213220001",
+          pushplusToken: null
         }
       }
     })

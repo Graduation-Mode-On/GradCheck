@@ -1,6 +1,7 @@
 import cors from "cors";
 import express from "express";
 
+import type { Database } from "./db/client.js";
 import { errorHandler } from "./middleware/error-handler.js";
 import type { LecturePracticeRepository } from "./modules/lecture-practice/lecture-practice.repository.js";
 import { createLecturePracticeRouter } from "./modules/lecture-practice/lecture-practice.routes.js";
@@ -30,6 +31,12 @@ import { createCustomRequirementRouter } from "./modules/custom-requirements/cus
 import type { CourseRecommendationRepository } from "./modules/course-recommendations/course-recommendations.repository.js";
 import { createCourseRecommendationsRouter } from "./modules/course-recommendations/course-recommendations.routes.js";
 import { createHomeSummaryRouter } from "./modules/home-summary/home-summary.routes.js";
+import type { LabExamEventsDatabase } from "./modules/lab-exam-events/lab-exam-events.repository.js";
+import { createLabExamEventsRouter } from "./modules/lab-exam-events/lab-exam-events.routes.js";
+import type { LabExamEventRepository } from "./modules/lab-exam-events/lab-exam-events.types.js";
+import type { RemindersDatabase } from "./modules/reminders/reminders.repository.js";
+import { createRemindersRouter } from "./modules/reminders/reminders.routes.js";
+import type { ReminderRepository } from "./modules/reminders/reminders.types.js";
 
 export interface AppDependencies {
   authRepository: AuthRepository;
@@ -44,6 +51,12 @@ export interface AppDependencies {
   gpaRepository: GpaRepository;
   courseRecommendationRepository: CourseRecommendationRepository;
   coursesProgressRepository: CoursesProgressRepository;
+  reminderRepository: ReminderRepository;
+  labExamEvents: {
+    db: Database;
+    createLabExamEventRepository: (database: LabExamEventsDatabase) => LabExamEventRepository;
+    createReminderRepository: (database: RemindersDatabase) => ReminderRepository;
+  };
   corsOrigin?: string;
   amapWeatherKey?: string;
 }
@@ -94,6 +107,22 @@ export function createApp(dependencies: AppDependencies) {
       volunteerLaborRepository: dependencies.volunteerLaborRepository,
       srtpRepository: dependencies.srtpRepository,
       customRequirementRepository: dependencies.customRequirementRepository
+    })
+  );
+  app.use(
+    "/api/reminders",
+    createRemindersRouter({
+      authRepository: dependencies.authRepository,
+      reminderRepository: dependencies.reminderRepository
+    })
+  );
+  app.use(
+    "/api/lab-exam-events",
+    createLabExamEventsRouter({
+      authRepository: dependencies.authRepository,
+      db: dependencies.labExamEvents.db,
+      createLabExamEventRepository: dependencies.labExamEvents.createLabExamEventRepository,
+      createReminderRepository: dependencies.labExamEvents.createReminderRepository
     })
   );
   if (dependencies.amapWeatherKey) {
