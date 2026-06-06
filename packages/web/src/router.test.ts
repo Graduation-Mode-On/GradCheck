@@ -18,6 +18,13 @@ describe("router for lecture practice and volunteer labor", () => {
     expect(router.resolve({ name: "lecture-practice" }).path).toBe("/lecture-practice");
     expect(router.resolve({ name: "volunteer" }).path).toBe("/volunteer");
   });
+
+  describe("router for SRTP", () => {
+    it("registers the SRTP page route", () => {
+      expect(router.hasRoute("srtp")).toBe(true);
+      expect(router.resolve({ name: "srtp" }).path).toBe("/srtp");
+    });
+  });
 });
 
 describe("router placeholders for homepage feature entries", () => {

@@ -11,6 +11,8 @@ import { createNewsRouter } from "./modules/news/news.routes.js";
 import type { PlazaRepository } from "./modules/plaza/plaza.repository.js";
 import { createPlazaRouter } from "./modules/plaza/plaza.routes.js";
 import { createProgramRulesRouter } from "./modules/program-rules/expressRouter.js";
+import type { SrtpRepository } from "./modules/srtp/srtp.repository.js";
+import { createSrtpRouter } from "./modules/srtp/srtp.routes.js";
 import { createUserRouter } from "./modules/users/user.routes.js";
 import type { VolunteerLaborRepository } from "./modules/volunteer-labor/volunteer-labor.repository.js";
 import { createVolunteerLaborRouter } from "./modules/volunteer-labor/volunteer-labor.routes.js";
@@ -25,6 +27,7 @@ export interface AppDependencies {
   lecturePracticeRepository: LecturePracticeRepository;
   volunteerLaborRepository: VolunteerLaborRepository;
   customRequirementRepository: CustomRequirementRepository;
+  srtpRepository: SrtpRepository;
   corsOrigin?: string;
   amapWeatherKey?: string;
 }
@@ -43,6 +46,7 @@ export function createApp(dependencies: AppDependencies) {
   app.use("/api/users", createUserRouter(dependencies.authRepository));
   app.use("/api/plaza/posts", createPlazaRouter(dependencies.authRepository, dependencies.plazaRepository));
   app.use("/api/news", createNewsRouter(dependencies.newsRepository));
+  app.use("/api/srtp", createSrtpRouter(dependencies.authRepository, dependencies.srtpRepository));
   app.use(
     "/api/lecture-practice",
     createLecturePracticeRouter(dependencies.authRepository, dependencies.lecturePracticeRepository)

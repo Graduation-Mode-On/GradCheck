@@ -2,6 +2,7 @@ import type { LoginInput, ProfileInput, RegisterInput } from "../schemas/auth";
 import type { LecturePracticeProgress, LecturePracticeProgressInput } from "../schemas/lecturePractice";
 import type { NewsItem, NewsItemFilters } from "../schemas/news";
 import type { PlazaPost, PlazaPostFilters, PlazaPostInput, PlazaPostStatus } from "../schemas/plaza";
+import type { SrtpOverview, SrtpRecord, SrtpRecordInput } from "../schemas/srtp";
 import type { VolunteerLaborProgress, VolunteerLaborProgressInput } from "../schemas/volunteerLabor";
 import type { CustomRequirementInput } from "../schemas/customRequirement";
 
@@ -117,7 +118,7 @@ export async function updateProfile(input: ProfileInput): Promise<{ profile: Use
 export interface CustomRequirement extends CustomRequirementInput {
   id: string;
   userId: string;
-  status: "pending_confirmation" | "completed" | "at_risk" | "in_progress" | "not_started";
+  status: "pending_confirmation" | "completed" | "in_progress" | "not_started";
   progressPercent: number;
   createdAt: string;
   updatedAt: string;
@@ -219,4 +220,26 @@ export async function updateVolunteerLaborProgress(
     method: "PUT",
     body: JSON.stringify(input)
   });
+}
+
+export async function getSrtpOverview(): Promise<SrtpOverview> {
+  return request<SrtpOverview>("/api/srtp/me");
+}
+
+export async function createSrtpRecord(input: SrtpRecordInput): Promise<{ record: SrtpRecord }> {
+  return request<{ record: SrtpRecord }>("/api/srtp/me/records", {
+    method: "POST",
+    body: JSON.stringify(input)
+  });
+}
+
+export async function updateSrtpRecord(id: string, input: SrtpRecordInput): Promise<{ record: SrtpRecord }> {
+  return request<{ record: SrtpRecord }>(`/api/srtp/me/records/${id}`, {
+    method: "PUT",
+    body: JSON.stringify(input)
+  });
+}
+
+export async function deleteSrtpRecord(id: string): Promise<{ success: true }> {
+  return request<{ success: true }>(`/api/srtp/me/records/${id}`, { method: "DELETE" });
 }

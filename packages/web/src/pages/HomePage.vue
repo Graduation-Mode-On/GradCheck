@@ -84,7 +84,7 @@ const featureEntries = [
 const progressSegments = [
   { label: "已完成", value: "42 项", color: "bg-[var(--tommy-success)]" },
   { label: "进行中", value: "8 项", color: "bg-[var(--tommy-primary)]" },
-  { label: "存在风险", value: "3 项", color: "bg-[var(--tommy-warning)]" },
+  { label: "待确认", value: "3 项", color: "bg-[var(--tommy-warning)]" },
   { label: "未满足", value: "6 项", color: "bg-[var(--tommy-error)]" }
 ];
 

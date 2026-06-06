@@ -15,6 +15,8 @@ import type {
   UpdatePlazaPostInput
 } from "./modules/plaza/plaza.schemas.js";
 import type { PlazaPostStatus } from "./modules/plaza/plaza.types.js";
+import type { SrtpRepository } from "./modules/srtp/srtp.repository.js";
+import type { SrtpRecord, SrtpRecordInput } from "./modules/srtp/srtp.schemas.js";
 import type { UserProfile } from "./modules/users/user.repository.js";
 
 const now = new Date("2026-06-06T00:00:00.000Z");
@@ -36,6 +38,42 @@ interface TestVolunteerLaborProgress {
   specialLaborCount: number;
   createdAt: Date;
   updatedAt: Date;
+}
+
+function createSrtpRepository(): SrtpRepository {
+  const records = new Map<string, SrtpRecord>();
+
+  return {
+    async listRecords(userId) {
+      return [...records.values()]
+        .filter((record) => record.userId === userId)
+        .sort((a, b) => b.updatedAt.getTime() - a.updatedAt.getTime() || b.id.localeCompare(a.id));
+    },
+    async createRecord(userId: string, input: SrtpRecordInput) {
+      const record: SrtpRecord = {
+        id: `00000000-0000-0000-0000-${String(records.size + 1).padStart(12, "0")}`,
+        userId,
+        ...input,
+        createdAt: now,
+        updatedAt: now
+      };
+      records.set(record.id, record);
+      return record;
+    },
+    async updateRecord(userId: string, id: string, input: SrtpRecordInput) {
+      const existing = records.get(id);
+      if (!existing || existing.userId !== userId) return null;
+      const record = { ...existing, ...input, updatedAt: now };
+      records.set(id, record);
+      return record;
+    },
+    async deleteRecord(userId: string, id: string) {
+      const existing = records.get(id);
+      if (!existing || existing.userId !== userId) return false;
+      records.delete(id);
+      return true;
+    }
+  };
 }
 
 function createRepository(): AuthRepository {
@@ -171,6 +209,7 @@ function createRepository(): AuthRepository {
           authRepository: createRepository(),
           plazaRepository: createPlazaRepository(),
           newsRepository: createNewsRepository(),
+          srtpRepository: createSrtpRepository(),
           lecturePracticeRepository: createLecturePracticeRepository(),
           volunteerLaborRepository: createVolunteerLaborRepository(),
           customRequirementRepository: createCustomRequirementRepository()
@@ -775,6 +814,136 @@ const app = createTestApp();
           specialLaborCount: 1
         })
         .expect(400);
+    });
+  });
+
+  describe("SRTP API", () => {
+    beforeEach(() => {
+      vi.stubEnv("JWT_SECRET", "test-secret-that-is-long-enough");
+    });
+
+    it("requires authentication for SRTP records", async () => {
+      const app = createTestApp();
+
+      await request(app).get("/api/srtp/me").expect(401);
+      await request(app).post("/api/srtp/me/records").send({}).expect(401);
+    });
+
+    it("returns an empty SRTP summary for users with no records", async () => {
+      const app = createTestApp();
+      const token = await registerAndToken(app, "srtp-empty@example.com");
+
+      const response = await request(app).get("/api/srtp/me").set("Authorization", `Bearer ${token}`);
+
+      expect(response.status).toBe(200);
+      expect(response.body).toEqual({
+        records: [],
+        summary: {
+          totalCredits: "0.00",
+          passingRequiredCredits: "2.00",
+          excellentRequiredCredits: "6.00",
+          status: "not_passing",
+          missingForPassing: "2.00",
+          missingForExcellent: "6.00"
+        }
+      });
+    });
+
+    it("creates SRTP records and calculates passing and excellent summary", async () => {
+      const app = createTestApp();
+      const token = await registerAndToken(app, "srtp-owner@example.com");
+
+      await request(app)
+        .post("/api/srtp/me/records")
+        .set("Authorization", `Bearer ${token}`)
+        .send({ title: "挑战杯竞赛", type: "competition", credits: "1.20", description: "校赛获奖" })
+        .expect(201);
+      await request(app)
+        .post("/api/srtp/me/records")
+        .set("Authorization", `Bearer ${token}`)
+        .send({ title: "SRTP 项目", type: "project", credits: "1.00", description: "项目结题" })
+        .expect(201);
+
+      const passingResponse = await request(app).get("/api/srtp/me").set("Authorization", `Bearer ${token}`);
+
+      expect(passingResponse.body.summary).toMatchObject({
+        totalCredits: "2.20",
+        status: "passing",
+        missingForPassing: "0.00",
+        missingForExcellent: "3.80"
+      });
+
+      await request(app)
+        .post("/api/srtp/me/records")
+        .set("Authorization", `Bearer ${token}`)
+        .send({ title: "SRTP 讲座", type: "lecture", credits: "3.80", description: "系列讲座" })
+        .expect(201);
+
+      const excellentResponse = await request(app).get("/api/srtp/me").set("Authorization", `Bearer ${token}`);
+
+      expect(excellentResponse.body.summary).toMatchObject({
+        totalCredits: "6.00",
+        status: "excellent",
+        missingForPassing: "0.00",
+        missingForExcellent: "0.00"
+      });
+      expect(excellentResponse.body.records).toHaveLength(3);
+    });
+
+    it("edits and deletes owned SRTP records", async () => {
+      const app = createTestApp();
+      const token = await registerAndToken(app, "srtp-edit@example.com");
+
+      const createResponse = await request(app)
+        .post("/api/srtp/me/records")
+        .set("Authorization", `Bearer ${token}`)
+        .send({ title: "SRTP 讲座", type: "lecture", credits: "0.50", description: "讲座记录" });
+      const recordId = createResponse.body.record.id as string;
+
+      await request(app)
+        .put(`/api/srtp/me/records/${recordId}`)
+        .set("Authorization", `Bearer ${token}`)
+        .send({ title: "SRTP 讲座更新", type: "lecture", credits: "1.50", description: "更新后" })
+        .expect(200);
+
+      const updatedResponse = await request(app).get("/api/srtp/me").set("Authorization", `Bearer ${token}`);
+      expect(updatedResponse.body.records[0]).toMatchObject({ title: "SRTP 讲座更新", credits: "1.50" });
+      expect(updatedResponse.body.summary.totalCredits).toBe("1.50");
+
+      await request(app).delete(`/api/srtp/me/records/${recordId}`).set("Authorization", `Bearer ${token}`).expect(200);
+
+      const deletedResponse = await request(app).get("/api/srtp/me").set("Authorization", `Bearer ${token}`);
+      expect(deletedResponse.body.records).toHaveLength(0);
+      expect(deletedResponse.body.summary.totalCredits).toBe("0.00");
+    });
+
+    it("rejects invalid SRTP record input and missing records", async () => {
+      const app = createTestApp();
+      const token = await registerAndToken(app, "srtp-invalid@example.com");
+
+      await request(app)
+        .post("/api/srtp/me/records")
+        .set("Authorization", `Bearer ${token}`)
+        .send({ title: "", type: "competition", credits: "1.00", description: "" })
+        .expect(400);
+
+      await request(app)
+        .post("/api/srtp/me/records")
+        .set("Authorization", `Bearer ${token}`)
+        .send({ title: "无效类型", type: "invalid", credits: "1.00", description: "" })
+        .expect(400);
+
+      await request(app)
+        .post("/api/srtp/me/records")
+        .set("Authorization", `Bearer ${token}`)
+        .send({ title: "负学分", type: "other", credits: "-0.10", description: "" })
+        .expect(400);
+
+      await request(app)
+        .put("/api/srtp/me/records/00000000-0000-0000-0000-000000000000")
+        .set("Authorization", `Bearer ${token}`)
+        .send({ title: "不存在", type: "other", credits: "1.00", description: "" })
+        .expect(404);
     });
   });
 });
