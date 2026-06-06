@@ -89,6 +89,9 @@ describe("CustomRequirementsPage", () => {
     expect(wrapper.find('[data-testid="custom-requirement-show-on-home"]').exists()).toBe(true);
     expect(wrapper.find('[data-testid="custom-requirement-deadline"]').exists()).toBe(true);
     expect(wrapper.find('[data-testid="custom-requirement-notes"]').exists()).toBe(true);
+    expect(wrapper.get('[data-testid="custom-requirement-form-card"]').classes()).toEqual(
+      expect.arrayContaining(["bg-gradient-to-br", "from-white"])
+    );
   });
 
   it("lets users toggle whether an existing requirement is shown on home", async () => {
@@ -124,6 +127,27 @@ describe("CustomRequirementsPage", () => {
     expect(updateCustomRequirementMock).toHaveBeenCalledTimes(1);
     expect(wrapper.get('[data-testid="increment-requirement-1"]').attributes("disabled")).toBeDefined();
     resolveUpdate({});
+  });
+
+  it("keeps mobile requirement actions in one compact row", async () => {
+    const wrapper = mount(CustomRequirementsPage, {
+      global: {
+        plugins: [VueQueryPlugin],
+        stubs: { RouterLink: RouterLinkStub }
+      }
+    });
+
+    await vi.dynamicImportSettled();
+    const actions = wrapper.get('[data-testid="custom-requirement-actions-requirement-1"]');
+
+    expect(actions.classes()).toEqual(expect.arrayContaining(["flex-nowrap", "overflow-x-auto"]));
+    expect(actions.text()).toContain("+1");
+    expect(actions.text()).toContain("完成");
+    expect(actions.text()).toContain("编辑");
+    expect(actions.text()).toContain("首页");
+    expect(actions.text()).toContain("删除");
+    expect(actions.text()).not.toContain("标记完成");
+    expect(actions.text()).not.toContain("取消主页展示");
   });
 
 

@@ -124,11 +124,17 @@ function isRequirementUpdating(id: string): boolean {
 
 <template>
   <AppShell>
-    <section class="rounded-3xl bg-white p-6 shadow-sm">
-      <h1 class="text-2xl font-bold text-[var(--tommy-text)]">自定义要求</h1>
-      <p class="mt-2 text-sm text-[var(--tommy-text-secondary)]">维护学院特色要求、个人目标和待确认毕业任务。</p>
+    <section
+      data-testid="custom-requirement-form-card"
+      class="overflow-hidden rounded-3xl border border-[color-mix(in_srgb,var(--tommy-primary)_14%,white)] bg-gradient-to-br from-white to-[color-mix(in_srgb,var(--tommy-primary)_8%,white)] shadow-sm"
+    >
+      <div class="border-b border-slate-100 px-5 py-4">
+        <p class="text-xs font-semibold text-[var(--tommy-info)]">Requirement Template</p>
+        <h1 class="mt-1 text-2xl font-bold text-[var(--tommy-text)]">自定义要求</h1>
+        <p class="mt-2 text-sm text-[var(--tommy-text-secondary)]">维护学院特色要求、个人目标和待确认毕业任务。</p>
+      </div>
 
-      <form class="mt-6 grid gap-4 sm:grid-cols-2" @submit.prevent="saveMutation.mutate()">
+      <form class="grid gap-3 p-5 sm:grid-cols-2" @submit.prevent="saveMutation.mutate()">
         <label class="block text-sm font-medium text-[var(--tommy-text-secondary)]">
           名称
           <input data-testid="custom-requirement-name" v-model="form.name" class="mt-1 w-full rounded-xl border border-slate-300 px-3 py-2" />
@@ -211,12 +217,12 @@ function isRequirementUpdating(id: string): boolean {
             @input="form.notes = ($event.target as HTMLTextAreaElement).value || null"
           />
         </label>
-        <button data-testid="custom-requirement-submit" class="rounded-xl bg-[var(--tommy-primary)] px-5 py-2.5 font-semibold text-white sm:col-span-2" type="submit">
+        <button data-testid="custom-requirement-submit" class="rounded-xl bg-[var(--tommy-primary)] px-5 py-2.5 font-semibold text-white shadow-sm sm:col-span-2" type="submit">
           {{ editingRequirementId ? "保存自定义要求" : "新增自定义要求" }}
         </button>
       </form>
 
-      <p v-if="message" class="mt-4 rounded-xl bg-[color-mix(in_srgb,var(--tommy-primary)_12%,white)] px-3 py-2 text-sm text-[var(--tommy-info)]">{{ message }}</p>
+      <p v-if="message" class="mx-5 mb-5 rounded-xl bg-[color-mix(in_srgb,var(--tommy-primary)_12%,white)] px-3 py-2 text-sm text-[var(--tommy-info)]">{{ message }}</p>
     </section>
 
     <section class="mt-5 grid gap-3">
@@ -230,10 +236,13 @@ function isRequirementUpdating(id: string): boolean {
             {{ requirement.showOnHome ? "主页展示" : "不在主页展示" }}
           </span>
         </div>
-        <div class="mt-4 flex flex-wrap gap-2">
+        <div
+          :data-testid="`custom-requirement-actions-${requirement.id}`"
+          class="mt-4 flex flex-nowrap gap-1.5 overflow-x-auto pb-1"
+        >
           <button
             :data-testid="`increment-${requirement.id}`"
-            class="rounded-xl border border-slate-200 px-3 py-2 text-sm disabled:opacity-50"
+            class="shrink-0 rounded-full border border-slate-200 px-2.5 py-1.5 text-xs disabled:opacity-50"
             type="button"
             :disabled="isRequirementUpdating(requirement.id)"
             @click="incrementProgress(requirement.id, requirement.currentValue)"
@@ -241,16 +250,16 @@ function isRequirementUpdating(id: string): boolean {
             +1
           </button>
           <button
-            class="rounded-xl border border-slate-200 px-3 py-2 text-sm disabled:opacity-50"
+            class="shrink-0 rounded-full border border-slate-200 px-2.5 py-1.5 text-xs disabled:opacity-50"
             type="button"
             :disabled="isRequirementUpdating(requirement.id)"
             @click="markComplete(requirement.id, requirement.targetValue)"
           >
-            标记完成
+            完成
           </button>
           <button
             :data-testid="`edit-${requirement.id}`"
-            class="rounded-xl border border-slate-200 px-3 py-2 text-sm"
+            class="shrink-0 rounded-full border border-slate-200 px-2.5 py-1.5 text-xs"
             type="button"
             @click="editRequirement(requirement)"
           >
@@ -258,14 +267,14 @@ function isRequirementUpdating(id: string): boolean {
           </button>
           <button
             :data-testid="`toggle-home-${requirement.id}`"
-            class="rounded-xl border border-slate-200 px-3 py-2 text-sm disabled:opacity-50"
+            class="shrink-0 rounded-full border border-slate-200 px-2.5 py-1.5 text-xs disabled:opacity-50"
             type="button"
             :disabled="isRequirementUpdating(requirement.id)"
             @click="toggleShowOnHome(requirement.id, requirement.showOnHome)"
           >
-            {{ requirement.showOnHome ? "取消主页展示" : "主页展示" }}
+            {{ requirement.showOnHome ? "首页中" : "首页" }}
           </button>
-          <button class="rounded-xl border border-slate-200 px-3 py-2 text-sm" type="button" @click="removeRequirement(requirement.id)">删除</button>
+          <button class="shrink-0 rounded-full border border-slate-200 px-2.5 py-1.5 text-xs" type="button" @click="removeRequirement(requirement.id)">删除</button>
         </div>
       </article>
     </section>
