@@ -8,12 +8,16 @@ import AppShell from "../components/AppShell.vue";
 import {
   createGpaCourse,
   deleteGpaCourse,
+  deleteGpaCourseMatch,
+  getGpaCourseMatches,
   getGpaDashboard,
   getToken,
   importGpaTranscriptCourses,
   updateGpaCourse,
+  upsertGpaCourseMatch,
   uploadGpaTranscript,
   type GpaCourse,
+  type GpaCourseMatchItem,
   type GpaDashboardResponse,
   type GpaScopeResult,
   type GpaTranscriptCoursePreview
@@ -36,6 +40,7 @@ const transcriptPreview = ref<{
   warnings: string[];
 } | null>(null);
 const selectedTranscriptCourseKeys = ref<Set<string>>(new Set());
+const selectedMatchTargets = ref<Record<string, string>>({});
 const form = reactive<GpaCourseInput>({
   term: "2025-2026 春",
   name: "",
@@ -54,6 +59,11 @@ const gpaDashboardQueryKey = ["gpa-dashboard", authToken] as const;
 const { data, error, isLoading } = useQuery({
   queryKey: gpaDashboardQueryKey,
   queryFn: getGpaDashboard,
+  enabled: computed(() => Boolean(authToken))
+});
+const courseMatchesQuery = useQuery({
+  queryKey: ["gpa-course-matches", authToken],
+  queryFn: getGpaCourseMatches,
   enabled: computed(() => Boolean(authToken))
 });
 
@@ -108,6 +118,36 @@ const deleteMutation = useMutation({
   onSuccess: applyDashboard,
   onError: (error) => {
     message.value = error instanceof Error ? error.message : "删除失败";
+  }
+});
+
+const bindMatchMutation = useMutation({
+  mutationFn: async ({ courseId, target }: { courseId: string; target: string }) => {
+    const [matchTargetType, id] = target.split(":");
+    return upsertGpaCourseMatch(
+      courseId,
+      matchTargetType === "group"
+        ? { matchTargetType: "group", programPlanCourseGroupId: id }
+        : { matchTargetType: "course", programPlanCourseId: id }
+    );
+  },
+  onSuccess: async (response) => {
+    await applyDashboard(response.dashboard);
+    await courseMatchesQuery.refetch();
+  },
+  onError: (error) => {
+    message.value = error instanceof Error ? error.message : "保存课程匹配失败";
+  }
+});
+
+const unbindMatchMutation = useMutation({
+  mutationFn: deleteGpaCourseMatch,
+  onSuccess: async (response) => {
+    await applyDashboard(response.dashboard);
+    await courseMatchesQuery.refetch();
+  },
+  onError: (error) => {
+    message.value = error instanceof Error ? error.message : "取消课程匹配失败";
   }
 });
 
@@ -207,6 +247,32 @@ function toGpaCourseInput(course: GpaTranscriptCoursePreview): GpaCourseInput {
     isFirstAttempt: course.isFirstAttempt,
     isGpaEligible: course.isGpaEligible
   };
+}
+
+function selectedMatchTarget(item: GpaCourseMatchItem) {
+  if (selectedMatchTargets.value[item.course.id]) {
+    return selectedMatchTargets.value[item.course.id];
+  }
+  if (item.match?.matchTargetType === "group" && item.match.programPlanCourseGroupId) {
+    return `group:${item.match.programPlanCourseGroupId}`;
+  }
+  if (item.match?.programPlanCourseId) {
+    return `course:${item.match.programPlanCourseId}`;
+  }
+  return "";
+}
+
+function setSelectedMatchTarget(courseId: string, value: string) {
+  selectedMatchTargets.value = { ...selectedMatchTargets.value, [courseId]: value };
+}
+
+function bindSelectedMatch(item: GpaCourseMatchItem) {
+  const target = selectedMatchTarget(item);
+  if (!target) {
+    message.value = "请先选择匹配目标";
+    return;
+  }
+  bindMatchMutation.mutate({ courseId: item.course.id, target });
 }
 
 function formatMetric(value: number | null): string {
@@ -311,6 +377,60 @@ function scopeSubtitle(scope: GpaScopeResult | undefined): string {
               <span v-if="course.exclusionReason" class="mt-1 block text-xs text-[var(--tommy-warning)]">{{ course.exclusionReason }}</span>
             </span>
           </label>
+        </div>
+      </div>
+    </section>
+
+    <section class="mb-5 rounded-3xl bg-white p-5 shadow-sm">
+      <h2 class="text-lg font-bold text-[var(--tommy-text)]">课程匹配</h2>
+      <p class="mt-1 text-sm text-[var(--tommy-text-secondary)]">查看 GPA 课程与培养方案课程/课程组的对应关系，也可以手动调整。</p>
+      <p v-if="courseMatchesQuery.isLoading.value" class="mt-4 text-sm text-[var(--tommy-text-secondary)]">正在加载匹配结果...</p>
+      <div v-else data-testid="gpa-match-list" class="mt-4 space-y-3">
+        <div
+          v-for="item in courseMatchesQuery.data.value?.items ?? []"
+          :key="item.course.id"
+          class="rounded-2xl border border-slate-200 p-3"
+        >
+          <div class="flex flex-wrap items-center justify-between gap-3">
+            <div>
+              <p class="font-semibold text-[var(--tommy-text)]">{{ item.course.name }}</p>
+              <p class="mt-1 text-xs text-[var(--tommy-text-secondary)]">
+                当前：{{ item.match ? (item.match.matchTargetType === "group" ? "课程组匹配" : "课程匹配") : "未匹配" }}
+              </p>
+            </div>
+            <div class="flex flex-wrap gap-2">
+              <select
+                data-testid="gpa-match-select"
+                class="rounded-xl border border-slate-300 px-3 py-2 text-sm"
+                :value="selectedMatchTarget(item)"
+                @change="setSelectedMatchTarget(item.course.id, ($event.target as HTMLSelectElement).value)"
+              >
+                <option value="">选择匹配目标</option>
+                <option v-for="course in item.candidates.courses" :key="`course:${course.id}`" :value="`course:${course.id}`">
+                  {{ course.name }}（{{ course.credits }} 学分）
+                </option>
+                <option v-for="group in item.candidates.groups" :key="`group:${group.id}`" :value="`group:${group.id}`">
+                  课程组：{{ group.name }}
+                </option>
+              </select>
+              <button
+                data-testid="gpa-match-bind"
+                class="rounded-xl bg-[var(--tommy-primary)] px-3 py-2 text-sm font-semibold text-white"
+                type="button"
+                @click="bindSelectedMatch(item)"
+              >
+                绑定
+              </button>
+              <button
+                data-testid="gpa-match-unbind"
+                class="rounded-xl bg-slate-100 px-3 py-2 text-sm font-semibold text-[var(--tommy-text)]"
+                type="button"
+                @click="unbindMatchMutation.mutate(item.course.id)"
+              >
+                解绑
+              </button>
+            </div>
+          </div>
         </div>
       </div>
     </section>

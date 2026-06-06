@@ -24,6 +24,19 @@ export interface GpaRepository {
   createCourseAndRecalculate(userId: string, input: GpaCourseInput): Promise<GpaDashboard>;
   createCoursesAndRecalculate(userId: string, input: GpaCourseInput[]): Promise<GpaDashboard>;
   matchCoursesToProgramPlan(userId: string): Promise<GpaDashboard & { matchedCount: number }>;
+  listCourseMatches(userId: string): Promise<{
+    items: Array<{
+      course: GpaCourse;
+      match: Record<string, unknown> | null;
+      candidates: { courses: unknown[]; groups: unknown[] };
+    }>;
+  }>;
+  upsertManualCourseMatch(
+    userId: string,
+    gpaCourseId: string,
+    input: { matchTargetType: "course" | "group"; programPlanCourseId?: string; programPlanCourseGroupId?: string }
+  ): Promise<{ match: Record<string, unknown>; dashboard: GpaDashboard } | null>;
+  deleteCourseMatch(userId: string, gpaCourseId: string): Promise<{ dashboard: GpaDashboard } | null>;
   cleanupTranscriptArtifactsAndRecalculate(userId: string): Promise<GpaDashboard & { deletedCount: number }>;
   updateCourseAndRecalculate(userId: string, courseId: string, input: GpaCourseInput): Promise<GpaDashboard | null>;
   deleteCourseAndRecalculate(userId: string, courseId: string): Promise<GpaDashboard | null>;
@@ -140,6 +153,79 @@ export function createGpaRepository(db: Database): GpaRepository {
         }
 
         return { ...(await recalculateAndPersist(tx, userId)), matchedCount };
+      });
+    },
+    async listCourseMatches(userId) {
+      const courses = await listCourses(db, userId);
+      const [binding] = await db
+        .select()
+        .from(userProgramPlanBindings)
+        .where(eq(userProgramPlanBindings.userId, userId))
+        .limit(1);
+      const planCourses = binding
+        ? await db.select().from(programPlanCourses).where(eq(programPlanCourses.programPlanId, binding.programPlanId))
+        : [];
+      const planGroups = binding
+        ? await db.select().from(programPlanCourseGroups).where(eq(programPlanCourseGroups.programPlanId, binding.programPlanId))
+        : [];
+      const matches = await db.select().from(userCoursePlanMatches).where(eq(userCoursePlanMatches.userId, userId));
+      const matchByCourseId = new Map(matches.map((match) => [match.gpaCourseId, match]));
+
+      return {
+        items: courses.map((course) => ({
+          course,
+          match: matchByCourseId.get(course.id) ?? null,
+          candidates: { courses: planCourses, groups: planGroups }
+        }))
+      };
+    },
+    async upsertManualCourseMatch(userId, gpaCourseId, input) {
+      return db.transaction(async (tx) => {
+        await lockUserGpa(tx, userId);
+        const [course] = await tx
+          .select()
+          .from(gpaCourses)
+          .where(and(eq(gpaCourses.id, gpaCourseId), eq(gpaCourses.userId, userId)))
+          .limit(1);
+        if (!course) return null;
+
+        await tx.delete(userCoursePlanMatches).where(and(eq(userCoursePlanMatches.userId, userId), eq(userCoursePlanMatches.gpaCourseId, gpaCourseId)));
+        const [planCourse] = input.programPlanCourseId
+          ? await tx.select().from(programPlanCourses).where(eq(programPlanCourses.id, input.programPlanCourseId)).limit(1)
+          : [];
+        const [planGroup] = input.programPlanCourseGroupId
+          ? await tx.select().from(programPlanCourseGroups).where(eq(programPlanCourseGroups.id, input.programPlanCourseGroupId)).limit(1)
+          : [];
+        const requirementType = planCourse?.requirementType ?? planGroup?.requirementType ?? "unknown";
+        const [match] = await tx
+          .insert(userCoursePlanMatches)
+          .values({
+            userId,
+            gpaCourseId,
+            programPlanCourseId: input.matchTargetType === "course" ? input.programPlanCourseId : null,
+            programPlanCourseGroupId: input.matchTargetType === "group" ? input.programPlanCourseGroupId : null,
+            matchTargetType: input.matchTargetType,
+            matchMethod: "manual",
+            confidence: "1.00",
+            confirmedByUser: true
+          })
+          .returning();
+        await tx.update(gpaCourses).set({ isRequired: requirementType === "required", updatedAt: new Date() }).where(eq(gpaCourses.id, gpaCourseId));
+        return { match: { ...match, requirementType }, dashboard: await recalculateAndPersist(tx, userId) };
+      });
+    },
+    async deleteCourseMatch(userId, gpaCourseId) {
+      return db.transaction(async (tx) => {
+        await lockUserGpa(tx, userId);
+        const [course] = await tx
+          .select()
+          .from(gpaCourses)
+          .where(and(eq(gpaCourses.id, gpaCourseId), eq(gpaCourses.userId, userId)))
+          .limit(1);
+        if (!course) return null;
+        await tx.delete(userCoursePlanMatches).where(and(eq(userCoursePlanMatches.userId, userId), eq(userCoursePlanMatches.gpaCourseId, gpaCourseId)));
+        await tx.update(gpaCourses).set({ isRequired: false, updatedAt: new Date() }).where(eq(gpaCourses.id, gpaCourseId));
+        return { dashboard: await recalculateAndPersist(tx, userId) };
       });
     },
     async cleanupTranscriptArtifactsAndRecalculate(userId) {

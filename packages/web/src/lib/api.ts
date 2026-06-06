@@ -84,6 +84,38 @@ export interface GpaTranscriptImportResponse {
   dashboard: GpaDashboardResponse;
 }
 
+export interface GpaCourseMatchCandidateCourse {
+  id: string;
+  code: string;
+  name: string;
+  credits: string;
+  requirementType: string;
+}
+
+export interface GpaCourseMatchCandidateGroup {
+  id: string;
+  name: string;
+  requirementType: string;
+}
+
+export interface GpaCourseMatchRecord {
+  matchTargetType: "course" | "group";
+  programPlanCourseId: string | null;
+  programPlanCourseGroupId: string | null;
+  matchMethod: string;
+  confidence: string;
+  confirmedByUser: boolean;
+}
+
+export interface GpaCourseMatchItem {
+  course: GpaCourse;
+  match: GpaCourseMatchRecord | null;
+  candidates: {
+    courses: GpaCourseMatchCandidateCourse[];
+    groups: GpaCourseMatchCandidateGroup[];
+  };
+}
+
 interface ApiErrorBody {
   error?: {
     message?: string;
@@ -213,6 +245,24 @@ export async function importGpaTranscriptCourses(courses: GpaCourseInput[]): Pro
     method: "POST",
     body: JSON.stringify({ courses })
   });
+}
+
+export async function getGpaCourseMatches(): Promise<{ items: GpaCourseMatchItem[] }> {
+  return request<{ items: GpaCourseMatchItem[] }>("/api/gpa/course-matches");
+}
+
+export async function upsertGpaCourseMatch(
+  courseId: string,
+  input: { matchTargetType: "course" | "group"; programPlanCourseId?: string; programPlanCourseGroupId?: string }
+): Promise<{ match: GpaCourseMatchRecord; dashboard: GpaDashboardResponse }> {
+  return request<{ match: GpaCourseMatchRecord; dashboard: GpaDashboardResponse }>(`/api/gpa/course-matches/${courseId}`, {
+    method: "PUT",
+    body: JSON.stringify(input)
+  });
+}
+
+export async function deleteGpaCourseMatch(courseId: string): Promise<{ dashboard: GpaDashboardResponse }> {
+  return request<{ dashboard: GpaDashboardResponse }>(`/api/gpa/course-matches/${courseId}`, { method: "DELETE" });
 }
 
 export interface CustomRequirement extends CustomRequirementInput {

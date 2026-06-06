@@ -13,7 +13,10 @@ const {
   updateGpaCourse,
   deleteGpaCourse,
   uploadGpaTranscript,
-  importGpaTranscriptCourses
+  importGpaTranscriptCourses,
+  getGpaCourseMatches,
+  upsertGpaCourseMatch,
+  deleteGpaCourseMatch
 } = vi.hoisted(() => ({
   authState: {
     token: "token" as string | null
@@ -24,7 +27,10 @@ const {
   updateGpaCourse: vi.fn(),
   deleteGpaCourse: vi.fn(),
   uploadGpaTranscript: vi.fn(),
-  importGpaTranscriptCourses: vi.fn()
+  importGpaTranscriptCourses: vi.fn(),
+  getGpaCourseMatches: vi.fn(),
+  upsertGpaCourseMatch: vi.fn(),
+  deleteGpaCourseMatch: vi.fn()
 }));
 
 vi.mock("vue-router", () => ({
@@ -45,7 +51,10 @@ vi.mock("../lib/api", async () => {
     updateGpaCourse,
     deleteGpaCourse,
     uploadGpaTranscript,
-    importGpaTranscriptCourses
+    importGpaTranscriptCourses,
+    getGpaCourseMatches,
+    upsertGpaCourseMatch,
+    deleteGpaCourseMatch
   };
 });
 
@@ -126,7 +135,22 @@ describe("GpaPage", () => {
     deleteGpaCourse.mockReset();
     uploadGpaTranscript.mockReset();
     importGpaTranscriptCourses.mockReset();
+    getGpaCourseMatches.mockReset();
+    upsertGpaCourseMatch.mockReset();
+    deleteGpaCourseMatch.mockReset();
     getGpaDashboard.mockResolvedValue(createDashboard());
+    getGpaCourseMatches.mockResolvedValue({
+      items: [
+        {
+          course: createDashboard().courses[0],
+          match: null,
+          candidates: {
+            courses: [{ id: "plan-course-1", name: "高等数学", code: "MATH", credits: "3.00", requirementType: "required" }],
+            groups: [{ id: "group-1", name: "通识选修课", requirementType: "min_credits" }]
+          }
+        }
+      ]
+    });
   });
 
   it("shows persisted GPA results and courses", async () => {
@@ -309,5 +333,24 @@ describe("GpaPage", () => {
       }
     ]);
     expect(wrapper.get('[data-testid="gpa-course-list"]').text()).toContain("数据库原理(全英文)");
+  });
+
+  it("shows and updates GPA course matches", async () => {
+    upsertGpaCourseMatch.mockResolvedValueOnce({ match: { confirmedByUser: true }, dashboard: createDashboard() });
+    deleteGpaCourseMatch.mockResolvedValueOnce({ dashboard: createDashboard() });
+    const wrapper = mountPage();
+    await flushPromises();
+
+    expect(wrapper.get('[data-testid="gpa-match-list"]').text()).toContain("高等数学");
+    await wrapper.get('[data-testid="gpa-match-select"]').setValue("course:plan-course-1");
+    await wrapper.get('[data-testid="gpa-match-bind"]').trigger("click");
+
+    expect(upsertGpaCourseMatch).toHaveBeenCalledWith("course-1", {
+      matchTargetType: "course",
+      programPlanCourseId: "plan-course-1"
+    });
+
+    await wrapper.get('[data-testid="gpa-match-unbind"]').trigger("click");
+    expect(deleteGpaCourseMatch.mock.calls[0]?.[0]).toBe("course-1");
   });
 });
