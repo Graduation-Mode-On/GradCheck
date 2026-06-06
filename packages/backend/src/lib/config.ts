@@ -7,6 +7,7 @@ config();
 const envSchema = z.object({
   DATABASE_URL: z.string().url(),
   JWT_SECRET: z.string().min(24),
+  AMAP_WEATHER_KEY: z.string().min(1),
   PORT: z.coerce.number().int().positive().default(3000),
   CORS_ORIGIN: z.string().default("http://localhost:5173")
 });

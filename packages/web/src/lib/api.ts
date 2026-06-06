@@ -22,6 +22,13 @@ export interface AuthResponse {
   user: CurrentUser;
 }
 
+export interface WeatherResponse {
+  city: string;
+  extensions: "base" | "all";
+  lives: unknown[];
+  forecasts: unknown[];
+}
+
 interface ApiErrorBody {
   error?: {
     message?: string;
@@ -85,4 +92,9 @@ export async function updateProfile(input: ProfileInput): Promise<{ profile: Use
     method: "PUT",
     body: JSON.stringify(input)
   });
+}
+
+export async function getWeather(city = "320100", extensions: "base" | "all" = "base"): Promise<WeatherResponse> {
+  const params = new URLSearchParams({ city, extensions });
+  return request<WeatherResponse>(`/api/weather?${params.toString()}`);
 }

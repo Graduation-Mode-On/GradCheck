@@ -9,6 +9,7 @@
     "build": "pnpm -r build",
     "typecheck": "pnpm -r typecheck",
     "test": "pnpm -r test",
+    "parse:program": "pnpm --filter @gradcheck/backend parse:program",
     "db:generate": "pnpm --filter @gradcheck/backend db:generate",
     "db:migrate": "pnpm --filter @gradcheck/backend db:migrate",
     "db:studio": "pnpm --filter @gradcheck/backend db:studio"
