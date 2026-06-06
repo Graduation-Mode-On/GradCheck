@@ -16,6 +16,25 @@ import type { UserProfile } from "./modules/users/user.repository.js";
 
 const now = new Date("2026-06-06T00:00:00.000Z");
 
+interface TestLecturePracticeProgress {
+  userId: string;
+  humanLectureCount: number;
+  bookReportCount: number;
+  socialPracticeCredits: string;
+  socialPracticeCourseCount: number;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+interface TestVolunteerLaborProgress {
+  userId: string;
+  volunteerHours: string;
+  ordinaryLaborCount: number;
+  specialLaborCount: number;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
 function createRepository(): AuthRepository {
   const users = new Map<string, Parameters<AuthRepository["createUser"]>[0] & { id: string; createdAt: Date; updatedAt: Date }>();
   const profiles = new Map<string, UserProfile>();
@@ -61,13 +80,87 @@ function createRepository(): AuthRepository {
   };
 }
 
-describe("GradCheck API baseline", () => {
-  beforeEach(() => {
+    function createLecturePracticeRepository() {
+      const progressByUser = new Map<string, TestLecturePracticeProgress>();
+
+      return {
+        async getProgress(userId: string) {
+          return (
+            progressByUser.get(userId) ?? {
+              userId,
+              humanLectureCount: 0,
+              bookReportCount: 0,
+              socialPracticeCredits: "0.00",
+              socialPracticeCourseCount: 0,
+              createdAt: now,
+              updatedAt: now
+            }
+          );
+        },
+        async upsertProgress(
+          userId: string,
+          input: Omit<TestLecturePracticeProgress, "userId" | "createdAt" | "updatedAt">
+        ) {
+          const progress: TestLecturePracticeProgress = {
+            userId,
+            ...input,
+            createdAt: progressByUser.get(userId)?.createdAt ?? now,
+            updatedAt: now
+          };
+          progressByUser.set(userId, progress);
+          return progress;
+        }
+      };
+    }
+
+    function createVolunteerLaborRepository() {
+      const progressByUser = new Map<string, TestVolunteerLaborProgress>();
+
+      return {
+        async getProgress(userId: string) {
+          return (
+            progressByUser.get(userId) ?? {
+              userId,
+              volunteerHours: "0.00",
+              ordinaryLaborCount: 0,
+              specialLaborCount: 0,
+              createdAt: now,
+              updatedAt: now
+            }
+          );
+        },
+        async upsertProgress(
+          userId: string,
+          input: Omit<TestVolunteerLaborProgress, "userId" | "createdAt" | "updatedAt">
+        ) {
+          const progress: TestVolunteerLaborProgress = {
+            userId,
+            ...input,
+            createdAt: progressByUser.get(userId)?.createdAt ?? now,
+            updatedAt: now
+          };
+          progressByUser.set(userId, progress);
+          return progress;
+        }
+      };
+    }
+
+    describe("GradCheck API baseline", () => {
+      function createTestApp() {
+        return createApp({
+          authRepository: createRepository(),
+          plazaRepository: createPlazaRepository(),
+          lecturePracticeRepository: createLecturePracticeRepository(),
+          volunteerLaborRepository: createVolunteerLaborRepository()
+        });
+      }
+
+      beforeEach(() => {
     vi.stubEnv("JWT_SECRET", "test-secret-that-is-long-enough");
   });
 
   it("returns health status", async () => {
-    const app = createApp({ authRepository: createRepository(), plazaRepository: createPlazaRepository() });
+    const app = createTestApp();
 
     const response = await request(app).get("/health");
 
@@ -76,7 +169,7 @@ describe("GradCheck API baseline", () => {
   });
 
   it("registers a user, returns the current user, and updates profile data", async () => {
-    const app = createApp({ authRepository: createRepository(), plazaRepository: createPlazaRepository() });
+    const app = createTestApp();
 
     const registerResponse = await request(app)
       .post("/api/auth/register")
@@ -283,7 +376,7 @@ describe("GradCheck API baseline", () => {
     });
 
     it("creates and lists course exchange posts for authenticated users", async () => {
-      const app = createApp({ authRepository: createRepository(), plazaRepository: createPlazaRepository() });
+      const app = createTestApp();
       const token = await registerAndToken(app, "owner@example.com");
 
       const createResponse = await request(app)
@@ -321,7 +414,7 @@ describe("GradCheck API baseline", () => {
     });
 
     it("matches plaza keyword only against title, description, and contact", async () => {
-      const app = createApp({ authRepository: createRepository(), plazaRepository: createPlazaRepository() });
+      const app = createTestApp();
       const token = await registerAndToken(app, "keyword-owner@example.com");
 
       await request(app)
@@ -360,7 +453,7 @@ describe("GradCheck API baseline", () => {
     });
 
     it("creates team recruiting posts and rejects invalid member counts", async () => {
-      const app = createApp({ authRepository: createRepository(), plazaRepository: createPlazaRepository() });
+      const app = createTestApp();
       const token = await registerAndToken(app, "leader@example.com");
 
       const invalidResponse = await request(app)
@@ -411,7 +504,7 @@ describe("GradCheck API baseline", () => {
     });
 
     it("allows only the author to edit, close, reopen, and soft-delete posts", async () => {
-      const app = createApp({ authRepository: createRepository(), plazaRepository: createPlazaRepository() });
+      const app = createTestApp();
       const ownerToken = await registerAndToken(app, "post-owner@example.com");
       const otherToken = await registerAndToken(app, "other@example.com");
 
@@ -469,7 +562,7 @@ describe("GradCheck API baseline", () => {
   });
 
   it("rejects duplicate registration and unauthenticated profile access", async () => {
-    const app = createApp({ authRepository: createRepository(), plazaRepository: createPlazaRepository() });
+    const app = createTestApp();
     const payload = { email: "student@example.com", password: "password123" };
 
     await request(app).post("/api/auth/register").send(payload).expect(201);
@@ -480,5 +573,149 @@ describe("GradCheck API baseline", () => {
     expect(duplicateResponse.body).toEqual({ error: { message: "Email is already registered" } });
     expect(unauthenticatedResponse.status).toBe(401);
     expect(unauthenticatedResponse.body).toEqual({ error: { message: "Authorization bearer token is required" } });
+  });
+
+  describe("lecture practice and volunteer labor API", () => {
+    beforeEach(() => {
+      vi.stubEnv("JWT_SECRET", "test-secret-that-is-long-enough");
+    });
+
+    it("requires authentication for lecture practice and volunteer labor progress", async () => {
+      const app = createTestApp();
+
+      await request(app).get("/api/lecture-practice/me").expect(401);
+      await request(app).get("/api/volunteer-labor/me").expect(401);
+    });
+
+    it("returns default lecture practice progress and persists updates", async () => {
+      const app = createTestApp();
+      const token = await registerAndToken(app, "lecture-owner@example.com");
+
+      const defaultResponse = await request(app)
+        .get("/api/lecture-practice/me")
+        .set("Authorization", `Bearer ${token}`);
+
+      expect(defaultResponse.status).toBe(200);
+      expect(defaultResponse.body.progress).toMatchObject({
+        humanLectureCount: 0,
+        bookReportCount: 0,
+        socialPracticeCredits: "0.00",
+        socialPracticeCourseCount: 0
+      });
+
+      const updateResponse = await request(app)
+        .put("/api/lecture-practice/me")
+        .set("Authorization", `Bearer ${token}`)
+        .send({
+          humanLectureCount: 8,
+          bookReportCount: 2,
+          socialPracticeCredits: "3.00",
+          socialPracticeCourseCount: 1
+        });
+
+      expect(updateResponse.status).toBe(200);
+      expect(updateResponse.body.progress).toMatchObject({
+        humanLectureCount: 8,
+        bookReportCount: 2,
+        socialPracticeCredits: "3.00",
+        socialPracticeCourseCount: 1
+      });
+
+      const savedResponse = await request(app)
+        .get("/api/lecture-practice/me")
+        .set("Authorization", `Bearer ${token}`);
+
+      expect(savedResponse.body.progress).toMatchObject(updateResponse.body.progress);
+    });
+
+    it("rejects invalid lecture practice values", async () => {
+      const app = createTestApp();
+      const token = await registerAndToken(app, "invalid-lecture@example.com");
+
+      await request(app)
+        .put("/api/lecture-practice/me")
+        .set("Authorization", `Bearer ${token}`)
+        .send({
+          humanLectureCount: -1,
+          bookReportCount: 2,
+          socialPracticeCredits: "1.00",
+          socialPracticeCourseCount: 1
+        })
+        .expect(400);
+
+      await request(app)
+        .put("/api/lecture-practice/me")
+        .set("Authorization", `Bearer ${token}`)
+        .send({
+          humanLectureCount: 1.5,
+          bookReportCount: 2,
+          socialPracticeCredits: "1.00",
+          socialPracticeCourseCount: 1
+        })
+        .expect(400);
+    });
+
+    it("returns default volunteer labor progress and persists updates", async () => {
+      const app = createTestApp();
+      const token = await registerAndToken(app, "volunteer-owner@example.com");
+
+      const defaultResponse = await request(app)
+        .get("/api/volunteer-labor/me")
+        .set("Authorization", `Bearer ${token}`);
+
+      expect(defaultResponse.status).toBe(200);
+      expect(defaultResponse.body.progress).toMatchObject({
+        volunteerHours: "0.00",
+        ordinaryLaborCount: 0,
+        specialLaborCount: 0
+      });
+
+      const updateResponse = await request(app)
+        .put("/api/volunteer-labor/me")
+        .set("Authorization", `Bearer ${token}`)
+        .send({
+          volunteerHours: "12.00",
+          ordinaryLaborCount: 2,
+          specialLaborCount: 1
+        });
+
+      expect(updateResponse.status).toBe(200);
+      expect(updateResponse.body.progress).toMatchObject({
+        volunteerHours: "12.00",
+        ordinaryLaborCount: 2,
+        specialLaborCount: 1
+      });
+
+      const savedResponse = await request(app)
+        .get("/api/volunteer-labor/me")
+        .set("Authorization", `Bearer ${token}`);
+
+      expect(savedResponse.body.progress).toMatchObject(updateResponse.body.progress);
+    });
+
+    it("rejects invalid volunteer labor values", async () => {
+      const app = createTestApp();
+      const token = await registerAndToken(app, "invalid-volunteer@example.com");
+
+      await request(app)
+        .put("/api/volunteer-labor/me")
+        .set("Authorization", `Bearer ${token}`)
+        .send({
+          volunteerHours: "-1.00",
+          ordinaryLaborCount: 2,
+          specialLaborCount: 1
+        })
+        .expect(400);
+
+      await request(app)
+        .put("/api/volunteer-labor/me")
+        .set("Authorization", `Bearer ${token}`)
+        .send({
+          volunteerHours: "12.00",
+          ordinaryLaborCount: 1.5,
+          specialLaborCount: 1
+        })
+        .expect(400);
+    });
   });
 });
