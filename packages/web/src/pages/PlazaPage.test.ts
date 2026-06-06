@@ -7,7 +7,8 @@ import PlazaPage from "./PlazaPage.vue";
 const mocks = vi.hoisted(() => ({
   token: null as string | null,
   replace: vi.fn(),
-  listPlazaPosts: vi.fn()
+  listPlazaPosts: vi.fn(),
+  deletePlazaPost: vi.fn()
 }));
 
 vi.mock("vue-router", () => ({
@@ -21,7 +22,8 @@ vi.mock("../lib/api", async () => {
   return {
     ...actual,
     getToken: () => mocks.token,
-    listPlazaPosts: mocks.listPlazaPosts
+    listPlazaPosts: mocks.listPlazaPosts,
+    deletePlazaPost: mocks.deletePlazaPost
   };
 });
 
@@ -36,12 +38,35 @@ function mountPlazaPage() {
   });
 }
 
+function createPost() {
+  return {
+    id: "post-1",
+    type: "course_exchange",
+    title: "Software Practice Exchange",
+    college: "Computer Science",
+    contact: "QQ 123456",
+    description: "Schedule conflict",
+    tags: ["exchange", "software"],
+    status: "open",
+    authorDisplayName: "owner",
+    isOwner: true,
+    offeredCourse: "Software Practice Monday",
+    wantedCourse: "Software Practice Wednesday",
+    courseTime: "Monday 1-2",
+    createdAt: "2026-06-06T00:00:00.000Z",
+    updatedAt: "2026-06-06T00:00:00.000Z",
+    deletedAt: null
+  };
+}
+
 describe("PlazaPage", () => {
   beforeEach(() => {
     mocks.token = null;
     mocks.replace.mockClear();
     mocks.listPlazaPosts.mockReset();
+    mocks.deletePlazaPost.mockReset();
     mocks.listPlazaPosts.mockResolvedValue({ posts: [], nextCursor: null });
+    mocks.deletePlazaPost.mockResolvedValue({ success: true });
   });
 
   it("redirects unauthenticated users to login", () => {
@@ -88,26 +113,7 @@ describe("PlazaPage", () => {
   it("shows owner actions from a single top-right menu", async () => {
     mocks.token = "token";
     mocks.listPlazaPosts.mockResolvedValue({
-      posts: [
-        {
-          id: "post-1",
-          type: "course_exchange",
-          title: "想换软件工程实践课",
-          college: "计算机科学与工程学院",
-          contact: "QQ 123456",
-          description: "时间冲突，想换同课程其他班。",
-          tags: ["换课", "软件工程"],
-          status: "open",
-          authorDisplayName: "owner",
-          isOwner: true,
-          offeredCourse: "软件工程实践 周一 1-2 节",
-          wantedCourse: "软件工程实践 周三 3-4 节",
-          courseTime: "周一 1-2 节",
-          createdAt: "2026-06-06T00:00:00.000Z",
-          updatedAt: "2026-06-06T00:00:00.000Z",
-          deletedAt: null
-        }
-      ],
+      posts: [createPost()],
       nextCursor: null
     });
 
@@ -115,7 +121,7 @@ describe("PlazaPage", () => {
 
     await flushPromises();
 
-    expect(wrapper.text()).toContain("想换软件工程实践课");
+    expect(wrapper.text()).toContain("Software Practice Exchange");
     expect(wrapper.text()).toContain("owner");
     expect(wrapper.find('[data-testid="plaza-post-actions-menu"]').exists()).toBe(true);
     expect(wrapper.find('[data-testid="plaza-post-edit"]').exists()).toBe(false);
@@ -129,5 +135,26 @@ describe("PlazaPage", () => {
     expect(wrapper.find('[data-testid="plaza-post-delete"]').exists()).toBe(true);
     expect(wrapper.text()).toContain("编辑");
     expect(wrapper.text()).toContain("关闭");
+  });
+
+  it("opens an in-app confirmation dialog before deleting a plaza post", async () => {
+    mocks.token = "token";
+    mocks.listPlazaPosts.mockResolvedValue({
+      posts: [createPost()],
+      nextCursor: null
+    });
+
+    const wrapper = mountPlazaPage();
+    await flushPromises();
+
+    await wrapper.get('[data-testid="plaza-post-actions-menu"]').trigger("click");
+    await wrapper.get('[data-testid="plaza-post-delete"]').trigger("click");
+
+    expect(wrapper.get('[role="dialog"]').text()).toContain("Software Practice Exchange");
+    expect(mocks.deletePlazaPost).not.toHaveBeenCalled();
+
+    await wrapper.get('[data-testid="plaza-delete-confirm"]').trigger("click");
+
+    expect(mocks.deletePlazaPost).toHaveBeenCalledWith("post-1");
   });
 });

@@ -10,6 +10,8 @@
     "typecheck": "tsc -p tsconfig.json --noEmit",
     "test": "vitest run",
     "parse:program": "tsx src/modules/program-rules/cli.ts",
+    "backfill:program-courses": "tsx src/scripts/backfill-program-plan-courses.ts",
+    "backfill:gpa-course-matches": "tsx src/scripts/backfill-gpa-course-plan-matches.ts",
     "db:generate": "drizzle-kit generate",
     "db:migrate": "drizzle-kit migrate",
     "db:studio": "drizzle-kit studio"
@@ -37,6 +39,7 @@
     "drizzle-kit": "^0.31.7",
     "supertest": "^7.1.4",
     "tsx": "^4.20.6",
+    "typescript": "^5.9.3",
     "vitest": "^4.0.14"
   }
 }

@@ -8,6 +8,8 @@ const mocks = vi.hoisted(() => ({
   token: null as string | null,
   replace: vi.fn(),
   getCurrentProgramPlan: vi.fn(),
+  listReusableProgramPlans: vi.fn(),
+  bindProgramPlan: vi.fn(),
   mockUploadProgramPlan: vi.fn(),
   importProgramPlan: vi.fn()
 }));
@@ -23,6 +25,8 @@ vi.mock("../lib/api", async () => {
     ...actual,
     getToken: () => mocks.token,
     getCurrentProgramPlan: mocks.getCurrentProgramPlan,
+    listReusableProgramPlans: mocks.listReusableProgramPlans,
+    bindProgramPlan: mocks.bindProgramPlan,
     mockUploadProgramPlan: mocks.mockUploadProgramPlan,
     importProgramPlan: mocks.importProgramPlan
   };
@@ -71,9 +75,13 @@ describe("PlansPage", () => {
     mocks.token = null;
     mocks.replace.mockClear();
     mocks.getCurrentProgramPlan.mockReset();
+    mocks.listReusableProgramPlans.mockReset();
+    mocks.bindProgramPlan.mockReset();
     mocks.mockUploadProgramPlan.mockReset();
     mocks.importProgramPlan.mockReset();
     mocks.getCurrentProgramPlan.mockResolvedValue({ plan: null });
+    mocks.listReusableProgramPlans.mockResolvedValue({ plans: [] });
+    mocks.bindProgramPlan.mockResolvedValue({ plan: { id: "plan-1", ...samplePlan }, binding: {} });
     mocks.mockUploadProgramPlan.mockResolvedValue({ preview: samplePlan });
     mocks.importProgramPlan.mockResolvedValue({ plan: { id: "plan-1", ...samplePlan }, binding: {} });
   });
@@ -175,9 +183,29 @@ describe("PlansPage", () => {
     const wrapper = mountPage();
     await flushPromises();
 
-    expect(wrapper.text()).toContain("当前绑定方案");
+    expect(wrapper.text()).not.toContain("当前绑定方案");
     expect(wrapper.text()).toContain("软件工程");
     expect(wrapper.text()).toContain("2022级");
+  });
+
+  it("lists and binds reusable plans for the same major and grade", async () => {
+    mocks.token = "token";
+    mocks.listReusableProgramPlans.mockResolvedValue({
+      plans: [{ id: "plan-reuse-1", ...samplePlan }]
+    });
+    mocks.bindProgramPlan.mockResolvedValue({ plan: { id: "plan-reuse-1", ...samplePlan }, binding: {} });
+
+    const wrapper = mountPage();
+    await flushPromises();
+
+    expect(wrapper.get('[data-testid="program-plan-reusable-list"]').text()).toContain("软件工程");
+    expect(wrapper.get('[data-testid="program-plan-reusable-list"]').text()).toContain("2022级");
+
+    await wrapper.get('[data-testid="program-plan-bind-existing"]').trigger("click");
+    await flushPromises();
+
+    expect(mocks.bindProgramPlan).toHaveBeenCalledWith("plan-reuse-1");
+    expect(mocks.getCurrentProgramPlan).toHaveBeenCalledTimes(2);
   });
 
   it("shows a display page for an existing plan and opens reimport on demand", async () => {

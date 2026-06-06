@@ -8,9 +8,11 @@ import { createNewsRepository } from "./modules/news/news.repository.js";
 import { createPlazaRepository } from "./modules/plaza/plaza.repository.js";
 import { createProgramPlanRepository } from "./modules/program-plans/program-plans.repository.js";
 import { createSrtpRepository } from "./modules/srtp/srtp.repository.js";
+import { createSportsRepository } from "./modules/sports/sports.repository.js";
 import { createVolunteerLaborRepository } from "./modules/volunteer-labor/volunteer-labor.repository.js";
 import { createCustomRequirementRepository } from "./modules/custom-requirements/custom-requirement.repository.js";
 import { createCourseRecommendationRepository } from "./modules/course-recommendations/course-recommendations.repository.js";
+import { createCoursesProgressRepository } from "./modules/courses-progress/courses-progress.repository.js";
 
 const config = loadConfig();
 const db = createDb(config.DATABASE_URL);
@@ -19,12 +21,14 @@ const app = createApp({
   plazaRepository: createPlazaRepository(db),
   newsRepository: createNewsRepository(db),
   srtpRepository: createSrtpRepository(db),
+  sportsRepository: createSportsRepository(db),
   programPlanRepository: createProgramPlanRepository(db),
   lecturePracticeRepository: createLecturePracticeRepository(db),
   volunteerLaborRepository: createVolunteerLaborRepository(db),
   customRequirementRepository: createCustomRequirementRepository(db),
   gpaRepository: createGpaRepository(db),
   courseRecommendationRepository: createCourseRecommendationRepository(db),
+  coursesProgressRepository: createCoursesProgressRepository(db),
   corsOrigin: config.CORS_ORIGIN,
   amapWeatherKey: config.AMAP_WEATHER_KEY
 });

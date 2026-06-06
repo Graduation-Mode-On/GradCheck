@@ -124,6 +124,18 @@ export const volunteerLaborProgress = pgTable("volunteer_labor_progress", {
   updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull()
 });
 
+export const sportsProgress = pgTable("sports_progress", {
+  userId: uuid("user_id")
+    .primaryKey()
+    .references(() => users.id, { onDelete: "cascade" }),
+  currentRuns: integer("current_runs").notNull().default(0),
+  targetRuns: integer("target_runs").notNull().default(45),
+  lastRunDate: varchar("last_run_date", { length: 10 }),
+  runDates: jsonb("run_dates").$type<string[]>().notNull().default([]),
+  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull()
+});
+
 export const srtpRecords = pgTable("srtp_records", {
   id: uuid("id").defaultRandom().primaryKey(),
   userId: uuid("user_id")
@@ -193,6 +205,59 @@ export const programPlans = pgTable("program_plans", {
   updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull()
 });
 
+export const programPlanCourseGroups = pgTable("program_plan_course_groups", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  programPlanId: uuid("program_plan_id")
+    .notNull()
+    .references(() => programPlans.id, { onDelete: "cascade" }),
+  sourceRequirementId: varchar("source_requirement_id", { length: 160 }).notNull(),
+  name: varchar("name", { length: 200 }).notNull(),
+  requirementType: varchar("requirement_type", { length: 40 }).notNull(),
+  minCourses: numeric("min_courses", { precision: 6, scale: 2 }),
+  minCredits: numeric("min_credits", { precision: 6, scale: 2 }),
+  description: text("description"),
+  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull()
+});
+
+export const programPlanCourses = pgTable("program_plan_courses", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  programPlanId: uuid("program_plan_id")
+    .notNull()
+    .references(() => programPlans.id, { onDelete: "cascade" }),
+  groupId: uuid("group_id").references(() => programPlanCourseGroups.id, { onDelete: "set null" }),
+  sourceRequirementId: varchar("source_requirement_id", { length: 160 }),
+  code: varchar("code", { length: 80 }).notNull(),
+  name: varchar("name", { length: 200 }).notNull(),
+  credits: numeric("credits", { precision: 5, scale: 2 }).notNull(),
+  category: varchar("category", { length: 120 }),
+  subcategory: varchar("subcategory", { length: 120 }),
+  suggestedTerm: varchar("suggested_term", { length: 40 }),
+  requirementType: varchar("requirement_type", { length: 40 }).notNull(),
+  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull()
+});
+
+export const userCoursePlanMatches = pgTable("user_course_plan_matches", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  userId: uuid("user_id")
+    .notNull()
+    .references(() => users.id, { onDelete: "cascade" }),
+  gpaCourseId: uuid("gpa_course_id")
+    .notNull()
+    .references(() => gpaCourses.id, { onDelete: "cascade" }),
+  programPlanCourseId: uuid("program_plan_course_id").references(() => programPlanCourses.id, { onDelete: "cascade" }),
+  programPlanCourseGroupId: uuid("program_plan_course_group_id").references(() => programPlanCourseGroups.id, {
+    onDelete: "cascade"
+  }),
+  matchTargetType: varchar("match_target_type", { length: 20 }).notNull().default("course"),
+  matchMethod: varchar("match_method", { length: 40 }).notNull(),
+  confidence: numeric("confidence", { precision: 4, scale: 2 }).notNull(),
+  confirmedByUser: boolean("confirmed_by_user").notNull().default(false),
+  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull()
+});
+
 export const userProgramPlanBindings = pgTable("user_program_plan_bindings", {
   userId: uuid("user_id")
     .primaryKey()
@@ -203,6 +268,18 @@ export const userProgramPlanBindings = pgTable("user_program_plan_bindings", {
   confirmedAt: timestamp("confirmed_at", { withTimezone: true }).defaultNow().notNull(),
   createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
   updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull()
+});
+
+export const userIgnoredProgramPlanGroups = pgTable("user_ignored_program_plan_groups", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  userId: uuid("user_id")
+    .notNull()
+    .references(() => users.id, { onDelete: "cascade" }),
+  programPlanCourseGroupId: uuid("program_plan_course_group_id")
+    .notNull()
+    .references(() => programPlanCourseGroups.id, { onDelete: "cascade" }),
+  note: text("note"),
+  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull()
 });
 
 export const semesterCourses = pgTable("semester_courses", {

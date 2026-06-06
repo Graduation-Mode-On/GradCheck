@@ -72,7 +72,9 @@ function logout() {
         v-for="tab in mobileTabs"
         :key="tab.label"
         :to="tab.to"
-        class="flex flex-col items-center gap-1 rounded-2xl px-2 py-2 hover:bg-[color-mix(in_srgb,var(--tommy-primary)_10%,white)] hover:text-[var(--tommy-primary)]"
+        class="flex flex-col items-center gap-1 rounded-2xl px-2 py-2 transition hover:bg-[color-mix(in_srgb,var(--tommy-primary)_10%,white)] hover:text-[var(--tommy-primary)]"
+        active-class="bg-[color-mix(in_srgb,var(--tommy-primary)_12%,white)] text-[var(--tommy-primary)]"
+        exact-active-class="bg-[color-mix(in_srgb,var(--tommy-primary)_16%,white)] text-[var(--tommy-primary)]"
       >
         <svg
           data-testid="mobile-tab-icon"

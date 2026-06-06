@@ -1,12 +1,12 @@
 <script setup lang="ts">
-import { useQuery } from "@tanstack/vue-query";
+import { useMutation, useQuery } from "@tanstack/vue-query";
 import { computed, ref, watch } from "vue";
 
 import AppShell from "../components/AppShell.vue";
 import cancelTestIcon from "../assets/cancel-test.svg";
 import sportsRestIcon from "../assets/sports-rest.svg";
 import sportsRunnerIcon from "../assets/sports-runner.svg";
-import { getWeather } from "../lib/api";
+import { getSportsProgress, getToken, getWeather, updateSportsProgress } from "../lib/api";
 import {
   buildSportsPlan,
   clampTargetRuns,
@@ -85,6 +85,7 @@ const currentRuns = ref(savedProgress?.currentRuns ?? 0);
 const targetRuns = ref(savedProgress?.targetRuns ?? MIN_SPORTS_RUNS);
 const lastRunDate = ref(savedProgress?.lastRunDate);
 const runDates = ref<string[]>(savedProgress?.runDates ?? []);
+const serverProgressLoaded = ref(false);
 const isEditingCurrentRuns = ref(!savedProgress);
 const isEditingTargetRuns = ref(!savedProgress);
 const runMenuVisible = ref(false);
@@ -102,15 +103,19 @@ const sparkStages = [
 ];
 
 function saveProgress(): void {
+  const input = {
+    currentRuns: currentRuns.value,
+    targetRuns: targetRuns.value,
+    lastRunDate: lastRunDate.value ?? null,
+    runDates: runDates.value
+  };
   localStorage.setItem(
     STORAGE_KEY,
-    JSON.stringify({
-      currentRuns: currentRuns.value,
-      targetRuns: targetRuns.value,
-      lastRunDate: lastRunDate.value,
-      runDates: runDates.value
-    })
+    JSON.stringify(input)
   );
+  if (serverProgressLoaded.value) {
+    sportsProgressMutation.mutate(input);
+  }
 }
 
 function syncRunDate(date: string, active: boolean): void {
@@ -173,6 +178,41 @@ const { data, isLoading, error, refetch } = useQuery({
   queryKey: ["sports-weather", "320100"],
   queryFn: () => getWeather("320100", "all")
 });
+
+const sportsProgressQuery = useQuery({
+  queryKey: ["sports-progress"],
+  queryFn: getSportsProgress,
+  enabled: Boolean(getToken())
+});
+
+const sportsProgressMutation = useMutation({
+  mutationFn: updateSportsProgress
+});
+
+watch(
+  () => sportsProgressQuery.data.value?.progress,
+  (progress) => {
+    if (!progress || serverProgressLoaded.value) return;
+
+    const serverHasProgress = progress.createdAt && !progress.createdAt.startsWith("1970-");
+    const initialProgress = serverHasProgress ? progress : savedProgress;
+    if (!initialProgress) {
+      serverProgressLoaded.value = true;
+      return;
+    }
+
+    currentRuns.value = initialProgress.currentRuns;
+    targetRuns.value = clampTargetRuns(initialProgress.targetRuns);
+    lastRunDate.value = initialProgress.lastRunDate ?? undefined;
+    runDates.value = initialProgress.runDates;
+    serverProgressLoaded.value = true;
+
+    if (!serverHasProgress && savedProgress) {
+      saveProgress();
+    }
+  },
+  { immediate: true }
+);
 
 const casts = computed(() => {
   const forecast = data.value?.forecasts?.[0] as AmapForecast | undefined;
@@ -263,14 +303,24 @@ function chartPath(type: "daytemp" | "nighttemp"): string {
 const riskLevel = computed(() => {
   if (currentRuns.value >= targetRuns.value) return "done";
   if (availableRunnableDays.value === 0) return "danger";
+  if (guaranteedRemainingRuns.value > availableRunnableDays.value) return "danger";
+  if (remainingRuns.value > availableRunnableDays.value) return "warning";
   if (remainingRuns.value === availableRunnableDays.value) return "warning";
   return "steady";
 });
 
 const reminder = computed(() => {
   if (riskLevel.value === "done") return "你已经达到目标次数，后续只需要保持记录准确。";
-  if (riskLevel.value === "danger") return "当前暂无适合跑步的天气窗口，请关注天气变化并及时安排跑操。";
-  if (riskLevel.value === "warning") return "剩余次数和适合跑步天数已经比较接近，建议尽快补齐。";
+  if (riskLevel.value === "danger") {
+    if (availableRunnableDays.value === 0) return "当前暂无适合跑步的天气窗口，请关注天气变化并及时安排跑操。";
+    return `保底还差 ${guaranteedRemainingRuns.value} 次，但近期适合跑操天数只有 ${availableRunnableDays.value} 天，当前风险较高，建议尽快增加安排。`;
+  }
+  if (riskLevel.value === "warning") {
+    if (remainingRuns.value > availableRunnableDays.value) {
+      return `目标还差 ${remainingRuns.value} 次，近期适合跑操天数只有 ${availableRunnableDays.value} 天，目标节奏偏紧，建议优先安排可跑日期。`;
+    }
+    return "剩余次数和适合跑步天数已经比较接近，建议尽快补齐。";
+  }
   return "节奏比较稳，优先选择天气适合的日期完成跑操即可。";
 });
 </script>
@@ -278,7 +328,7 @@ const reminder = computed(() => {
 <template>
   <AppShell>
     <section data-testid="sports-page" class="space-y-5">
-      <div class="bg-gradient-to-br from-white via-sky-50 to-emerald-50 p-5 shadow-sm">
+      <div class="rounded-3xl bg-gradient-to-br from-white via-sky-50 to-emerald-50 p-5 shadow-sm">
         <div class="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
           <div>
             <p class="text-sm font-semibold text-[var(--tommy-primary)]">体育跑操</p>
@@ -318,168 +368,172 @@ const reminder = computed(() => {
         </div>
       </div>
 
-      <section class="relative bg-white p-5 shadow-sm">
-        <div class="flex items-center justify-between gap-3">
-          <h2 class="text-lg font-bold text-[var(--tommy-text)]">录入次数</h2>
-          <button
-            class="flex h-9 w-9 items-center justify-center bg-transparent transition hover:-translate-y-0.5"
-            type="button"
-            aria-label="打开录入次数操作菜单"
-            @click="toggleRunMenu"
-          >
-            <img class="h-7 w-7" :src="cancelTestIcon" alt="" aria-hidden="true" />
-          </button>
-          <div
-            v-if="runMenuVisible"
-            class="absolute right-5 top-14 z-10 grid w-24 overflow-hidden rounded-lg border border-slate-200 bg-white py-1 text-sm font-semibold text-[var(--tommy-text)] shadow-lg"
-          >
-            <button class="px-4 py-2 text-left transition hover:bg-slate-50" type="button" @click="saveRunsFromMenu">保存</button>
-            <button class="px-4 py-2 text-left transition hover:bg-slate-50" type="button" @click="editRunsFromMenu">修改</button>
+      <div class="grid gap-5 lg:grid-cols-2">
+        <section class="relative rounded-3xl bg-white p-5 shadow-sm">
+          <div class="flex items-center justify-between gap-3">
+            <h2 class="text-lg font-bold text-[var(--tommy-text)]">录入次数</h2>
+            <button
+              class="flex h-9 w-9 items-center justify-center bg-transparent transition hover:-translate-y-0.5"
+              type="button"
+              aria-label="打开录入次数操作菜单"
+              @click="toggleRunMenu"
+            >
+              <img class="h-7 w-7" :src="cancelTestIcon" alt="" aria-hidden="true" />
+            </button>
+            <div
+              v-if="runMenuVisible"
+              class="absolute right-5 top-14 z-10 grid w-24 overflow-hidden rounded-lg border border-slate-200 bg-white py-1 text-sm font-semibold text-[var(--tommy-text)] shadow-lg"
+            >
+              <button class="px-4 py-2 text-left transition hover:bg-slate-50" type="button" @click="saveRunsFromMenu">保存</button>
+              <button class="px-4 py-2 text-left transition hover:bg-slate-50" type="button" @click="editRunsFromMenu">修改</button>
+            </div>
           </div>
-        </div>
 
-        <div class="mt-4 grid grid-cols-2 gap-3">
-          <div class="grid min-h-28 grid-rows-[auto_1fr] gap-3 rounded-xl border border-slate-200 bg-slate-50 p-3">
-            <label class="text-sm font-semibold text-[var(--tommy-text)]" for="sports-current-runs">目前已跑次数</label>
-            <div class="grid items-center">
-              <input
-                id="sports-current-runs"
-                v-model.number="currentRuns"
-                class="h-12 min-w-0 rounded-lg border border-slate-300 bg-white px-3 text-lg disabled:border-slate-200 disabled:bg-slate-100 disabled:text-slate-500"
-                :disabled="!isEditingCurrentRuns"
-                min="0"
-                type="number"
-              />
-            </div>
-          </div>
-          <div class="grid min-h-28 grid-rows-[auto_1fr] gap-3 rounded-xl border border-slate-200 bg-slate-50 p-3">
-            <label class="text-sm font-semibold text-[var(--tommy-text)]" for="sports-target-runs">目标次数</label>
-            <div class="grid items-center">
-              <input
-                id="sports-target-runs"
-                v-model.number="targetRuns"
-                class="h-12 min-w-0 rounded-lg border border-slate-300 bg-white px-3 text-lg disabled:border-slate-200 disabled:bg-slate-100 disabled:text-slate-500"
-                :disabled="!isEditingTargetRuns"
-                :max="MAX_SPORTS_RUNS"
-                :min="MIN_SPORTS_RUNS"
-                type="number"
-              />
-            </div>
-          </div>
-        </div>
-        <p class="mt-3 text-xs leading-5 text-[var(--tommy-text-secondary)]">
-          首次录入后会自动保存。之后需要点击“修改”才可编辑，目标次数范围为 {{ MIN_SPORTS_RUNS }}-{{ MAX_SPORTS_RUNS }} 次。
-        </p>
-      </section>
-
-      <section class="bg-white p-5 shadow-sm">
-        <div class="flex items-start justify-between gap-3">
-          <div>
-            <h2 class="text-lg font-bold text-[var(--tommy-text)]">跑操记录</h2>
-            <p class="mt-1 text-xs text-[var(--tommy-text-secondary)]">记录最近一段时间的跑操分布。</p>
-          </div>
-          <button class="rounded-lg border border-cyan-200 bg-cyan-50 px-3 py-2 text-sm font-semibold text-[var(--tommy-primary)] shadow-sm transition hover:-translate-y-0.5" type="button" @click="importHintVisible = !importHintVisible">
-            导入跑操数据
-          </button>
-        </div>
-        <div class="mt-3 flex items-center gap-3 text-xs text-[var(--tommy-text-secondary)]">
-          <img class="mini-day mini-day-run" :src="sportsRunnerIcon" alt="" aria-hidden="true" />
-          <span>已跑</span>
-          <img class="mini-day mini-day-rest ml-1" :src="sportsRestIcon" alt="" aria-hidden="true" />
-          <span>未跑</span>
-        </div>
-        <p v-if="importHintVisible" class="mt-2 rounded-lg bg-slate-50 p-2 text-xs leading-5 text-[var(--tommy-text-secondary)]">
-          暂未对接东南大学跑操系统。后续接入学校权限接口后，可从系统导入已跑日期，补齐忘记在页面登记的记录。
-        </p>
-        <div class="mt-3">
-          <div class="w-full">
-            <div class="ml-6 grid grid-flow-col auto-cols-fr gap-0.5 text-[9px] text-[var(--tommy-text-secondary)] sm:ml-7">
-              <span v-for="(column, index) in wallColumns" :key="index" class="h-4 text-center">
-                {{ column[0]?.monthLabel }}
-              </span>
-            </div>
-            <div class="mt-1 flex gap-1.5">
-              <div class="grid grid-rows-7 gap-1 text-[9px] leading-5 text-[var(--tommy-text-secondary)]">
-                <span v-for="label in WEEK_LABELS" :key="label" class="h-5">{{ label }}</span>
+          <div class="mt-4 grid grid-cols-2 gap-3">
+            <div class="grid min-h-28 grid-rows-[auto_1fr] gap-3 rounded-xl border border-slate-200 bg-slate-50 p-3">
+              <label class="text-sm font-semibold text-[var(--tommy-text)]" for="sports-current-runs">目前已跑次数</label>
+              <div class="grid items-center">
+                <input
+                  id="sports-current-runs"
+                  v-model.number="currentRuns"
+                  class="h-12 min-w-0 rounded-lg border border-slate-300 bg-white px-3 text-lg disabled:border-slate-200 disabled:bg-slate-100 disabled:text-slate-500"
+                  :disabled="!isEditingCurrentRuns"
+                  min="0"
+                  type="number"
+                />
               </div>
-              <div class="grid flex-1 grid-flow-col auto-cols-fr gap-1">
-                <div v-for="(column, columnIndex) in wallColumns" :key="columnIndex" class="grid grid-rows-7 gap-1">
-                  <img
-                    v-for="day in column"
-                    :key="day.date"
-                    class="mini-day w-full"
-                    :class="day.active ? 'mini-day-run' : 'mini-day-rest'"
-                    :src="day.active ? sportsRunnerIcon : sportsRestIcon"
-                    alt=""
-                    :title="`${day.date}${day.active ? ' 已跑' : ' 未记录'}`"
-                  />
+            </div>
+            <div class="grid min-h-28 grid-rows-[auto_1fr] gap-3 rounded-xl border border-slate-200 bg-slate-50 p-3">
+              <label class="text-sm font-semibold text-[var(--tommy-text)]" for="sports-target-runs">目标次数</label>
+              <div class="grid items-center">
+                <input
+                  id="sports-target-runs"
+                  v-model.number="targetRuns"
+                  class="h-12 min-w-0 rounded-lg border border-slate-300 bg-white px-3 text-lg disabled:border-slate-200 disabled:bg-slate-100 disabled:text-slate-500"
+                  :disabled="!isEditingTargetRuns"
+                  :max="MAX_SPORTS_RUNS"
+                  :min="MIN_SPORTS_RUNS"
+                  type="number"
+                />
+              </div>
+            </div>
+          </div>
+          <p class="mt-3 text-xs leading-5 text-[var(--tommy-text-secondary)]">
+            首次录入后会自动保存。之后需要点击“修改”才可编辑，目标次数范围为 {{ MIN_SPORTS_RUNS }}-{{ MAX_SPORTS_RUNS }} 次。
+          </p>
+        </section>
+
+        <section class="rounded-3xl bg-white p-5 shadow-sm">
+          <div class="flex items-start justify-between gap-3">
+            <div>
+              <h2 class="text-lg font-bold text-[var(--tommy-text)]">跑操记录</h2>
+              <p class="mt-1 text-xs text-[var(--tommy-text-secondary)]">记录最近一段时间的跑操分布。</p>
+            </div>
+            <button class="rounded-lg border border-cyan-200 bg-cyan-50 px-3 py-2 text-sm font-semibold text-[var(--tommy-primary)] shadow-sm transition hover:-translate-y-0.5" type="button" @click="importHintVisible = !importHintVisible">
+              导入跑操数据
+            </button>
+          </div>
+          <div class="mt-3 flex items-center gap-3 text-xs text-[var(--tommy-text-secondary)]">
+            <img class="mini-day mini-day-run" :src="sportsRunnerIcon" alt="" aria-hidden="true" />
+            <span>已跑</span>
+            <img class="mini-day mini-day-rest ml-1" :src="sportsRestIcon" alt="" aria-hidden="true" />
+            <span>未跑</span>
+          </div>
+          <p v-if="importHintVisible" class="mt-2 rounded-lg bg-slate-50 p-2 text-xs leading-5 text-[var(--tommy-text-secondary)]">
+            暂未对接东南大学跑操系统。后续接入学校权限接口后，可从系统导入已跑日期，补齐忘记在页面登记的记录。
+          </p>
+          <div class="mt-3">
+            <div class="w-full">
+              <div class="ml-6 grid grid-flow-col auto-cols-fr gap-0.5 text-[9px] text-[var(--tommy-text-secondary)] sm:ml-7">
+                <span v-for="(column, index) in wallColumns" :key="index" class="h-4 text-center">
+                  {{ column[0]?.monthLabel }}
+                </span>
+              </div>
+              <div class="mt-1 flex gap-1.5">
+                <div class="grid grid-rows-7 gap-1 text-[9px] leading-5 text-[var(--tommy-text-secondary)]">
+                  <span v-for="label in WEEK_LABELS" :key="label" class="h-5">{{ label }}</span>
+                </div>
+                <div class="grid flex-1 grid-flow-col auto-cols-fr gap-1">
+                  <div v-for="(column, columnIndex) in wallColumns" :key="columnIndex" class="grid grid-rows-7 gap-1">
+                    <img
+                      v-for="day in column"
+                      :key="day.date"
+                      class="mini-day w-full"
+                      :class="day.active ? 'mini-day-run' : 'mini-day-rest'"
+                      :src="day.active ? sportsRunnerIcon : sportsRestIcon"
+                      alt=""
+                      :title="`${day.date}${day.active ? ' 已跑' : ' 未记录'}`"
+                    />
+                  </div>
                 </div>
               </div>
             </div>
           </div>
-        </div>
-      </section>
+        </section>
+      </div>
 
       <section class="grid grid-cols-3 gap-2 sm:gap-3">
-        <div class="flex min-h-24 flex-col justify-center gap-2 bg-white p-4 shadow-sm">
+        <div class="flex min-h-24 flex-col justify-center gap-2 rounded-3xl bg-white p-4 shadow-sm">
           <p class="text-sm font-semibold text-[var(--tommy-text-secondary)]">目标还差</p>
           <p class="text-2xl font-bold leading-none text-[var(--tommy-primary)]">{{ remainingRuns }} <span class="text-base">次</span></p>
         </div>
-        <div class="flex min-h-24 flex-col justify-center gap-2 bg-white p-4 shadow-sm">
+        <div class="flex min-h-24 flex-col justify-center gap-2 rounded-3xl bg-white p-4 shadow-sm">
           <p class="text-sm font-semibold text-[var(--tommy-text-secondary)]">保底还差</p>
           <p class="text-2xl font-bold leading-none text-[var(--tommy-warning)]">{{ guaranteedRemainingRuns }} <span class="text-base">次</span></p>
         </div>
-        <div class="flex min-h-24 flex-col justify-center gap-2 bg-white p-4 shadow-sm">
+        <div class="flex min-h-24 flex-col justify-center gap-2 rounded-3xl bg-white p-4 shadow-sm">
           <p class="text-sm font-semibold text-[var(--tommy-text-secondary)]">适合天数</p>
           <p class="text-2xl font-bold leading-none text-[var(--tommy-success)]">{{ availableRunnableDays }} <span class="text-base">天</span></p>
         </div>
       </section>
 
-      <section
-        class="border p-5 shadow-sm"
-        :class="{
-          'border-emerald-200 bg-emerald-50': riskLevel === 'done' || riskLevel === 'steady',
-          'border-amber-200 bg-amber-50': riskLevel === 'warning',
-          'border-red-200 bg-red-50': riskLevel === 'danger'
-        }"
-      >
-        <h2 class="text-lg font-bold text-[var(--tommy-text)]">提醒</h2>
-        <p class="mt-2 text-sm leading-6 text-[var(--tommy-text)]">{{ reminder }}</p>
-      </section>
+      <div class="grid gap-5 lg:grid-cols-[0.9fr_1.1fr]">
+        <section
+          class="rounded-3xl border p-5 shadow-sm"
+          :class="{
+            'border-emerald-200 bg-emerald-50': riskLevel === 'done' || riskLevel === 'steady',
+            'border-amber-200 bg-amber-50': riskLevel === 'warning',
+            'border-red-200 bg-red-50': riskLevel === 'danger'
+          }"
+        >
+          <h2 class="text-lg font-bold text-[var(--tommy-text)]">提醒</h2>
+          <p class="mt-2 text-sm leading-6 text-[var(--tommy-text)]">{{ reminder }}</p>
+        </section>
 
-      <section class="overflow-hidden bg-gradient-to-br from-cyan-50 via-white to-emerald-50 p-5 text-[var(--tommy-text)] shadow-sm">
-        <div class="grid grid-cols-[1fr_auto] items-start gap-x-4 gap-y-1">
-          <div>
-            <h2 class="text-lg font-bold">跑操体验预览</h2>
+        <section class="overflow-hidden rounded-3xl bg-gradient-to-br from-cyan-50 via-white to-emerald-50 p-5 text-[var(--tommy-text)] shadow-sm">
+          <div class="grid grid-cols-[1fr_auto] items-start gap-x-4 gap-y-1">
+            <div>
+              <h2 class="text-lg font-bold">跑操体验预览</h2>
+            </div>
+            <button class="h-10 shrink-0 whitespace-nowrap rounded-lg border border-cyan-300 bg-gradient-to-r from-cyan-100 to-sky-100 px-4 text-sm font-semibold text-[var(--tommy-primary)] shadow-sm transition hover:-translate-y-0.5 hover:from-cyan-200 hover:to-sky-200" type="button" @click="refetch()">
+              刷新天气
+            </button>
+            <p class="col-span-2 text-xs leading-5 text-[var(--tommy-text-secondary)]">{{ runningExperience }}</p>
           </div>
-          <button class="h-10 shrink-0 whitespace-nowrap rounded-lg border border-cyan-300 bg-gradient-to-r from-cyan-100 to-sky-100 px-4 text-sm font-semibold text-[var(--tommy-primary)] shadow-sm transition hover:-translate-y-0.5 hover:from-cyan-200 hover:to-sky-200" type="button" @click="refetch()">
-            刷新天气
-          </button>
-          <p class="col-span-2 text-xs leading-5 text-[var(--tommy-text-secondary)]">{{ runningExperience }}</p>
-        </div>
 
-        <p v-if="isLoading" class="mt-4 text-sm text-[var(--tommy-text-secondary)]">正在读取天气预报...</p>
-        <p v-else-if="error" class="mt-4 text-sm text-[var(--tommy-error)]">天气读取失败，请检查后端服务和高德 Key。</p>
-        <p v-else-if="chartDays.length === 0" class="mt-4 text-sm text-[var(--tommy-text-secondary)]">暂未获取到可绘制的天气预报。</p>
+          <p v-if="isLoading" class="mt-4 text-sm text-[var(--tommy-text-secondary)]">正在读取天气预报...</p>
+          <p v-else-if="error" class="mt-4 text-sm text-[var(--tommy-error)]">天气读取失败，请检查后端服务和高德 Key。</p>
+          <p v-else-if="chartDays.length === 0" class="mt-4 text-sm text-[var(--tommy-text-secondary)]">暂未获取到可绘制的天气预报。</p>
 
-        <div v-else class="mt-4">
-          <svg class="block w-full" viewBox="0 0 360 260" role="img" aria-label="南京近期温度趋势折线图">
-            <path :d="chartPath('daytemp')" fill="none" stroke="#14a9c9" stroke-linecap="round" stroke-linejoin="round" stroke-width="3" />
-            <path :d="chartPath('nighttemp')" fill="none" stroke="#8dd8c8" stroke-linecap="round" stroke-linejoin="round" stroke-width="3" />
-            <g v-for="(day, index) in chartDays" :key="day.date">
-              <text :x="chartX(index)" y="24" fill="#35505f" font-size="13" font-weight="700" text-anchor="middle">{{ day.label }}</text>
-              <text :x="chartX(index)" y="52" fill="#14a9c9" font-size="19" text-anchor="middle">{{ weatherIcon(day.dayweather) }}</text>
-              <text :x="chartX(index)" y="76" fill="#22313f" font-size="12" font-weight="700" text-anchor="middle">{{ day.dayweather }}</text>
-              <circle :cx="chartX(index)" :cy="chartY(day.daytemp)" r="4" fill="#14a9c9" />
-              <circle :cx="chartX(index)" :cy="chartY(day.nighttemp)" r="4" fill="#8dd8c8" />
-              <text :x="chartX(index)" :y="chartY(day.daytemp) - 8" fill="#0f7ea0" font-size="13" font-weight="700" text-anchor="middle">{{ day.daytemp }}°C</text>
-              <text :x="chartX(index)" :y="chartY(day.nighttemp) + 20" fill="#348f7f" font-size="13" font-weight="700" text-anchor="middle">{{ day.nighttemp }}°C</text>
-              <text :x="chartX(index)" y="232" fill="#14a9c9" font-size="19" text-anchor="middle">{{ weatherIcon(day.nightweather) }}</text>
-              <text :x="chartX(index)" y="254" fill="#22313f" font-size="12" font-weight="700" text-anchor="middle">{{ day.nightweather }}</text>
-            </g>
-          </svg>
-        </div>
-      </section>
+          <div v-else class="mx-auto mt-4 w-full max-w-2xl">
+            <svg class="block h-auto w-full" viewBox="0 0 360 260" role="img" aria-label="南京近期温度趋势折线图">
+              <path :d="chartPath('daytemp')" fill="none" stroke="#14a9c9" stroke-linecap="round" stroke-linejoin="round" stroke-width="3" />
+              <path :d="chartPath('nighttemp')" fill="none" stroke="#8dd8c8" stroke-linecap="round" stroke-linejoin="round" stroke-width="3" />
+              <g v-for="(day, index) in chartDays" :key="day.date">
+                <text :x="chartX(index)" y="24" fill="#35505f" font-size="13" font-weight="700" text-anchor="middle">{{ day.label }}</text>
+                <text :x="chartX(index)" y="52" fill="#14a9c9" font-size="19" text-anchor="middle">{{ weatherIcon(day.dayweather) }}</text>
+                <text :x="chartX(index)" y="76" fill="#22313f" font-size="12" font-weight="700" text-anchor="middle">{{ day.dayweather }}</text>
+                <circle :cx="chartX(index)" :cy="chartY(day.daytemp)" r="4" fill="#14a9c9" />
+                <circle :cx="chartX(index)" :cy="chartY(day.nighttemp)" r="4" fill="#8dd8c8" />
+                <text :x="chartX(index)" :y="chartY(day.daytemp) - 8" fill="#0f7ea0" font-size="13" font-weight="700" text-anchor="middle">{{ day.daytemp }}°C</text>
+                <text :x="chartX(index)" :y="chartY(day.nighttemp) + 20" fill="#348f7f" font-size="13" font-weight="700" text-anchor="middle">{{ day.nighttemp }}°C</text>
+                <text :x="chartX(index)" y="232" fill="#14a9c9" font-size="19" text-anchor="middle">{{ weatherIcon(day.nightweather) }}</text>
+                <text :x="chartX(index)" y="254" fill="#22313f" font-size="12" font-weight="700" text-anchor="middle">{{ day.nightweather }}</text>
+              </g>
+            </svg>
+          </div>
+        </section>
+      </div>
     </section>
   </AppShell>
 </template>

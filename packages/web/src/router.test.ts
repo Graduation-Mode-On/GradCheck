@@ -59,4 +59,11 @@ describe("router for program plans", () => {
     expect(router.hasRoute("plans")).toBe(true);
     expect(router.resolve({ name: "plans" }).path).toBe("/plans");
   });
+
+  describe("router for GPA course matches", () => {
+    it("registers the standalone course matching route", () => {
+      expect(router.hasRoute("gpa-course-matches")).toBe(true);
+      expect(router.resolve({ name: "gpa-course-matches" }).path).toBe("/gpa/course-matches");
+    });
+  });
 });

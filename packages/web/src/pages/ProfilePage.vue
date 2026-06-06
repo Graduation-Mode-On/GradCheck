@@ -5,6 +5,8 @@ import { useRouter } from "vue-router";
 import { ZodError } from "zod";
 
 import AppShell from "../components/AppShell.vue";
+import { seuColleges } from "../constants/colleges";
+import { enrollmentGrades } from "../constants/grades";
 import { clearToken, getCurrentUser, getToken, updateProfile } from "../lib/api";
 import { profileSchema } from "../schemas/auth";
 
@@ -78,26 +80,22 @@ async function logout() {
         </label>
         <label class="block text-sm font-medium text-[var(--tommy-text-secondary)]">
           学院
-          <input v-model="form.college" class="mt-1 w-full rounded-xl border border-slate-300 px-3 py-2" />
+          <select data-testid="profile-college" v-model="form.college" class="mt-1 w-full rounded-xl border border-slate-300 px-3 py-2">
+            <option value="" disabled>请选择学院</option>
+            <option v-for="college in seuColleges" :key="college" :value="college">{{ college }}</option>
+          </select>
         </label>
         <label class="block text-sm font-medium text-[var(--tommy-text-secondary)]">
           专业
           <input v-model="form.major" class="mt-1 w-full rounded-xl border border-slate-300 px-3 py-2" />
         </label>
         <label class="block text-sm font-medium text-[var(--tommy-text-secondary)]">
-          入学年份
-          <input
-            v-model.number="form.grade"
-            class="mt-1 w-full rounded-xl border border-slate-300 px-3 py-2"
-            type="number"
-            placeholder="如 2023"
-          />
+<<<<<<< HEAD
+          年级
+          <select data-testid="profile-grade" v-model.number="form.grade" class="mt-1 w-full rounded-xl border border-slate-300 px-3 py-2">
+            <option v-for="grade in enrollmentGrades" :key="grade" :value="grade">{{ grade }}</option>
+          </select>
         </label>
-        <label class="block text-sm font-medium text-[var(--tommy-text-secondary)]">
-          目标 GPA
-          <input v-model="form.gpaGoal" class="mt-1 w-full rounded-xl border border-slate-300 px-3 py-2" />
-        </label>
-
         <div class="sm:col-span-2">
           <p v-if="message" class="mb-3 rounded-xl bg-[color-mix(in_srgb,var(--tommy-primary)_12%,white)] px-3 py-2 text-sm text-[var(--tommy-info)]">{{ message }}</p>
           <div class="flex flex-wrap gap-3">

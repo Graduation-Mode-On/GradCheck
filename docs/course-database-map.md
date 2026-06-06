@@ -10,7 +10,7 @@
 | 模块/领域 | 主要表 | 当前作用 |
 |---|---|---|
 | GPA 计算器 | `gpa_courses`, `gpa_calculation_results` | 存储用户手动录入或成绩单导入的课程成绩，以及最新 GPA/加权均分结果。 |
-| 培养方案导入 | `program_plans`, `user_program_plan_bindings` | 存储解析后的培养方案 JSON，以及用户当前绑定的培养方案。 |
+| 培养方案导入 | `program_plans`, `program_plan_course_groups`, `program_plan_courses`, `user_program_plan_bindings` | 存储解析后的培养方案 JSON、结构化课程要求/课程组，以及用户当前绑定的培养方案。 |
 | 旧版结构化培养方案模型 | `program_schemas`, `schema_courses`, `elective_groups`, `user_program_bindings`, `user_courses`, `user_requirement_progress` | 当前数据库中存在，但未在当前 Drizzle schema 中建模；可作为后续正规化培养方案/课程进度设计参考。 |
 | 非课程毕业进度 | `lecture_practice_progress`, `volunteer_labor_progress`, `srtp_records`, `custom_requirements` | 存储讲座实践、志愿劳育、SRTP、自定义要求等非普通课程类毕业要求。 |
 | 机会推荐与社区 | `news_items`, `scraped_opportunities`, `recommendations`, `user_opportunity_actions`, `plaza_posts` | 与课程/毕业缺口相关的资讯、机会、推荐、广场帖子等。 |
@@ -108,6 +108,69 @@ GPA 最新计算结果缓存表。每个用户一行，保存该用户最新的 
 ```
 
 联动意义：它是当前“培养方案要求了哪些课程”的主要数据来源。但由于课程存在 JSON 里，和 `gpa_courses` 联动时需要做课程名称/课程代码/学分匹配。
+
+### `program_plan_course_groups`
+
+培养方案课程组/要求组表。它从 `program_plans.plan_json.requirements` 派生，用来表达“必修课集合”“选修组”“几选几”“最低学分”等组级规则。
+
+| 字段 | 类型 | 含义 |
+|---|---|---|
+| `id` | `uuid` | 主键。 |
+| `program_plan_id` | `uuid` | 所属培养方案，关联 `program_plans.id`。 |
+| `source_requirement_id` | `varchar(160)` | 来源 requirement 的 ID，例如 `major_electives`。 |
+| `name` | `varchar(200)` | 组名/要求标题。 |
+| `requirement_type` | `varchar(40)` | 要求类型，例如 `required`、`min_credits`、`choose_one_of`。 |
+| `min_courses` | `numeric(6,2)` | 最低课程门数，可为空。 |
+| `min_credits` | `numeric(6,2)` | 最低学分，可为空。 |
+| `description` | `text` | 描述，可为空。 |
+| `created_at`, `updated_at` | `timestamp with time zone` | 创建/更新时间。 |
+
+联动意义：不要把选修组里的每门课都当作“必须修”。毕业判断时应先看该组的 `min_courses` / `min_credits`，再统计用户已完成的组内课程。
+
+### `program_plan_courses`
+
+培养方案结构化课程表。它从 `program_plans.plan_json.courses` 派生，为后续和 GPA/成绩单课程匹配提供关系型入口。
+
+| 字段 | 类型 | 含义 |
+|---|---|---|
+| `id` | `uuid` | 主键。 |
+| `program_plan_id` | `uuid` | 所属培养方案，关联 `program_plans.id`。 |
+| `group_id` | `uuid` | 所属课程组，关联 `program_plan_course_groups.id`，可为空。 |
+| `source_requirement_id` | `varchar(160)` | 来源 requirement ID，可为空。 |
+| `code` | `varchar(80)` | 课程代码。 |
+| `name` | `varchar(200)` | 课程名称。 |
+| `credits` | `numeric(5,2)` | 学分。 |
+| `category` | `varchar(120)` | 课程类别，可为空。 |
+| `subcategory` | `varchar(120)` | 子类别，可为空。 |
+| `suggested_term` | `varchar(40)` | 建议修读学期，例如 `一-1`。 |
+| `requirement_type` | `varchar(40)` | 课程归属的要求类型。 |
+| `created_at`, `updated_at` | `timestamp with time zone` | 创建/更新时间。 |
+
+联动意义：后续将 `gpa_courses` 和培养方案关联时，应优先匹配到此表，而不是直接扫 `program_plans.plan_json`。
+
+### `user_course_plan_matches`
+
+GPA 课程与培养方案要求的匹配表。它既支持匹配到具体培养方案课程，也支持匹配到课程组/要求组。
+
+| 字段 | 类型 | 含义 |
+|---|---|---|
+| `id` | `uuid` | 主键。 |
+| `user_id` | `uuid` | 所属用户，关联 `users.id`。 |
+| `gpa_course_id` | `uuid` | 用户实际成绩课程，关联 `gpa_courses.id`。 |
+| `program_plan_course_id` | `uuid` | 匹配到的具体培养方案课程，可为空。 |
+| `program_plan_course_group_id` | `uuid` | 匹配到的课程组/要求组，可为空。 |
+| `match_target_type` | `varchar(20)` | 匹配目标类型：`course` 或 `group`。 |
+| `match_method` | `varchar(40)` | 匹配方法，例如 `normalized_name_credit`、`alias`、`general_education_group`。 |
+| `confidence` | `numeric(4,2)` | 匹配置信度。 |
+| `confirmed_by_user` | `boolean` | 是否经过用户人工确认。 |
+| `created_at`, `updated_at` | `timestamp with time zone` | 创建/更新时间。 |
+
+当前规则：
+
+- 精确标准化名称 + 学分相同：自动匹配到具体课程。
+- 已知别名：自动确认，例如 `程序设计及算法语言Ⅱ` -> `程序设计基础及语言II(双语)`。
+- 通识/选修类课程：可匹配到 `program_plan_course_groups`，不要求课程名相等。
+- 只有匹配到 `requirement_type='required'` 的课程或组时，才会同步 `gpa_courses.is_required=true`。
 
 ### `user_program_plan_bindings`
 
@@ -297,12 +360,12 @@ SRTP 学分记录表。它不是普通课程表，但属于毕业要求中的学
 优先使用当前代码正在维护的表：
 
 1. 用 `user_program_plan_bindings` 找到用户当前培养方案。
-2. 从 `program_plans.plan_json.courses` 读取培养方案课程要求。
+2. 用 `program_plan_courses` 和 `program_plan_course_groups` 读取结构化课程要求。
 3. 用 `gpa_courses` 读取用户实际已修/有成绩的课程。
 4. 用 `gpa_calculation_results` 展示 GPA 汇总。
 5. 用 `custom_requirements`、`lecture_practice_progress`、`volunteer_labor_progress`、`srtp_records` 补充非课程类毕业要求。
 
-这样可以避免依赖当前代码不维护的历史表。
+这样可以避免依赖当前代码不维护的历史表，也避免每次联动都重新解析 `plan_json`。
 
 ### 课程匹配策略
 
@@ -310,9 +373,10 @@ SRTP 学分记录表。它不是普通课程表，但属于毕业要求中的学
 
 1. 如果两边都有课程代码，优先用课程代码精确匹配。
 2. 当前 `gpa_courses` 没有课程代码，所以成绩单导入课程只能先用“标准化课程名 + 学分”匹配。
-3. 课程名标准化应去掉 `▲` 等标记、空格差异、全角/半角符号差异，以及可安全处理的语言后缀。
-4. 学分作为辅助校验。
-5. 多个候选或低置信度匹配时，不要自动确认，应展示给用户选择。
+3. 对通识课、任选课、限选课等，不强制匹配具体课程，可以匹配到 `program_plan_course_groups`。
+4. 课程名标准化应去掉 `▲` 等标记、空格差异、全角/半角符号差异，以及可安全处理的语言后缀。
+5. 学分作为辅助校验。
+6. 多个候选或低置信度匹配时，不要自动确认，应展示给用户选择。
 
 ### 中期 schema 整理建议
 

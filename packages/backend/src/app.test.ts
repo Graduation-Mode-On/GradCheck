@@ -6,6 +6,7 @@ import type { AuthRepository } from "./modules/auth/auth.repository.js";
 import type { CourseRecommendationRepository } from "./modules/course-recommendations/course-recommendations.repository.js";
 import type { CustomRequirementRepository } from "./modules/custom-requirements/custom-requirement.repository.js";
 import { calculateGpaResult } from "./modules/gpa/gpa.calculator.js";
+import { matchGpaCourseToPlanRequirement } from "./modules/gpa/course-plan-matcher.js";
 import type { GpaDashboard, GpaRepository } from "./modules/gpa/gpa.repository.js";
 import type { GpaCourse, GpaCourseInput } from "./modules/gpa/gpa.types.js";
 import type { NewsRepository } from "./modules/news/news.repository.js";
@@ -21,11 +22,18 @@ import type {
 import type { PlazaPostStatus } from "./modules/plaza/plaza.types.js";
 import type { ProgramPlanBinding, ProgramPlanRepository } from "./modules/program-plans/program-plans.repository.js";
 import type { CurriculumPlan, ProgramPlanSummary } from "./modules/program-plans/program-plans.schemas.js";
+import { normalizeProgramPlanCourses } from "./modules/program-plans/program-plan-normalizer.js";
 import type { SrtpRepository } from "./modules/srtp/srtp.repository.js";
 import type { SrtpRecord, SrtpRecordInput } from "./modules/srtp/srtp.schemas.js";
+import type { SportsRepository } from "./modules/sports/sports.repository.js";
 import type { UserProfile } from "./modules/users/user.repository.js";
 
 const now = new Date("2026-06-06T00:00:00.000Z");
+const testPlanCoursesByUser = new Map<
+  string,
+  Array<{ id: string; code: string; name: string; credits: string; requirementType: string }>
+>();
+const testPlanGroupsByUser = new Map<string, Array<{ id: string; name: string; requirementType: string }>>();
 
 interface TestLecturePracticeProgress {
   userId: string;
@@ -46,9 +54,20 @@ interface TestVolunteerLaborProgress {
   updatedAt: Date;
 }
 
+interface TestSportsProgress {
+  userId: string;
+  currentRuns: number;
+  targetRuns: number;
+  lastRunDate?: string | null;
+  runDates: string[];
+  createdAt: Date;
+  updatedAt: Date;
+}
+
 function createProgramPlanRepository(): ProgramPlanRepository {
   const plans = new Map<string, ProgramPlanSummary>();
   const bindings = new Map<string, ProgramPlanBinding>();
+  const normalizedStats = new Map<string, { groupCount: number; courseCount: number }>();
 
   return {
     async createAndBind(userId: string, sourceFilename: string, planJson: CurriculumPlan) {
@@ -68,6 +87,26 @@ function createProgramPlanRepository(): ProgramPlanRepository {
         updatedAt: now
       };
       plans.set(plan.id, plan);
+      const normalized = normalizeProgramPlanCourses(planJson);
+      normalizedStats.set(plan.id, { groupCount: normalized.groups.length, courseCount: normalized.courses.length });
+      testPlanGroupsByUser.set(
+        userId,
+        normalized.groups.map((group, index) => ({
+          id: `plan-group-${plans.size + 1}-${index + 1}`,
+          name: group.name,
+          requirementType: group.requirementType
+        }))
+      );
+      testPlanCoursesByUser.set(
+        userId,
+        normalized.courses.map((course, index) => ({
+          id: `plan-course-${plans.size + 1}-${index + 1}`,
+          code: course.code,
+          name: course.name,
+          credits: course.credits,
+          requirementType: course.requirementType
+        }))
+      );
       const binding: ProgramPlanBinding = {
         userId,
         programPlanId: plan.id,
@@ -76,11 +115,37 @@ function createProgramPlanRepository(): ProgramPlanRepository {
         updatedAt: now
       };
       bindings.set(userId, binding);
-      return { plan, binding };
+      return { plan, binding, normalized: normalizedStats.get(plan.id) ?? { groupCount: 0, courseCount: 0 } };
+    },
+    async getNormalizedStats(programPlanId: string) {
+      return normalizedStats.get(programPlanId) ?? null;
+    },
+    async backfillNormalizedCourses() {
+      for (const plan of plans.values()) {
+        const normalized = normalizeProgramPlanCourses(plan.planJson);
+        normalizedStats.set(plan.id, { groupCount: normalized.groups.length, courseCount: normalized.courses.length });
+      }
+      return { planCount: plans.size };
     },
     async getBoundPlan(userId: string) {
       const binding = bindings.get(userId);
       return binding ? (plans.get(binding.programPlanId) ?? null) : null;
+    },
+    async listReusablePlans() {
+      return [...plans.values()];
+    },
+    async bindExistingPlan(userId: string, programPlanId: string) {
+      const plan = plans.get(programPlanId);
+      if (!plan) return null;
+      const binding: ProgramPlanBinding = {
+        userId,
+        programPlanId,
+        confirmedAt: now,
+        createdAt: bindings.get(userId)?.createdAt ?? now,
+        updatedAt: now
+      };
+      bindings.set(userId, binding);
+      return { plan, binding };
     }
   };
 }
@@ -168,6 +233,7 @@ function createRepository(): AuthRepository {
 
 function createGpaRepository(): GpaRepository {
   const courses = new Map<string, GpaCourse>();
+  const matches = new Map<string, any>();
 
   function dashboard(userId: string): GpaDashboard {
     const userCourses = [...courses.values()].filter((course) => course.userId === userId);
@@ -180,6 +246,9 @@ function createGpaRepository(): GpaRepository {
   return {
     async listCourses(userId) {
       return dashboard(userId).courses;
+    },
+    async listUserIdsWithGpaCourses() {
+      return [...new Set([...courses.values()].map((course) => course.userId))];
     },
     async createCourseAndRecalculate(userId, input: GpaCourseInput) {
       const course: GpaCourse = {
@@ -204,6 +273,67 @@ function createGpaRepository(): GpaRepository {
         courses.set(course.id, course);
       }
       return dashboard(userId);
+    },
+    async matchCoursesToProgramPlan(userId) {
+      let matchedCount = 0;
+      const planCourses = testPlanCoursesByUser.get(userId) ?? [];
+      const planGroups = testPlanGroupsByUser.get(userId) ?? [];
+      for (const key of [...matches.keys()].filter((key) => key.startsWith(`${userId}|`))) matches.delete(key);
+      for (const course of [...courses.values()].filter((value) => value.userId === userId)) {
+        const match = matchGpaCourseToPlanRequirement(course, { courses: planCourses, groups: planGroups });
+        if (!match) continue;
+        matchedCount += 1;
+        const planCourse = planCourses.find((value) => value.id === match.programPlanCourseId);
+        const planGroup = planGroups.find((value) => value.id === match.programPlanCourseGroupId);
+        matches.set(`${userId}|${course.id}`, { ...match, gpaCourseId: course.id });
+        if ((planCourse?.requirementType ?? planGroup?.requirementType) === "required") {
+          courses.set(course.id, { ...course, isRequired: true, updatedAt: now });
+        }
+      }
+      return { ...dashboard(userId), matchedCount };
+    },
+    async listCourseMatches(userId) {
+      const planCourses = testPlanCoursesByUser.get(userId) ?? [];
+      const planGroups = testPlanGroupsByUser.get(userId) ?? [];
+      return {
+        items: dashboard(userId).courses.map((course) => ({
+          course,
+          match: matches.get(`${userId}|${course.id}`) ?? null,
+          candidates: { courses: planCourses, groups: planGroups }
+        }))
+      };
+    },
+    async upsertManualCourseMatch(userId, gpaCourseId, input) {
+      const course = courses.get(gpaCourseId);
+      if (!course || course.userId !== userId) return null;
+      const planCourses = testPlanCoursesByUser.get(userId) ?? [];
+      const planGroups = testPlanGroupsByUser.get(userId) ?? [];
+      const targetType = input.matchTargetType;
+      const planCourse = planCourses.find((value) => value.id === input.programPlanCourseId);
+      const planGroup = planGroups.find((value) => value.id === input.programPlanCourseGroupId);
+      const match = {
+        matchTargetType: targetType,
+        programPlanCourseId: targetType === "course" ? input.programPlanCourseId : null,
+        programPlanCourseGroupId: targetType === "group" ? input.programPlanCourseGroupId : null,
+        matchMethod: "manual",
+        confidence: "1.00",
+        confirmedByUser: true,
+        requirementType: planCourse?.requirementType ?? planGroup?.requirementType ?? "unknown",
+        gpaCourseId
+      };
+      matches.set(`${userId}|${gpaCourseId}`, match);
+      courses.set(gpaCourseId, { ...course, isRequired: match.requirementType === "required", updatedAt: now });
+      return { match, dashboard: dashboard(userId) };
+    },
+    async deleteCourseMatch(userId, gpaCourseId) {
+      const course = courses.get(gpaCourseId);
+      if (!course || course.userId !== userId) return null;
+      matches.delete(`${userId}|${gpaCourseId}`);
+      courses.set(gpaCourseId, { ...course, isRequired: false, updatedAt: now });
+      return { dashboard: dashboard(userId) };
+    },
+    async cleanupTranscriptArtifactsAndRecalculate(userId) {
+      return { ...dashboard(userId), deletedCount: 0 };
     },
     async updateCourseAndRecalculate(userId, courseId, input) {
       const existing = courses.get(courseId);
@@ -289,6 +419,36 @@ function createGpaRepository(): GpaRepository {
       };
     }
 
+    function createSportsRepository(): SportsRepository {
+      const progressByUser = new Map<string, TestSportsProgress>();
+
+      return {
+        async getProgress(userId: string) {
+          return (
+            progressByUser.get(userId) ?? {
+              userId,
+              currentRuns: 0,
+              targetRuns: 45,
+              lastRunDate: null,
+              runDates: [],
+              createdAt: new Date(0),
+              updatedAt: new Date(0)
+            }
+          );
+        },
+        async upsertProgress(userId: string, input: Omit<TestSportsProgress, "userId" | "createdAt" | "updatedAt">) {
+          const progress: TestSportsProgress = {
+            userId,
+            ...input,
+            createdAt: progressByUser.get(userId)?.createdAt ?? now,
+            updatedAt: now
+          };
+          progressByUser.set(userId, progress);
+          return progress;
+        }
+      };
+    }
+
     function createCustomRequirementRepository(): CustomRequirementRepository {
       return {
         async listByUserId() {
@@ -343,8 +503,17 @@ function createGpaRepository(): GpaRepository {
           gpaRepository: createGpaRepository(),
           lecturePracticeRepository: createLecturePracticeRepository(),
           volunteerLaborRepository: createVolunteerLaborRepository(),
+<<<<<<< HEAD
+          sportsRepository: createSportsRepository(),
           customRequirementRepository: createCustomRequirementRepository(),
-          courseRecommendationRepository: createCourseRecommendationRepository()
+          courseRecommendationRepository: createCourseRecommendationRepository(),
+          coursesProgressRepository: {
+            async loadProgressData() {
+              return { plan: null, planCourses: [], planGroups: [], gpaCourses: [], matches: [], ignoredGroupIds: [] };
+            },
+            async ignoreGroup() {},
+            async unignoreGroup() {}
+          }
         });
       }
 
@@ -1159,8 +1328,53 @@ const app = createTestApp();
         courseCount: 134,
         requirementCount: 13
       });
+      expect(importResponse.body.normalized).toMatchObject({
+        groupCount: expect.any(Number),
+        courseCount: 134
+      });
 
       const currentResponse = await request(app).get("/api/program-plans/me").set("Authorization", `Bearer ${token}`);
+      expect(currentResponse.body.plan.id).toBe(importResponse.body.plan.id);
+    });
+
+    it("lets users reuse a program plan uploaded for the same major and grade", async () => {
+      const app = createTestApp();
+      const ownerToken = await registerAndToken(app, "plan-reuse-owner@example.com");
+      const uploadResponse = await request(app)
+        .post("/api/program-plans/mock-upload")
+        .set("Authorization", `Bearer ${ownerToken}`)
+        .attach("file", Buffer.from("%PDF-1.4"), "software-plan.pdf");
+      const importResponse = await request(app)
+        .post("/api/program-plans/import")
+        .set("Authorization", `Bearer ${ownerToken}`)
+        .send({
+          sourceFilename: uploadResponse.body.preview.sourceFilename,
+          planJson: uploadResponse.body.preview.planJson
+        });
+      const reuseToken = await registerAndToken(app, "plan-reuse-peer@example.com");
+
+      const optionsResponse = await request(app)
+        .get("/api/program-plans/reusable")
+        .set("Authorization", `Bearer ${reuseToken}`);
+
+      expect(optionsResponse.status).toBe(200);
+      expect(optionsResponse.body.plans).toEqual([
+        expect.objectContaining({
+          id: importResponse.body.plan.id,
+          major: "软件工程",
+          grade: "2022级",
+          courseCount: 134
+        })
+      ]);
+
+      const bindResponse = await request(app)
+        .post(`/api/program-plans/${importResponse.body.plan.id}/bind`)
+        .set("Authorization", `Bearer ${reuseToken}`);
+
+      expect(bindResponse.status).toBe(200);
+      expect(bindResponse.body.plan.id).toBe(importResponse.body.plan.id);
+
+      const currentResponse = await request(app).get("/api/program-plans/me").set("Authorization", `Bearer ${reuseToken}`);
       expect(currentResponse.body.plan.id).toBe(importResponse.body.plan.id);
     });
 
@@ -1292,6 +1506,30 @@ const app = createTestApp();
       it("imports confirmed transcript courses and skips duplicates", async () => {
         const app = createTestApp();
         const token = await registerAndToken(app, "gpa-import@example.com");
+        await request(app)
+          .post("/api/program-plans/import")
+          .set("Authorization", `Bearer ${token}`)
+          .send({
+            sourceFilename: "software-plan.json",
+            planJson: {
+              program: { school: "东南大学", college: "软件学院", major: "软件工程", grade: "2022级", total_credits: 166 },
+              courses: [
+                {
+                  code: "BSEDB001",
+                  name: "数据库原理(全英文)",
+                  credits: 3,
+                  category: "专业主干课",
+                  subcategory: "软件工程",
+                  term: { year: "四", semester: "1" }
+                }
+              ],
+              requirements: [{ id: "required_core", type: "required", title: "必修课程" }],
+              semester_plan: [],
+              warnings: [],
+              provenance: {}
+            }
+          })
+          .expect(201);
         const course = {
           term: "2025-2026 春",
           name: "数据库原理(全英文)",
@@ -1311,6 +1549,7 @@ const app = createTestApp();
         expect(firstImport.body.importedCount).toBe(1);
         expect(firstImport.body.skippedCount).toBe(0);
         expect(firstImport.body.dashboard.courses).toHaveLength(1);
+        expect(firstImport.body.dashboard.courses[0]).toMatchObject({ name: "数据库原理(全英文)", isRequired: true });
 
         const secondImport = await request(app)
           .post("/api/gpa/transcript/import")
@@ -1321,6 +1560,74 @@ const app = createTestApp();
         expect(secondImport.body.importedCount).toBe(0);
         expect(secondImport.body.skippedCount).toBe(1);
         expect(secondImport.body.dashboard.courses).toHaveLength(1);
+      });
+
+      it("lets users view, override, and remove GPA course matches", async () => {
+        const app = createTestApp();
+        const token = await registerAndToken(app, "gpa-match-manage@example.com");
+        await request(app)
+          .post("/api/program-plans/import")
+          .set("Authorization", `Bearer ${token}`)
+          .send({
+            sourceFilename: "software-plan.json",
+            planJson: {
+              program: { school: "东南大学", college: "软件学院", major: "软件工程", grade: "2022级", total_credits: 166 },
+              courses: [
+                { code: "MATH", name: "线性代数", credits: 4, category: "通识教育基础课", term: { year: "一", semester: "2" } },
+                { code: "ELEC", name: "专业阅读与写作(研讨)", credits: 2, category: "专业选修课", term: { year: "三", semester: "2" } }
+              ],
+              requirements: [
+                { id: "required_core", type: "required", title: "必修课程" },
+                { id: "elective_group", type: "choose_one_of", title: "专业选修课", course_codes: ["ELEC"] }
+              ],
+              semester_plan: [],
+              warnings: [],
+              provenance: {}
+            }
+          })
+          .expect(201);
+        const importResponse = await request(app)
+          .post("/api/gpa/transcript/import")
+          .set("Authorization", `Bearer ${token}`)
+          .send({
+            courses: [
+              {
+                term: "2025-2026 春",
+                name: "线性代数",
+                credit: "4",
+                score: "94",
+                isRequired: false,
+                isFirstAttempt: true,
+                isGpaEligible: true
+              }
+            ]
+          })
+          .expect(201);
+        const gpaCourseId = importResponse.body.dashboard.courses[0].id as string;
+
+        const listResponse = await request(app).get("/api/gpa/course-matches").set("Authorization", `Bearer ${token}`);
+        expect(listResponse.status).toBe(200);
+        expect(listResponse.body.items[0]).toMatchObject({
+          course: { id: gpaCourseId, name: "线性代数" },
+          match: { matchTargetType: "course", confirmedByUser: false }
+        });
+        expect(listResponse.body.items[0].candidates.courses).toHaveLength(2);
+
+        const groupId = listResponse.body.items[0].candidates.groups[0].id as string;
+        const overrideResponse = await request(app)
+          .put(`/api/gpa/course-matches/${gpaCourseId}`)
+          .set("Authorization", `Bearer ${token}`)
+          .send({ matchTargetType: "group", programPlanCourseGroupId: groupId });
+        expect(overrideResponse.status).toBe(200);
+        expect(overrideResponse.body.match).toMatchObject({
+          matchTargetType: "group",
+          programPlanCourseGroupId: groupId,
+          confirmedByUser: true
+        });
+
+        await request(app).delete(`/api/gpa/course-matches/${gpaCourseId}`).set("Authorization", `Bearer ${token}`).expect(200);
+        const afterDelete = await request(app).get("/api/gpa/course-matches").set("Authorization", `Bearer ${token}`);
+        expect(afterDelete.body.items[0].match).toBeNull();
       });
     });
   });

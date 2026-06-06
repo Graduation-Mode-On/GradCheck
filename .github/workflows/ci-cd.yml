@@ -1,0 +1,138 @@
+name: CI/CD
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+concurrency:
+  group: gradcheck-production
+  cancel-in-progress: false
+
+env:
+  NODE_VERSION: "22"
+  PNPM_VERSION: "10.12.1"
+  PROD_DEPLOY_PATH: /opt/gradcheck
+  PUBLIC_HEALTH_URL: https://gc.myseu.cn/health
+
+jobs:
+  ci:
+    name: Verify
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: ${{ env.PNPM_VERSION }}
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Typecheck
+        run: pnpm typecheck
+
+      - name: Test
+        run: pnpm test
+
+      - name: Build
+        run: pnpm build
+
+  deploy:
+    name: Deploy production
+    runs-on: ubuntu-latest
+    needs: ci
+    if: github.ref == 'refs/heads/main'
+    environment: production
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Validate deployment secrets
+        env:
+          PROD_SSH_HOST: ${{ secrets.PROD_SSH_HOST }}
+          PROD_SSH_USER: ${{ secrets.PROD_SSH_USER }}
+          PROD_SSH_KEY: ${{ secrets.PROD_SSH_KEY }}
+          PROD_DATABASE_URL: ${{ secrets.PROD_DATABASE_URL }}
+          PROD_JWT_SECRET: ${{ secrets.PROD_JWT_SECRET }}
+          PROD_AMAP_WEATHER_KEY: ${{ secrets.PROD_AMAP_WEATHER_KEY }}
+          PROD_CORS_ORIGIN: ${{ secrets.PROD_CORS_ORIGIN }}
+        run: |
+          set -Eeuo pipefail
+          : "${PROD_SSH_HOST:?PROD_SSH_HOST is required}"
+          : "${PROD_SSH_USER:?PROD_SSH_USER is required}"
+          : "${PROD_SSH_KEY:?PROD_SSH_KEY is required}"
+          : "${PROD_DATABASE_URL:?PROD_DATABASE_URL is required}"
+          : "${PROD_JWT_SECRET:?PROD_JWT_SECRET is required}"
+          : "${PROD_AMAP_WEATHER_KEY:?PROD_AMAP_WEATHER_KEY is required}"
+          : "${PROD_CORS_ORIGIN:?PROD_CORS_ORIGIN is required}"
+
+      - name: Configure SSH
+        env:
+          PROD_SSH_HOST: ${{ secrets.PROD_SSH_HOST }}
+          PROD_SSH_KEY: ${{ secrets.PROD_SSH_KEY }}
+        run: |
+          set -Eeuo pipefail
+          mkdir -p ~/.ssh
+          printf '%s\n' "$PROD_SSH_KEY" > ~/.ssh/gradcheck_prod
+          chmod 600 ~/.ssh/gradcheck_prod
+          ssh-keyscan -H "$PROD_SSH_HOST" >> ~/.ssh/known_hosts
+
+      - name: Render production environment
+        env:
+          PROD_DATABASE_URL: ${{ secrets.PROD_DATABASE_URL }}
+          PROD_JWT_SECRET: ${{ secrets.PROD_JWT_SECRET }}
+          PROD_AMAP_WEATHER_KEY: ${{ secrets.PROD_AMAP_WEATHER_KEY }}
+          PROD_CORS_ORIGIN: ${{ secrets.PROD_CORS_ORIGIN }}
+        run: |
+          set -Eeuo pipefail
+          umask 077
+          {
+            printf 'DATABASE_URL=%s\n' "$PROD_DATABASE_URL"
+            printf 'JWT_SECRET=%s\n' "$PROD_JWT_SECRET"
+            printf 'AMAP_WEATHER_KEY=%s\n' "$PROD_AMAP_WEATHER_KEY"
+            printf 'PORT=3000\n'
+            printf 'CORS_ORIGIN=%s\n' "$PROD_CORS_ORIGIN"
+            printf 'VITE_API_BASE_URL=\n'
+          } > .env.production
+
+      - name: Upload source and environment
+        env:
+          PROD_SSH_HOST: ${{ secrets.PROD_SSH_HOST }}
+          PROD_SSH_USER: ${{ secrets.PROD_SSH_USER }}
+        run: |
+          set -Eeuo pipefail
+          remote="${PROD_SSH_USER}@${PROD_SSH_HOST}"
+          ssh -i ~/.ssh/gradcheck_prod "$remote" "set -Eeuo pipefail; mkdir -p '${PROD_DEPLOY_PATH}'; rm -rf '${PROD_DEPLOY_PATH}/app.next'; mkdir -p '${PROD_DEPLOY_PATH}/app.next'"
+          tar \
+            --exclude='./.git' \
+            --exclude='./.github' \
+            --exclude='./.env' \
+            --exclude='./.superpowers' \
+            --exclude='./.worktrees' \
+            --exclude='./data' \
+            --exclude='./docs/*.pdf' \
+            --exclude='./node_modules' \
+            --exclude='./packages/*/node_modules' \
+            --exclude='./packages/*/dist' \
+            -czf - . | ssh -i ~/.ssh/gradcheck_prod "$remote" "set -Eeuo pipefail; tar -xzf - -C '${PROD_DEPLOY_PATH}/app.next'"
+          ssh -i ~/.ssh/gradcheck_prod "$remote" "set -Eeuo pipefail; rm -rf '${PROD_DEPLOY_PATH}/app.prev'; if [ -d '${PROD_DEPLOY_PATH}/app' ]; then mv '${PROD_DEPLOY_PATH}/app' '${PROD_DEPLOY_PATH}/app.prev'; fi; mv '${PROD_DEPLOY_PATH}/app.next' '${PROD_DEPLOY_PATH}/app'; rm -rf '${PROD_DEPLOY_PATH}/app.prev'"
+          scp -i ~/.ssh/gradcheck_prod .env.production "$remote:${PROD_DEPLOY_PATH}/app/.env"
+
+      - name: Deploy with Docker Compose
+        env:
+          PROD_SSH_HOST: ${{ secrets.PROD_SSH_HOST }}
+          PROD_SSH_USER: ${{ secrets.PROD_SSH_USER }}
+        run: |
+          set -Eeuo pipefail
+          remote="${PROD_SSH_USER}@${PROD_SSH_HOST}"
+          ssh -i ~/.ssh/gradcheck_prod "$remote" "set -Eeuo pipefail; cd '${PROD_DEPLOY_PATH}/app'; chmod +x scripts/deploy-production.sh; PUBLIC_HEALTH_URL='${PUBLIC_HEALTH_URL}' scripts/deploy-production.sh"

@@ -1,6 +1,8 @@
 import { createRouter, createWebHistory } from "vue-router";
 
+import CoursesPage from "./pages/CoursesPage.vue";
 import CustomRequirementsPage from "./pages/CustomRequirementsPage.vue";
+import GpaCourseMatchesPage from "./pages/GpaCourseMatchesPage.vue";
 import GpaPage from "./pages/GpaPage.vue";
 import HomePage from "./pages/HomePage.vue";
 import LecturePracticePage from "./pages/LecturePracticePage.vue";
@@ -27,13 +29,17 @@ export const router = createRouter({
     {
       path: "/courses",
       name: "courses",
-      component: PlaceholderPage,
-      meta: { title: "课程进度", description: "后续用于记录课程状态、成绩、学分和毕业要求达标情况。" }
+      component: CoursesPage
     },
     {
       path: "/gpa",
       name: "gpa",
       component: GpaPage
+    },
+    {
+      path: "/gpa/course-matches",
+      name: "gpa-course-matches",
+      component: GpaCourseMatchesPage
     },
     {
       path: "/course-recommendations",

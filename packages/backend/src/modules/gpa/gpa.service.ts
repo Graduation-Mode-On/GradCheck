@@ -18,6 +18,31 @@ export async function getGpaDashboard(repository: GpaRepository, userId: string)
   return { courses, result: calculateGpaResult(courses) };
 }
 
+export async function getGpaCourseMatches(repository: GpaRepository, userId: string) {
+  return repository.listCourseMatches(userId);
+}
+
+export async function upsertGpaCourseMatch(
+  repository: GpaRepository,
+  userId: string,
+  gpaCourseId: string,
+  input: { matchTargetType: "course" | "group"; programPlanCourseId?: string; programPlanCourseGroupId?: string }
+) {
+  const result = await repository.upsertManualCourseMatch(userId, gpaCourseId, input);
+  if (!result) {
+    throwCourseNotFound();
+  }
+  return result;
+}
+
+export async function deleteGpaCourseMatch(repository: GpaRepository, userId: string, gpaCourseId: string) {
+  const result = await repository.deleteCourseMatch(userId, gpaCourseId);
+  if (!result) {
+    throwCourseNotFound();
+  }
+  return result;
+}
+
 export async function createGpaCourse(repository: GpaRepository, userId: string, input: GpaCourseInput) {
   return repository.createCourseAndRecalculate(userId, input);
 }
@@ -36,7 +61,8 @@ export async function importGpaTranscriptCourses(repository: GpaRepository, user
     coursesToImport.push(course);
   }
 
-  const dashboard = await repository.createCoursesAndRecalculate(userId, coursesToImport);
+  await repository.createCoursesAndRecalculate(userId, coursesToImport);
+  const dashboard = await repository.matchCoursesToProgramPlan(userId);
   return {
     importedCount: coursesToImport.length,
     skippedCount: input.length - coursesToImport.length,

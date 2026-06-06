@@ -1,6 +1,7 @@
 import { createRequire } from "node:module";
 import { dirname, join } from "node:path";
 
+import { isTranscriptArtifactName } from "./course-plan-matcher.js";
 import type { GpaCourseInput } from "./gpa.types.js";
 
 export interface TranscriptTextItem {
@@ -166,6 +167,10 @@ function toTranscriptCourse(term: string, rawName: string, credit: string, rawGr
   const marker = rawName.trim().charAt(0);
   const hasExcludedMarker = EXCLUDED_MARKERS.has(marker);
   const name = hasExcludedMarker ? rawName.trim().slice(1).trim() : rawName.trim();
+  if (isTranscriptArtifactName(name)) {
+    return null;
+  }
+
   const grade = normalizeGrade(rawGrade);
   const warnings: string[] = [];
   let isGpaEligible = grade.isGpaEligible && !hasExcludedMarker;

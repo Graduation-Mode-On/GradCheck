@@ -26,6 +26,8 @@ const authToken = getToken();
 const message = ref("");
 const editingCourseId = ref<string | null>(null);
 const openActionsCourseId = ref<string | null>(null);
+const courseKeyword = ref("");
+const courseStatusFilter = ref("all");
 const formPanel = ref<HTMLElement | null>(null);
 const transcriptFile = ref<File | null>(null);
 const transcriptPreview = ref<{
@@ -41,9 +43,9 @@ const form = reactive<GpaCourseInput>({
   name: "",
   credit: "",
   score: "",
-  isRequired: true,
-  isFirstAttempt: true,
-  isGpaEligible: true
+  isRequired: false,
+  isFirstAttempt: false,
+  isGpaEligible: false
 });
 
 if (!authToken) {
@@ -58,6 +60,20 @@ const { data, error, isLoading } = useQuery({
 });
 
 const courses = computed(() => data.value?.courses ?? []);
+const filteredCourses = computed(() => {
+  const query = courseKeyword.value.trim().toLowerCase();
+  return courses.value.filter((course) => {
+    const searchableText = [course.name, course.term, course.credit, course.score].join(" ").toLowerCase();
+    const matchesKeyword = !query || searchableText.includes(query);
+    const matchesStatus =
+      courseStatusFilter.value === "all" ||
+      (courseStatusFilter.value === "required" && course.isRequired) ||
+      (courseStatusFilter.value === "elective" && !course.isRequired) ||
+      (courseStatusFilter.value === "first-attempt" && course.isFirstAttempt) ||
+      (courseStatusFilter.value === "gpa-eligible" && course.isGpaEligible);
+    return matchesKeyword && matchesStatus;
+  });
+});
 const result = computed(() => data.value?.result ?? null);
 const dashboardErrorMessage = computed(() => {
   const dashboardError = error.value;
@@ -75,9 +91,9 @@ function resetForm() {
   form.name = "";
   form.credit = "";
   form.score = "";
-  form.isRequired = true;
-  form.isFirstAttempt = true;
-  form.isGpaEligible = true;
+  form.isRequired = false;
+  form.isFirstAttempt = false;
+  form.isGpaEligible = false;
 }
 
 async function applyDashboard(response: GpaDashboardResponse) {
@@ -315,16 +331,55 @@ function scopeSubtitle(scope: GpaScopeResult | undefined): string {
       </div>
     </section>
 
+    <section class="mb-5 rounded-3xl bg-white p-5 shadow-sm">
+      <div class="flex flex-wrap items-center justify-between gap-3">
+        <div>
+          <h2 class="text-lg font-bold text-[var(--tommy-text)]">课程匹配</h2>
+          <p class="mt-1 text-sm text-[var(--tommy-text-secondary)]">在独立页面里搜索、筛选并管理 GPA 课程与培养方案的对应关系。</p>
+        </div>
+        <RouterLink
+          data-testid="gpa-match-page-link"
+          to="/gpa/course-matches"
+          class="rounded-xl bg-slate-900 px-4 py-2.5 text-sm font-semibold text-white"
+        >
+          管理课程匹配
+        </RouterLink>
+      </div>
+    </section>
+
     <section class="grid gap-5 lg:grid-cols-[1fr_360px]">
       <article class="rounded-3xl bg-white p-5 shadow-sm">
-        <h2 class="text-lg font-bold text-[var(--tommy-text)]">我的课程</h2>
+        <div class="flex flex-wrap items-start justify-between gap-3">
+          <div>
+            <h2 class="text-lg font-bold text-[var(--tommy-text)]">我的课程</h2>
+            <p class="mt-1 text-sm text-[var(--tommy-text-secondary)]">按课程名、学期或课程属性筛选已导入课程。</p>
+          </div>
+        </div>
+        <div v-if="courses.length > 0" class="mt-4 grid gap-3 sm:grid-cols-[1fr_11rem]">
+          <input
+            v-model="courseKeyword"
+            data-testid="gpa-course-search"
+            class="rounded-xl border border-slate-300 px-3 py-2 text-sm"
+            placeholder="搜索课程名称或学期"
+          />
+          <select v-model="courseStatusFilter" data-testid="gpa-course-status-filter" class="rounded-xl border border-slate-300 px-3 py-2 text-sm">
+            <option value="all">全部课程</option>
+            <option value="required">必修</option>
+            <option value="elective">非必修</option>
+            <option value="first-attempt">首修</option>
+            <option value="gpa-eligible">计入 GPA</option>
+          </select>
+        </div>
         <p v-if="isLoading" class="mt-4 text-sm text-[var(--tommy-text-secondary)]">正在加载课程...</p>
         <p v-else-if="dashboardErrorMessage" class="mt-4 rounded-xl bg-[color-mix(in_srgb,var(--tommy-primary)_12%,white)] px-3 py-2 text-sm text-[var(--tommy-info)]">{{ dashboardErrorMessage }}</p>
         <p v-else-if="courses.length === 0" class="mt-4 rounded-2xl bg-slate-50 p-4 text-sm text-[var(--tommy-text-secondary)]">
           还没有课程，先添加一门课程开始计算。
         </p>
+        <p v-else-if="filteredCourses.length === 0" class="mt-4 rounded-2xl bg-slate-50 p-4 text-sm text-[var(--tommy-text-secondary)]">
+          没有符合条件的课程。
+        </p>
         <div v-else data-testid="gpa-course-list" class="mt-4 space-y-3">
-          <div v-for="course in courses" :key="course.id" class="rounded-2xl border border-slate-200 p-4">
+          <div v-for="course in filteredCourses" :key="course.id" class="rounded-2xl border border-slate-200 p-4">
             <div class="relative flex flex-wrap items-start justify-between gap-3">
               <div>
                 <p class="font-semibold text-[var(--tommy-text)]">{{ course.name }}</p>
@@ -384,18 +439,47 @@ function scopeSubtitle(scope: GpaScopeResult | undefined): string {
               <input data-testid="gpa-course-score" v-model="form.score" class="mt-1 w-full rounded-xl border border-slate-300 px-3 py-2" inputmode="decimal" />
             </label>
           </div>
-          <label class="flex items-center gap-2 text-sm text-[var(--tommy-text-secondary)]">
-            <input v-model="form.isRequired" type="checkbox" />
-            必修课程
-          </label>
-          <label class="flex items-center gap-2 text-sm text-[var(--tommy-text-secondary)]">
-            <input v-model="form.isFirstAttempt" type="checkbox" />
-            首修成绩
-          </label>
-          <label class="flex items-center gap-2 text-sm text-[var(--tommy-text-secondary)]">
-            <input v-model="form.isGpaEligible" type="checkbox" />
-            计入 GPA/均分
-          </label>
+          <div class="space-y-2">
+            <label
+              data-testid="gpa-required-toggle"
+              class="flex min-h-12 cursor-pointer items-center justify-between gap-3 rounded-xl border px-4 py-3 text-sm transition"
+              :class="
+                form.isRequired
+                  ? 'border-[var(--tommy-primary)] bg-[color-mix(in_srgb,var(--tommy-primary)_14%,white)] text-[var(--tommy-info)] shadow-sm'
+                  : 'border-slate-200 bg-slate-50 text-[var(--tommy-text-secondary)]'
+              "
+            >
+              <input v-model="form.isRequired" class="sr-only" type="checkbox" />
+              <span class="font-semibold">必修课程</span>
+              <span class="shrink-0 text-xs font-medium text-slate-400">点击即可勾选</span>
+            </label>
+            <label
+              data-testid="gpa-first-attempt-toggle"
+              class="flex min-h-12 cursor-pointer items-center justify-between gap-3 rounded-xl border px-4 py-3 text-sm transition"
+              :class="
+                form.isFirstAttempt
+                  ? 'border-[var(--tommy-primary)] bg-[color-mix(in_srgb,var(--tommy-primary)_14%,white)] text-[var(--tommy-info)] shadow-sm'
+                  : 'border-slate-200 bg-slate-50 text-[var(--tommy-text-secondary)]'
+              "
+            >
+              <input v-model="form.isFirstAttempt" class="sr-only" type="checkbox" />
+              <span class="font-semibold">首修成绩</span>
+              <span class="shrink-0 text-xs font-medium text-slate-400">点击即可勾选</span>
+            </label>
+            <label
+              data-testid="gpa-eligible-toggle"
+              class="flex min-h-12 cursor-pointer items-center justify-between gap-3 rounded-xl border px-4 py-3 text-sm transition"
+              :class="
+                form.isGpaEligible
+                  ? 'border-[var(--tommy-primary)] bg-[color-mix(in_srgb,var(--tommy-primary)_14%,white)] text-[var(--tommy-info)] shadow-sm'
+                  : 'border-slate-200 bg-slate-50 text-[var(--tommy-text-secondary)]'
+              "
+            >
+              <input v-model="form.isGpaEligible" class="sr-only" type="checkbox" />
+              <span class="font-semibold">计入 GPA/均分</span>
+              <span class="shrink-0 text-xs font-medium text-slate-400">点击即可勾选</span>
+            </label>
+          </div>
 
           <p v-if="message" class="rounded-xl bg-[color-mix(in_srgb,var(--tommy-primary)_12%,white)] px-3 py-2 text-sm text-[var(--tommy-info)]">{{ message }}</p>
 

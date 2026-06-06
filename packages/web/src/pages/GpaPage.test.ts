@@ -13,7 +13,10 @@ const {
   updateGpaCourse,
   deleteGpaCourse,
   uploadGpaTranscript,
-  importGpaTranscriptCourses
+  importGpaTranscriptCourses,
+  getGpaCourseMatches,
+  upsertGpaCourseMatch,
+  deleteGpaCourseMatch
 } = vi.hoisted(() => ({
   authState: {
     token: "token" as string | null
@@ -24,7 +27,10 @@ const {
   updateGpaCourse: vi.fn(),
   deleteGpaCourse: vi.fn(),
   uploadGpaTranscript: vi.fn(),
-  importGpaTranscriptCourses: vi.fn()
+  importGpaTranscriptCourses: vi.fn(),
+  getGpaCourseMatches: vi.fn(),
+  upsertGpaCourseMatch: vi.fn(),
+  deleteGpaCourseMatch: vi.fn()
 }));
 
 vi.mock("vue-router", () => ({
@@ -45,27 +51,32 @@ vi.mock("../lib/api", async () => {
     updateGpaCourse,
     deleteGpaCourse,
     uploadGpaTranscript,
-    importGpaTranscriptCourses
+    importGpaTranscriptCourses,
+    getGpaCourseMatches,
+    upsertGpaCourseMatch,
+    deleteGpaCourseMatch
   };
 });
 
+function createCourse(name = "高等数学", term = "2025-2026 春", overrides: Partial<GpaDashboardResponse["courses"][number]> = {}): GpaDashboardResponse["courses"][number] {
+  return {
+    id: overrides.id ?? "course-1",
+    userId: "user-1",
+    term,
+    name,
+    credit: overrides.credit ?? "3.00",
+    score: overrides.score ?? "96.00",
+    isRequired: overrides.isRequired ?? true,
+    isFirstAttempt: overrides.isFirstAttempt ?? true,
+    isGpaEligible: overrides.isGpaEligible ?? true,
+    createdAt: "2026-06-06T00:00:00.000Z",
+    updatedAt: "2026-06-06T00:00:00.000Z"
+  };
+}
+
 function createDashboard(name = "高等数学", term = "2025-2026 春"): GpaDashboardResponse {
   return {
-    courses: [
-      {
-        id: "course-1",
-        userId: "user-1",
-        term,
-        name,
-        credit: "3.00",
-        score: "96.00",
-        isRequired: true,
-        isFirstAttempt: true,
-        isGpaEligible: true,
-        createdAt: "2026-06-06T00:00:00.000Z",
-        updatedAt: "2026-06-06T00:00:00.000Z"
-      }
-    ],
+    courses: [createCourse(name, term)],
     result: {
       requiredFirstAttempt: {
         weightedGpa: 4.8,
@@ -126,7 +137,22 @@ describe("GpaPage", () => {
     deleteGpaCourse.mockReset();
     uploadGpaTranscript.mockReset();
     importGpaTranscriptCourses.mockReset();
+    getGpaCourseMatches.mockReset();
+    upsertGpaCourseMatch.mockReset();
+    deleteGpaCourseMatch.mockReset();
     getGpaDashboard.mockResolvedValue(createDashboard());
+    getGpaCourseMatches.mockResolvedValue({
+      items: [
+        {
+          course: createDashboard().courses[0],
+          match: null,
+          candidates: {
+            courses: [{ id: "plan-course-1", name: "高等数学", code: "MATH", credits: "3.00", requirementType: "required" }],
+            groups: [{ id: "group-1", name: "通识选修课", requirementType: "min_credits" }]
+          }
+        }
+      ]
+    });
   });
 
   it("shows persisted GPA results and courses", async () => {
@@ -139,6 +165,28 @@ describe("GpaPage", () => {
     expect(wrapper.get('[data-testid="gpa-required-summary"]').text()).toBe("均分 96 · 学分 3 · 1 门");
     expect(wrapper.get('[data-testid="gpa-course-list"]').text()).toContain("高等数学");
     expect(wrapper.get('[data-testid="gpa-course-list"]').text()).toContain("2025-2026 春");
+    expect(wrapper.get('[data-testid="gpa-match-page-link"]').text()).toBe("管理课程匹配");
+  });
+
+  it("filters GPA courses by keyword and course attributes", async () => {
+    getGpaDashboard.mockResolvedValueOnce({
+      ...createDashboard(),
+      courses: [
+        createCourse("高等数学", "2025-2026 春", { id: "course-1", isRequired: true, isGpaEligible: true }),
+        createCourse("体育", "2025-2026 秋", { id: "course-2", isRequired: false, isGpaEligible: false })
+      ]
+    });
+    const wrapper = mountPage();
+    await flushPromises();
+
+    await wrapper.get('[data-testid="gpa-course-search"]').setValue("体育");
+
+    expect(wrapper.get('[data-testid="gpa-course-list"]').text()).toContain("体育");
+    expect(wrapper.get('[data-testid="gpa-course-list"]').text()).not.toContain("高等数学");
+
+    await wrapper.get('[data-testid="gpa-course-status-filter"]').setValue("required");
+
+    expect(wrapper.text()).toContain("没有符合条件的课程。");
   });
 
   it("shows initial load errors instead of the empty course state", async () => {
@@ -167,9 +215,9 @@ describe("GpaPage", () => {
       name: "程序设计",
       credit: "4.00",
       score: "90.00",
-      isRequired: true,
-      isFirstAttempt: true,
-      isGpaEligible: true
+      isRequired: false,
+      isFirstAttempt: false,
+      isGpaEligible: false
     });
   });
 
@@ -310,4 +358,5 @@ describe("GpaPage", () => {
     ]);
     expect(wrapper.get('[data-testid="gpa-course-list"]').text()).toContain("数据库原理(全英文)");
   });
+
 });
