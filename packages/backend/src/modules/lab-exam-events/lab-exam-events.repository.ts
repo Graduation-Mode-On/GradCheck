@@ -5,6 +5,9 @@ import type { Database } from "../../db/client.js";
 import { labExamEvents } from "../../db/schema.js";
 import type { LabExamEventDto, LabExamEventFilters, LabExamEventRepository } from "./lab-exam-events.types.js";
 
+type Transaction = Parameters<Parameters<Database["transaction"]>[0]>[0];
+export type LabExamEventsDatabase = Database | Transaction;
+
 function toDto(row: typeof labExamEvents.$inferSelect): LabExamEventDto {
   return {
     id: row.id,
@@ -33,7 +36,7 @@ function listConditions(userId: string, filters?: LabExamEventFilters): SQL[] {
   return conditions;
 }
 
-export function createLabExamEventRepository(db: Database): LabExamEventRepository {
+export function createLabExamEventRepository(db: LabExamEventsDatabase): LabExamEventRepository {
   return {
     async listByUserId(userId, filters) {
       const rows = await db

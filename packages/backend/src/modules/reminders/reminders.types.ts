@@ -29,6 +29,7 @@ export interface ReminderDto {
 }
 
 export interface ReminderInput {
+  id?: string;
   title: string;
   category: ReminderCategory;
   priority: ReminderPriority;
@@ -44,7 +45,7 @@ export interface ReminderInput {
 }
 
 export type ReminderUpdateInput = Partial<
-  ReminderInput & {
+  Omit<ReminderInput, "id"> & {
     status: ReminderStatus;
     completedAt: Date | null;
     snoozedUntil: Date | null;

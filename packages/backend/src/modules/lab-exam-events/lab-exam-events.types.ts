@@ -21,6 +21,7 @@ export interface LabExamEventDto {
 }
 
 export interface LabExamEventInput {
+  id?: string;
   reminderId: string;
   title: string;
   courseName: string | null;
@@ -33,7 +34,7 @@ export interface LabExamEventInput {
   notes: string | null;
 }
 
-export type LabExamEventUpdateInput = Partial<Omit<LabExamEventInput, "reminderId">> & {
+export type LabExamEventUpdateInput = Partial<Omit<LabExamEventInput, "id" | "reminderId">> & {
   status?: LabExamEventStatus;
   deletedAt?: Date | null;
 };

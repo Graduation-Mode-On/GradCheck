@@ -11,6 +11,9 @@ import type {
   ReminderRepository
 } from "./reminders.types.js";
 
+type Transaction = Parameters<Parameters<Database["transaction"]>[0]>[0];
+export type RemindersDatabase = Database | Transaction;
+
 function toReminderDto(row: typeof reminders.$inferSelect): ReminderDto {
   return {
     id: row.id,
@@ -65,7 +68,7 @@ function listConditions(userId: string, filters?: ReminderFilters): SQL[] {
   return conditions;
 }
 
-export function createReminderRepository(db: Database): ReminderRepository {
+export function createReminderRepository(db: RemindersDatabase): ReminderRepository {
   return {
     async listByUserId(userId, filters) {
       const rows = await db

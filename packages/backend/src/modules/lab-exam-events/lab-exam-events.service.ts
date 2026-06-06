@@ -1,5 +1,10 @@
+import { randomUUID } from "node:crypto";
+
+import type { Database } from "../../db/client.js";
 import { HttpError } from "../../lib/http-error.js";
+import type { RemindersDatabase } from "../reminders/reminders.repository.js";
 import type { ReminderDto, ReminderRepository, ReminderUpdateInput } from "../reminders/reminders.types.js";
+import type { LabExamEventsDatabase } from "./lab-exam-events.repository.js";
 import type {
   LabExamEventDto,
   LabExamEventFilters,
@@ -11,8 +16,9 @@ import type {
 } from "./lab-exam-events.types.js";
 
 interface Dependencies {
-  labExamEventRepository: LabExamEventRepository;
-  reminderRepository: ReminderRepository;
+  db: Database;
+  createReminderRepository: (database: RemindersDatabase) => ReminderRepository;
+  createLabExamEventRepository: (database: LabExamEventsDatabase) => LabExamEventRepository;
 }
 
 type ReminderOptions = {
@@ -67,47 +73,53 @@ function assertValidTimeRange(startAt: Date, endAt: Date | null) {
   }
 }
 
-export function createLabExamEventService({ labExamEventRepository, reminderRepository }: Dependencies) {
+export function createLabExamEventService(dependencies: Dependencies) {
+  const labExamEventRepository = dependencies.createLabExamEventRepository(dependencies.db);
+
   return {
     async list(userId: string, filters: LabExamEventFilters = {}) {
       return labExamEventRepository.listByUserId(userId, filters);
     },
 
     async create(userId: string, input: CreateLabExamEventInput): Promise<{ event: LabExamEventDto; reminder: ReminderDto }> {
-      const reminder = await reminderRepository.create(userId, {
-        title: input.title,
-        category: categoryForEventType(input.eventType),
-        priority: priorityForEventType(input.eventType),
-        sourceType: "lab_exam_event",
-        sourceId: null,
-        dueAt: input.startAt,
-        startAt: input.startAt,
-        location: input.location,
-        notes: input.notes,
-        reminderOffsets: input.reminderOffsets,
-        smsEnabled: input.smsEnabled,
-        showOnHome: input.showOnHome
+      return dependencies.db.transaction(async (tx) => {
+        const reminderRepository = dependencies.createReminderRepository(tx);
+        const eventRepository = dependencies.createLabExamEventRepository(tx);
+        const eventId = randomUUID();
+        const reminderId = randomUUID();
+
+        const reminder = await reminderRepository.create(userId, {
+          id: reminderId,
+          title: input.title,
+          category: categoryForEventType(input.eventType),
+          priority: priorityForEventType(input.eventType),
+          sourceType: "lab_exam_event",
+          sourceId: eventId,
+          dueAt: input.startAt,
+          startAt: input.startAt,
+          location: input.location,
+          notes: input.notes,
+          reminderOffsets: input.reminderOffsets,
+          smsEnabled: input.smsEnabled,
+          showOnHome: input.showOnHome
+        });
+
+        const event = await eventRepository.create(userId, {
+          id: eventId,
+          reminderId: reminder.id,
+          title: input.title,
+          courseName: input.courseName,
+          eventType: input.eventType,
+          startAt: input.startAt,
+          endAt: input.endAt,
+          location: input.location,
+          teacher: input.teacher,
+          seatOrGroup: input.seatOrGroup,
+          notes: input.notes
+        });
+
+        return { event, reminder };
       });
-
-      const event = await labExamEventRepository.create(userId, {
-        reminderId: reminder.id,
-        title: input.title,
-        courseName: input.courseName,
-        eventType: input.eventType,
-        startAt: input.startAt,
-        endAt: input.endAt,
-        location: input.location,
-        teacher: input.teacher,
-        seatOrGroup: input.seatOrGroup,
-        notes: input.notes
-      });
-
-      const linkedReminder = await reminderRepository.update(userId, reminder.id, { sourceId: event.id });
-      if (!linkedReminder) {
-        throw new HttpError(500, "Failed to link reminder");
-      }
-
-      return { event, reminder: linkedReminder };
     },
 
     async update(
@@ -115,20 +127,27 @@ export function createLabExamEventService({ labExamEventRepository, reminderRepo
       id: string,
       input: UpdateLabExamEventInput
     ): Promise<{ event: LabExamEventDto; reminder: ReminderDto }> {
-      const existing = await labExamEventRepository.findById(userId, id);
-      if (!existing) notFound();
+      return dependencies.db.transaction(async (tx) => {
+        const reminderRepository = dependencies.createReminderRepository(tx);
+        const eventRepository = dependencies.createLabExamEventRepository(tx);
+        const existing = await eventRepository.findById(userId, id);
+        if (!existing) notFound();
 
-      const eventInput = eventUpdateInput(input);
-      assertValidTimeRange(eventInput.startAt ?? existing.startAt, eventInput.endAt !== undefined ? eventInput.endAt : existing.endAt);
-      const event = await labExamEventRepository.update(userId, id, eventInput);
-      if (!event) notFound();
+        const eventInput = eventUpdateInput(input);
+        assertValidTimeRange(
+          eventInput.startAt ?? existing.startAt,
+          eventInput.endAt !== undefined ? eventInput.endAt : existing.endAt
+        );
+        const event = await eventRepository.update(userId, id, eventInput);
+        if (!event) notFound();
 
-      const reminder = await reminderRepository.update(userId, existing.reminderId, reminderSyncInput(event, input));
-      if (!reminder) {
-        throw new HttpError(500, "Linked reminder not found");
-      }
+        const reminder = await reminderRepository.update(userId, existing.reminderId, reminderSyncInput(event, input));
+        if (!reminder) {
+          throw new HttpError(500, "Linked reminder not found");
+        }
 
-      return { event, reminder };
+        return { event, reminder };
+      });
     },
 
     async updateStatus(
@@ -136,30 +155,41 @@ export function createLabExamEventService({ labExamEventRepository, reminderRepo
       id: string,
       status: LabExamEventStatus
     ): Promise<{ event: LabExamEventDto; reminder: ReminderDto }> {
-      const existing = await labExamEventRepository.findById(userId, id);
-      if (!existing) notFound();
+      return dependencies.db.transaction(async (tx) => {
+        const reminderRepository = dependencies.createReminderRepository(tx);
+        const eventRepository = dependencies.createLabExamEventRepository(tx);
+        const existing = await eventRepository.findById(userId, id);
+        if (!existing) notFound();
 
-      const event = await labExamEventRepository.update(userId, id, { status });
-      if (!event) notFound();
+        const event = await eventRepository.update(userId, id, { status });
+        if (!event) notFound();
 
-      const reminder = await reminderRepository.update(userId, existing.reminderId, {
-        status: status === "scheduled" ? "pending" : status,
-        completedAt: status === "done" ? new Date() : null
+        const reminder = await reminderRepository.update(userId, existing.reminderId, {
+          status: status === "scheduled" ? "pending" : status,
+          completedAt: status === "done" ? new Date() : null
+        });
+        if (!reminder) {
+          throw new HttpError(500, "Linked reminder not found");
+        }
+
+        return { event, reminder };
       });
-      if (!reminder) {
-        throw new HttpError(500, "Linked reminder not found");
-      }
-
-      return { event, reminder };
     },
 
     async delete(userId: string, id: string) {
-      const existing = await labExamEventRepository.findById(userId, id);
-      if (!existing) notFound();
+      await dependencies.db.transaction(async (tx) => {
+        const reminderRepository = dependencies.createReminderRepository(tx);
+        const eventRepository = dependencies.createLabExamEventRepository(tx);
+        const existing = await eventRepository.findById(userId, id);
+        if (!existing) notFound();
 
-      const deleted = await labExamEventRepository.softDelete(userId, id);
-      if (!deleted) notFound();
-      await reminderRepository.softDelete(userId, existing.reminderId);
+        const deleted = await eventRepository.softDelete(userId, id);
+        if (!deleted) notFound();
+        const reminderDeleted = await reminderRepository.softDelete(userId, existing.reminderId);
+        if (!reminderDeleted) {
+          throw new HttpError(500, "Linked reminder not found");
+        }
+      });
     }
   };
 }

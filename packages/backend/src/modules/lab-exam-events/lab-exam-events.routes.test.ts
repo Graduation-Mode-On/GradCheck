@@ -5,6 +5,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { errorHandler } from "../../middleware/error-handler.js";
 import type { AuthRepository, UserRecord } from "../auth/auth.repository.js";
+import type { Database } from "../../db/client.js";
 import type {
   ReminderDeliveryLogDto,
   ReminderDeliveryLogInput,
@@ -32,13 +33,22 @@ const user: UserRecord = {
   updatedAt: now
 };
 
+const otherUser: UserRecord = {
+  id: "22222222-2222-4222-8222-222222222222",
+  email: "other@example.com",
+  passwordHash: "hash",
+  createdAt: now,
+  updatedAt: now
+};
+
 function createAuthRepository(): AuthRepository {
+  const users = new Map([user, otherUser].map((record) => [record.id, record]));
   return {
-    async findUserByEmail() {
-      return user;
+    async findUserByEmail(email) {
+      return [...users.values()].find((record) => record.email === email) ?? null;
     },
     async findUserById(id) {
-      return id === user.id ? user : null;
+      return users.get(id) ?? null;
     },
     async createUser() {
       return user;
@@ -70,9 +80,35 @@ function matchesReminderFilters(row: ReminderDto, filters?: ReminderFilters): bo
   return true;
 }
 
-function createReminderRepository(seed: ReminderDto[] = []): ReminderRepository {
-  const rows = new Map<string, ReminderDto>(seed.map((row) => [row.id, row]));
-  const deliveryLogs = new Map<string, ReminderDeliveryLogDto>();
+type ReminderStore = {
+  rows: Map<string, ReminderDto>;
+  deliveryLogs: Map<string, ReminderDeliveryLogDto>;
+};
+
+function createReminderStore(seed: ReminderDto[] = []): ReminderStore {
+  return {
+    rows: new Map<string, ReminderDto>(seed.map((row) => [row.id, row])),
+    deliveryLogs: new Map<string, ReminderDeliveryLogDto>()
+  };
+}
+
+function cloneReminderStore(store: ReminderStore): ReminderStore {
+  return {
+    rows: new Map(store.rows),
+    deliveryLogs: new Map(store.deliveryLogs)
+  };
+}
+
+function commitReminderStore(target: ReminderStore, source: ReminderStore) {
+  target.rows.clear();
+  source.rows.forEach((row, id) => target.rows.set(id, row));
+  target.deliveryLogs.clear();
+  source.deliveryLogs.forEach((row, id) => target.deliveryLogs.set(id, row));
+}
+
+function createReminderRepository(seedOrStore: ReminderDto[] | ReminderStore = []): ReminderRepository {
+  const store = Array.isArray(seedOrStore) ? createReminderStore(seedOrStore) : seedOrStore;
+  const { rows, deliveryLogs } = store;
 
   return {
     async listByUserId(userId, filters) {
@@ -86,7 +122,7 @@ function createReminderRepository(seed: ReminderDto[] = []): ReminderRepository 
     },
     async create(userId, input: ReminderInput) {
       const row: ReminderDto = {
-        id: nextUuid(rows.size + 1),
+        id: input.id ?? nextUuid(rows.size + 1),
         userId,
         title: input.title,
         category: input.category,
@@ -156,8 +192,30 @@ function matchesEventFilters(row: LabExamEventDto, filters?: LabExamEventFilters
   return true;
 }
 
-function createLabExamEventRepository(seed: LabExamEventDto[] = []): LabExamEventRepository {
-  const rows = new Map<string, LabExamEventDto>(seed.map((row) => [row.id, row]));
+type LabExamEventStore = {
+  rows: Map<string, LabExamEventDto>;
+};
+
+function createLabExamEventStore(seed: LabExamEventDto[] = []): LabExamEventStore {
+  return {
+    rows: new Map<string, LabExamEventDto>(seed.map((row) => [row.id, row]))
+  };
+}
+
+function cloneLabExamEventStore(store: LabExamEventStore): LabExamEventStore {
+  return {
+    rows: new Map(store.rows)
+  };
+}
+
+function commitLabExamEventStore(target: LabExamEventStore, source: LabExamEventStore) {
+  target.rows.clear();
+  source.rows.forEach((row, id) => target.rows.set(id, row));
+}
+
+function createLabExamEventRepository(seedOrStore: LabExamEventDto[] | LabExamEventStore = []): LabExamEventRepository {
+  const store = Array.isArray(seedOrStore) ? createLabExamEventStore(seedOrStore) : seedOrStore;
+  const { rows } = store;
 
   return {
     async listByUserId(userId, filters) {
@@ -171,7 +229,7 @@ function createLabExamEventRepository(seed: LabExamEventDto[] = []): LabExamEven
     },
     async create(userId, input: LabExamEventInput) {
       const row: LabExamEventDto = {
-        id: nextUuid(rows.size + 101),
+        id: input.id ?? nextUuid(rows.size + 101),
         userId,
         reminderId: input.reminderId,
         title: input.title,
@@ -207,26 +265,51 @@ function createLabExamEventRepository(seed: LabExamEventDto[] = []): LabExamEven
   };
 }
 
-function createApp(
-  labExamEventRepository: LabExamEventRepository = createLabExamEventRepository(),
-  reminderRepository: ReminderRepository = createReminderRepository()
-) {
+type TestDatabase = {
+  transaction<T>(fn: (tx: unknown) => Promise<T>): Promise<T>;
+};
+
+function createTestDatabase(onTransaction?: () => void): TestDatabase {
+  return {
+    async transaction(fn) {
+      onTransaction?.();
+      return fn({});
+    }
+  };
+}
+
+type TestRepositoryFactory<TRepository> = (database: unknown) => TRepository;
+
+function createApp({
+  labExamEventRepository = createLabExamEventRepository(),
+  reminderRepository = createReminderRepository(),
+  db = createTestDatabase(),
+  labExamEventRepositoryFactory = () => labExamEventRepository,
+  reminderRepositoryFactory = () => reminderRepository
+}: {
+  labExamEventRepository?: LabExamEventRepository;
+  reminderRepository?: ReminderRepository;
+  db?: TestDatabase;
+  labExamEventRepositoryFactory?: TestRepositoryFactory<LabExamEventRepository>;
+  reminderRepositoryFactory?: TestRepositoryFactory<ReminderRepository>;
+} = {}) {
   const app = express();
   app.use(express.json());
   app.use(
     "/api/lab-exam-events",
     createLabExamEventsRouter({
       authRepository: createAuthRepository(),
-      labExamEventRepository,
-      reminderRepository
+      db: db as unknown as Database,
+      createLabExamEventRepository: labExamEventRepositoryFactory,
+      createReminderRepository: reminderRepositoryFactory
     })
   );
   app.use(errorHandler);
   return app;
 }
 
-function authHeader() {
-  const token = jwt.sign({ sub: user.id }, "test-secret-that-is-long-enough");
+function authHeader(userId = user.id) {
+  const token = jwt.sign({ sub: userId }, "test-secret-that-is-long-enough");
   return `Bearer ${token}`;
 }
 
@@ -308,6 +391,7 @@ describe("lab exam event routes", () => {
         reminderOffsets: [30]
       });
 
+
     expect(response.status).toBe(200);
     expect(response.body.event).toMatchObject({
       title: "Updated Physics Lab Practical",
@@ -325,6 +409,36 @@ describe("lab exam event routes", () => {
       showOnHome: false,
       reminderOffsets: [30]
     });
+  });
+
+  it("synchronizes eventType changes to the linked reminder category", async () => {
+    const app = createApp();
+    const { event } = await createEvent(app);
+
+    const response = await request(app)
+      .put(`/api/lab-exam-events/${event.id}`)
+      .set("Authorization", authHeader())
+      .send({ eventType: "midterm" });
+
+    expect(response.status).toBe(200);
+    expect(response.body.event.eventType).toBe("midterm");
+    expect(response.body.reminder.category).toBe("exam");
+  });
+
+  it("synchronizes startAt changes to linked reminder startAt and dueAt", async () => {
+    const app = createApp();
+    const { event } = await createEvent(app);
+    const updatedStartAt = "2026-06-09T13:30:00.000Z";
+
+    const response = await request(app)
+      .put(`/api/lab-exam-events/${event.id}`)
+      .set("Authorization", authHeader())
+      .send({ startAt: updatedStartAt, endAt: "2026-06-09T15:30:00.000Z" });
+
+    expect(response.status).toBe(200);
+    expect(response.body.event.startAt).toBe(updatedStartAt);
+    expect(response.body.reminder.startAt).toBe(updatedStartAt);
+    expect(response.body.reminder.dueAt).toBe(updatedStartAt);
   });
 
   it("marks the linked reminder done when status is done", async () => {
@@ -354,6 +468,119 @@ describe("lab exam event routes", () => {
     expect(response.status).toBe(200);
     expect(response.body.event.status).toBe("cancelled");
     expect(response.body.reminder.status).toBe("cancelled");
+  });
+
+  it("deletes the event and soft-deletes the linked reminder", async () => {
+    const reminderRepository = createReminderRepository();
+    const app = createApp({ reminderRepository });
+    const { event } = await createEvent(app);
+
+    const response = await request(app)
+      .delete(`/api/lab-exam-events/${event.id}`)
+      .set("Authorization", authHeader());
+
+    expect(response.status).toBe(204);
+    const listResponse = await request(app).get("/api/lab-exam-events").set("Authorization", authHeader());
+    expect(listResponse.body.events).toEqual([]);
+    expect(await reminderRepository.listByUserId(user.id)).toEqual([]);
+  });
+
+  it("returns 404 when another user updates or deletes an event", async () => {
+    const app = createApp();
+    const { event } = await createEvent(app);
+
+    const updateResponse = await request(app)
+      .put(`/api/lab-exam-events/${event.id}`)
+      .set("Authorization", authHeader(otherUser.id))
+      .send({ title: "Other user update" });
+    const deleteResponse = await request(app)
+      .delete(`/api/lab-exam-events/${event.id}`)
+      .set("Authorization", authHeader(otherUser.id));
+
+    expect(updateResponse.status).toBe(404);
+    expect(deleteResponse.status).toBe(404);
+  });
+
+  it("wraps lab exam event mutations in database transactions", async () => {
+    let transactionCount = 0;
+    const app = createApp({
+      db: createTestDatabase(() => {
+        transactionCount += 1;
+      })
+    });
+    const { event } = await createEvent(app);
+
+    await request(app)
+      .put(`/api/lab-exam-events/${event.id}`)
+      .set("Authorization", authHeader())
+      .send({ title: "Transactional update" })
+      .expect(200);
+    await request(app)
+      .patch(`/api/lab-exam-events/${event.id}/status`)
+      .set("Authorization", authHeader())
+      .send({ status: "done" })
+      .expect(200);
+    await request(app).delete(`/api/lab-exam-events/${event.id}`).set("Authorization", authHeader()).expect(204);
+
+    expect(transactionCount).toBe(4);
+  });
+
+  it("rolls back linked reminder creation when event creation fails in a transaction", async () => {
+    type TransactionState = {
+      reminders: ReminderStore;
+      events: LabExamEventStore;
+    };
+
+    const committedReminders = createReminderStore();
+    const committedEvents = createLabExamEventStore();
+    const db: TestDatabase = {
+      async transaction(fn) {
+        const txState: TransactionState = {
+          reminders: cloneReminderStore(committedReminders),
+          events: cloneLabExamEventStore(committedEvents)
+        };
+
+        const result = await fn(txState);
+        commitReminderStore(committedReminders, txState.reminders);
+        commitLabExamEventStore(committedEvents, txState.events);
+        return result;
+      }
+    };
+    const reminderRepositoryFactory = (database: unknown) =>
+      createReminderRepository(database === db ? committedReminders : (database as TransactionState).reminders);
+    const labExamEventRepositoryFactory = (database: unknown) => {
+      const repository = createLabExamEventRepository(
+        database === db ? committedEvents : (database as TransactionState).events
+      );
+      if (database === db) return repository;
+
+      return {
+        ...repository,
+        async create(userId: string, input: LabExamEventInput) {
+          await repository.create(userId, input);
+          throw new Error("event write failed");
+        }
+      };
+    };
+    const app = createApp({
+      db,
+      reminderRepositoryFactory,
+      labExamEventRepositoryFactory
+    });
+
+    const response = await request(app)
+      .post("/api/lab-exam-events")
+      .set("Authorization", authHeader())
+      .send({
+        title: "Transactional Failure",
+        eventType: "midterm",
+        startAt: "2026-06-08T09:00:00.000Z",
+        endAt: "2026-06-08T10:00:00.000Z"
+      });
+
+    expect(response.status).toBe(500);
+    expect(await createReminderRepository(committedReminders).listByUserId(user.id)).toEqual([]);
+    expect(await createLabExamEventRepository(committedEvents).listByUserId(user.id)).toEqual([]);
   });
 
   it("rejects endAt values that are not after startAt", async () => {
