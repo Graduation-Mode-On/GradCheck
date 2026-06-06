@@ -1,4 +1,5 @@
 import type { LoginInput, ProfileInput, RegisterInput } from "../schemas/auth";
+import type { GpaCourseInput } from "../schemas/gpa";
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL ?? "";
 const TOKEN_KEY = "gradcheck.token";
@@ -20,6 +21,30 @@ export interface CurrentUser {
 export interface AuthResponse {
   token: string;
   user: CurrentUser;
+}
+
+export interface GpaCourse extends GpaCourseInput {
+  id: string;
+  userId: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface GpaScopeResult {
+  weightedGpa: number | null;
+  weightedAverageScore: number | null;
+  totalCredits: number;
+  courseCount: number;
+}
+
+export interface GpaCalculationResult {
+  requiredFirstAttempt: GpaScopeResult;
+  overall: GpaScopeResult;
+}
+
+export interface GpaDashboardResponse {
+  courses: GpaCourse[];
+  result: GpaCalculationResult;
 }
 
 interface ApiErrorBody {
@@ -84,5 +109,29 @@ export async function updateProfile(input: ProfileInput): Promise<{ profile: Use
   return request<{ profile: UserProfile }>("/api/users/me/profile", {
     method: "PUT",
     body: JSON.stringify(input)
+  });
+}
+
+export async function getGpaDashboard(): Promise<GpaDashboardResponse> {
+  return request<GpaDashboardResponse>("/api/gpa");
+}
+
+export async function createGpaCourse(input: GpaCourseInput): Promise<GpaDashboardResponse> {
+  return request<GpaDashboardResponse>("/api/gpa/courses", {
+    method: "POST",
+    body: JSON.stringify(input)
+  });
+}
+
+export async function updateGpaCourse(courseId: string, input: GpaCourseInput): Promise<GpaDashboardResponse> {
+  return request<GpaDashboardResponse>(`/api/gpa/courses/${courseId}`, {
+    method: "PUT",
+    body: JSON.stringify(input)
+  });
+}
+
+export async function deleteGpaCourse(courseId: string): Promise<GpaDashboardResponse> {
+  return request<GpaDashboardResponse>(`/api/gpa/courses/${courseId}`, {
+    method: "DELETE"
   });
 }

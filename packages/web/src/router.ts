@@ -1,6 +1,7 @@
 import { createRouter, createWebHistory } from "vue-router";
 
 import HomePage from "./pages/HomePage.vue";
+import GpaPage from "./pages/GpaPage.vue";
 import LoginPage from "./pages/LoginPage.vue";
 import NewsPage from "./pages/NewsPage.vue";
 import PlaceholderPage from "./pages/PlaceholderPage.vue";
@@ -26,8 +27,7 @@ export const router = createRouter({
     {
       path: "/gpa",
       name: "gpa",
-      component: PlaceholderPage,
-      meta: { title: "GPA目标", description: "后续支持东南大学 4.8 绩点规则、目标绩点和剩余课程估算。" }
+      component: GpaPage
     },
     {
       path: "/course-recommendations",
