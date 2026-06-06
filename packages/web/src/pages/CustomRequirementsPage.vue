@@ -19,6 +19,7 @@ const router = useRouter();
 const queryClient = useQueryClient();
 const message = ref("");
 const editingRequirementId = ref<string | null>(null);
+const updatingRequirementIds = ref(new Set<string>());
 
 if (!getToken()) {
   void router.replace("/login");
@@ -84,23 +85,40 @@ function editRequirement(requirement: CustomRequirement) {
 }
 
 async function incrementProgress(id: string, currentValue: string) {
-  await updateCustomRequirement(id, { currentValue: String(Number(currentValue) + 1) });
-  await queryClient.invalidateQueries({ queryKey: ["custom-requirements"] });
+  await updateRequirement(id, { currentValue: String(Number(currentValue) + 1) });
 }
 
 async function markComplete(id: string, targetValue: string) {
-  await updateCustomRequirement(id, { currentValue: targetValue });
-  await queryClient.invalidateQueries({ queryKey: ["custom-requirements"] });
+  await updateRequirement(id, { currentValue: targetValue });
 }
 
 async function toggleShowOnHome(id: string, showOnHome: boolean) {
-  await updateCustomRequirement(id, { showOnHome: !showOnHome });
-  await queryClient.invalidateQueries({ queryKey: ["custom-requirements"] });
+  await updateRequirement(id, { showOnHome: !showOnHome });
 }
 
 async function removeRequirement(id: string) {
   await deleteCustomRequirement(id);
   await queryClient.invalidateQueries({ queryKey: ["custom-requirements"] });
+}
+
+async function updateRequirement(id: string, input: Parameters<typeof updateCustomRequirement>[1]) {
+  if (updatingRequirementIds.value.has(id)) {
+    return;
+  }
+
+  updatingRequirementIds.value = new Set(updatingRequirementIds.value).add(id);
+  try {
+    await updateCustomRequirement(id, input);
+    await queryClient.invalidateQueries({ queryKey: ["custom-requirements"] });
+  } finally {
+    const nextUpdatingIds = new Set(updatingRequirementIds.value);
+    nextUpdatingIds.delete(id);
+    updatingRequirementIds.value = nextUpdatingIds;
+  }
+}
+
+function isRequirementUpdating(id: string): boolean {
+  return updatingRequirementIds.value.has(id);
 }
 </script>
 
@@ -213,8 +231,23 @@ async function removeRequirement(id: string) {
           </span>
         </div>
         <div class="mt-4 flex flex-wrap gap-2">
-          <button class="rounded-xl border border-slate-200 px-3 py-2 text-sm" type="button" @click="incrementProgress(requirement.id, requirement.currentValue)">+1</button>
-          <button class="rounded-xl border border-slate-200 px-3 py-2 text-sm" type="button" @click="markComplete(requirement.id, requirement.targetValue)">标记完成</button>
+          <button
+            :data-testid="`increment-${requirement.id}`"
+            class="rounded-xl border border-slate-200 px-3 py-2 text-sm disabled:opacity-50"
+            type="button"
+            :disabled="isRequirementUpdating(requirement.id)"
+            @click="incrementProgress(requirement.id, requirement.currentValue)"
+          >
+            +1
+          </button>
+          <button
+            class="rounded-xl border border-slate-200 px-3 py-2 text-sm disabled:opacity-50"
+            type="button"
+            :disabled="isRequirementUpdating(requirement.id)"
+            @click="markComplete(requirement.id, requirement.targetValue)"
+          >
+            标记完成
+          </button>
           <button
             :data-testid="`edit-${requirement.id}`"
             class="rounded-xl border border-slate-200 px-3 py-2 text-sm"
@@ -225,8 +258,9 @@ async function removeRequirement(id: string) {
           </button>
           <button
             :data-testid="`toggle-home-${requirement.id}`"
-            class="rounded-xl border border-slate-200 px-3 py-2 text-sm"
+            class="rounded-xl border border-slate-200 px-3 py-2 text-sm disabled:opacity-50"
             type="button"
+            :disabled="isRequirementUpdating(requirement.id)"
             @click="toggleShowOnHome(requirement.id, requirement.showOnHome)"
           >
             {{ requirement.showOnHome ? "取消主页展示" : "主页展示" }}

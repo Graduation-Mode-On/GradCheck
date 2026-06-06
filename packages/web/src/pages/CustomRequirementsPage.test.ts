@@ -105,6 +105,28 @@ describe("CustomRequirementsPage", () => {
     expect(updateCustomRequirementMock).toHaveBeenCalledWith("requirement-1", { showOnHome: false });
   });
 
+  it("disables quick actions while a custom requirement update is pending", async () => {
+    let resolveUpdate: (value: unknown) => void = () => undefined;
+    updateCustomRequirementMock.mockReturnValueOnce(new Promise((resolve) => {
+      resolveUpdate = resolve;
+    }));
+    const wrapper = mount(CustomRequirementsPage, {
+      global: {
+        plugins: [VueQueryPlugin],
+        stubs: { RouterLink: RouterLinkStub }
+      }
+    });
+
+    await vi.dynamicImportSettled();
+    await wrapper.get('[data-testid="increment-requirement-1"]').trigger("click");
+    await wrapper.get('[data-testid="increment-requirement-1"]').trigger("click");
+
+    expect(updateCustomRequirementMock).toHaveBeenCalledTimes(1);
+    expect(wrapper.get('[data-testid="increment-requirement-1"]').attributes("disabled")).toBeDefined();
+    resolveUpdate({});
+  });
+
+
   it("loads an existing requirement into the form for editing", async () => {
     const wrapper = mount(CustomRequirementsPage, {
       global: {
