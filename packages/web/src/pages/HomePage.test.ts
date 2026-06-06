@@ -30,6 +30,23 @@ vi.mock("../lib/api", async () => {
         }
       }
     }),
+    getGpaDashboard: async () => ({
+      courses: [],
+      result: {
+        requiredFirstAttempt: {
+          weightedGpa: 3.67,
+          weightedAverageScore: 91.2,
+          totalCredits: 24,
+          courseCount: 8
+        },
+        overall: {
+          weightedGpa: 3.58,
+          weightedAverageScore: 89.5,
+          totalCredits: 30,
+          courseCount: 10
+        }
+      }
+    }),
     listCustomRequirements: async () => ({
       customRequirements: [
         {
@@ -130,12 +147,17 @@ describe("HomePage dashboard layout", () => {
     expect(featureGrid.text()).not.toContain("毕业礼包");
   });
 
-  it("renders dashboard cards with jump hints", () => {
+  it("renders dashboard cards with jump hints", async () => {
     const wrapper = mountHomePage();
+
+    await vi.dynamicImportSettled();
+
     const dashboard = wrapper.get('[data-testid="dashboard-card-grid"]');
 
     expect(dashboard.text()).toContain("GPA计算器");
-    expect(dashboard.text()).toContain("点击卡片估算绩点 >");
+    expect(dashboard.text()).toContain("3.67");
+    expect(dashboard.text()).toContain(">");
+    expect(dashboard.text()).not.toContain("点击卡片估算绩点 >");
     expect(dashboard.text()).toContain("提醒事项");
     expect(dashboard.text()).toContain("查看全部提醒 >");
     expect(dashboard.text()).toContain("机会推荐");
@@ -150,6 +172,7 @@ describe("HomePage dashboard layout", () => {
     const customSummary = wrapper.get('[data-testid="custom-requirements-home-summary"]');
     expect(customSummary.text()).toContain("人文讲座");
     expect(customSummary.text()).toContain("2 / 4 次");
+    expect(customSummary.text()).not.toContain("1 项展示");
     expect(customSummary.text()).not.toContain("个人阅读目标");
   });
 });

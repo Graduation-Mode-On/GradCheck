@@ -4,7 +4,7 @@ import { computed } from "vue";
 import { useRouter } from "vue-router";
 
 import AppShell from "../components/AppShell.vue";
-import { getCurrentUser, getToken, listCustomRequirements } from "../lib/api";
+import { getCurrentUser, getGpaDashboard, getToken, listCustomRequirements } from "../lib/api";
 
 const router = useRouter();
 
@@ -24,9 +24,30 @@ const { data: customRequirementsData } = useQuery({
   enabled: computed(() => Boolean(getToken()))
 });
 
+const { data: gpaDashboard } = useQuery({
+  queryKey: ["gpa-dashboard", getToken()],
+  queryFn: getGpaDashboard,
+  enabled: computed(() => Boolean(getToken()))
+});
+
 const homeCustomRequirements = computed(() =>
   (customRequirementsData.value?.customRequirements ?? []).filter((requirement) => requirement.showOnHome).slice(0, 3)
 );
+
+const customRequirementSummaries = computed(() =>
+  homeCustomRequirements.value.map(
+    (requirement) => `${requirement.name}：${requirement.currentValue} / ${requirement.targetValue} ${requirement.unit}`
+  )
+);
+
+const customRequirementPrimaryText = computed(
+  () => customRequirementSummaries.value[0] ?? "还没有设置主页展示的自定义要求。"
+);
+
+const currentGpaText = computed(() => {
+  const currentGpa = gpaDashboard.value?.result.requiredFirstAttempt.weightedGpa ?? null;
+  return currentGpa === null ? "暂无" : currentGpa.toFixed(2);
+});
 
 const featureEntries = [
   {
@@ -108,11 +129,11 @@ const progressSegments = [
   { label: "未满足", value: "6 项", color: "bg-[var(--tommy-error)]" }
 ];
 
-const dashboardCards = [
+const dashboardCards = computed(() => [
   {
     title: "GPA计算器",
-    hint: "点击卡片估算绩点 >",
-    metric: "目标 3.50",
+    hint: ">",
+    metric: currentGpaText.value,
     description: "录入课程成绩后，估算剩余课程需要达到的平均绩点。",
     to: "/gpa"
   },
@@ -130,7 +151,7 @@ const dashboardCards = [
     description: "根据讲座、竞赛、实践等缺口推荐可补齐要求的机会。",
     to: "/news"
   }
-];
+]);
 </script>
 
 <template>
@@ -200,40 +221,62 @@ const dashboardCards = [
       </div>
     </section>
 
-    <section data-testid="dashboard-card-grid" class="grid gap-4 lg:grid-cols-3">
-      <RouterLink
-        v-for="card in dashboardCards"
-        :key="card.title"
-        :to="card.to"
-        class="rounded-3xl bg-white p-5 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md"
-      >
-        <div class="flex items-start justify-between gap-3">
-          <div>
-            <h2 class="text-lg font-bold text-[var(--tommy-text)]">{{ card.title }}</h2>
-            <p class="mt-2 text-2xl font-bold text-[var(--tommy-primary)]">{{ card.metric }}</p>
+    <section data-testid="dashboard-card-grid" class="space-y-4">
+      <div class="grid gap-4 sm:grid-cols-2">
+        <RouterLink
+          :to="dashboardCards[0].to"
+          class="rounded-3xl bg-white p-5 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md"
+        >
+          <div class="flex items-start justify-between gap-3">
+            <div>
+              <h2 class="text-lg font-bold text-[var(--tommy-text)]">{{ dashboardCards[0].title }}</h2>
+              <p class="mt-2 text-2xl font-bold text-[var(--tommy-primary)]">{{ dashboardCards[0].metric }}</p>
+            </div>
+            <span class="text-xs font-semibold text-[var(--tommy-info)]">{{ dashboardCards[0].hint }}</span>
           </div>
-          <span class="text-xs font-semibold text-[var(--tommy-info)]">{{ card.hint }}</span>
-        </div>
-        <p class="mt-3 text-sm leading-6 text-[var(--tommy-text-secondary)]">{{ card.description }}</p>
-      </RouterLink>
+          <p class="mt-3 text-sm leading-6 text-[var(--tommy-text-secondary)]">{{ dashboardCards[0].description }}</p>
+        </RouterLink>
 
-      <article data-testid="custom-requirements-home-summary" class="rounded-3xl bg-white p-5 shadow-sm">
-        <div class="flex items-start justify-between gap-3">
-          <div>
-            <h2 class="text-lg font-bold text-[var(--tommy-text)]">自定义要求</h2>
-            <p class="mt-2 text-2xl font-bold text-[var(--tommy-primary)]">{{ homeCustomRequirements.length }} 项展示</p>
+        <RouterLink
+          to="/custom-requirements"
+          data-testid="custom-requirements-home-summary"
+          class="rounded-3xl bg-white p-5 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md"
+        >
+          <div class="flex items-start justify-between gap-3">
+            <div>
+              <h2 class="text-lg font-bold text-[var(--tommy-text)]">自定义要求</h2>
+              <p class="mt-2 text-2xl font-bold text-[var(--tommy-primary)]">{{ customRequirementPrimaryText }}</p>
+            </div>
+            <span class="text-xs font-semibold text-[var(--tommy-info)]">&gt;</span>
           </div>
-          <RouterLink to="/custom-requirements" class="text-xs font-semibold text-[var(--tommy-info)]">管理要求 &gt;</RouterLink>
-        </div>
-        <div class="mt-3 space-y-2">
-          <p v-if="homeCustomRequirements.length === 0" class="text-sm text-[var(--tommy-text-secondary)]">
-            还没有设置主页展示的自定义要求。
+          <div v-if="customRequirementSummaries.length > 1" class="mt-3 space-y-2">
+            <p v-for="summary in customRequirementSummaries.slice(1)" :key="summary" class="text-sm text-[var(--tommy-text-secondary)]">
+              {{ summary }}
+            </p>
+          </div>
+          <p v-else class="mt-3 text-sm leading-6 text-[var(--tommy-text-secondary)]">
+            把学院特色要求或个人目标固定在首页，随时查看进度。
           </p>
-          <p v-for="requirement in homeCustomRequirements" :key="requirement.id" class="text-sm text-[var(--tommy-text-secondary)]">
-            {{ requirement.name }}：{{ requirement.currentValue }} / {{ requirement.targetValue }} {{ requirement.unit }}
-          </p>
-        </div>
-      </article>
+        </RouterLink>
+      </div>
+
+      <div class="grid gap-4 lg:grid-cols-2">
+        <RouterLink
+          v-for="card in dashboardCards.slice(1)"
+          :key="card.title"
+          :to="card.to"
+          class="rounded-3xl bg-white p-5 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md"
+        >
+          <div class="flex items-start justify-between gap-3">
+            <div>
+              <h2 class="text-lg font-bold text-[var(--tommy-text)]">{{ card.title }}</h2>
+              <p class="mt-2 text-2xl font-bold text-[var(--tommy-primary)]">{{ card.metric }}</p>
+            </div>
+            <span class="text-xs font-semibold text-[var(--tommy-info)]">{{ card.hint }}</span>
+          </div>
+          <p class="mt-3 text-sm leading-6 text-[var(--tommy-text-secondary)]">{{ card.description }}</p>
+        </RouterLink>
+      </div>
     </section>
   </AppShell>
 </template>
