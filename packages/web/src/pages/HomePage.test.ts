@@ -154,12 +154,17 @@ describe("HomePage dashboard layout", () => {
 
     const dashboard = wrapper.get('[data-testid="dashboard-card-grid"]');
     const primaryCardRow = dashboard.find(".grid");
+    const customSummary = wrapper.get('[data-testid="custom-requirements-home-summary"]');
+    const customPrimaryText = customSummary.get('[data-testid="custom-requirement-primary-text"]');
 
     expect(primaryCardRow.classes()).toContain("grid-cols-2");
+    expect(customPrimaryText.classes()).toEqual(expect.arrayContaining(["break-words", "text-base", "sm:text-2xl"]));
     expect(dashboard.text()).toContain("GPA计算器");
     expect(dashboard.text()).toContain("3.67");
     expect(dashboard.text()).toContain(">");
     expect(dashboard.text()).not.toContain("点击卡片估算绩点 >");
+    expect(dashboard.text()).not.toContain("录入课程成绩后，估算剩余课程需要达到的平均绩点。");
+    expect(dashboard.text()).not.toContain("把学院特色要求或个人目标固定在首页，随时查看进度。");
     expect(dashboard.text()).toContain("提醒事项");
     expect(dashboard.text()).toContain("查看全部提醒 >");
     expect(dashboard.text()).toContain("机会推荐");

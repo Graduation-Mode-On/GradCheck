@@ -228,13 +228,12 @@ const dashboardCards = computed(() => [
           class="rounded-3xl bg-white p-5 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md"
         >
           <div class="flex items-start justify-between gap-3">
-            <div>
+            <div class="min-w-0">
               <h2 class="text-lg font-bold text-[var(--tommy-text)]">{{ dashboardCards[0].title }}</h2>
               <p class="mt-2 text-2xl font-bold text-[var(--tommy-primary)]">{{ dashboardCards[0].metric }}</p>
             </div>
             <span class="text-xs font-semibold text-[var(--tommy-info)]">{{ dashboardCards[0].hint }}</span>
           </div>
-          <p class="mt-3 text-sm leading-6 text-[var(--tommy-text-secondary)]">{{ dashboardCards[0].description }}</p>
         </RouterLink>
 
         <RouterLink
@@ -243,20 +242,22 @@ const dashboardCards = computed(() => [
           class="rounded-3xl bg-white p-5 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md"
         >
           <div class="flex items-start justify-between gap-3">
-            <div>
+            <div class="min-w-0">
               <h2 class="text-lg font-bold text-[var(--tommy-text)]">自定义要求</h2>
-              <p class="mt-2 text-2xl font-bold text-[var(--tommy-primary)]">{{ customRequirementPrimaryText }}</p>
+              <p
+                data-testid="custom-requirement-primary-text"
+                class="mt-2 break-words text-base font-bold leading-snug text-[var(--tommy-primary)] sm:text-2xl"
+              >
+                {{ customRequirementPrimaryText }}
+              </p>
             </div>
-            <span class="text-xs font-semibold text-[var(--tommy-info)]">&gt;</span>
+            <span class="shrink-0 text-xs font-semibold text-[var(--tommy-info)]">&gt;</span>
           </div>
           <div v-if="customRequirementSummaries.length > 1" class="mt-3 space-y-2">
             <p v-for="summary in customRequirementSummaries.slice(1)" :key="summary" class="text-sm text-[var(--tommy-text-secondary)]">
               {{ summary }}
             </p>
           </div>
-          <p v-else class="mt-3 text-sm leading-6 text-[var(--tommy-text-secondary)]">
-            把学院特色要求或个人目标固定在首页，随时查看进度。
-          </p>
         </RouterLink>
       </div>
 
