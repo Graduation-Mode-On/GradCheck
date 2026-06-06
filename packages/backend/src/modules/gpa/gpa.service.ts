@@ -36,7 +36,8 @@ export async function importGpaTranscriptCourses(repository: GpaRepository, user
     coursesToImport.push(course);
   }
 
-  const dashboard = await repository.createCoursesAndRecalculate(userId, coursesToImport);
+  await repository.createCoursesAndRecalculate(userId, coursesToImport);
+  const dashboard = await repository.matchCoursesToProgramPlan(userId);
   return {
     importedCount: coursesToImport.length,
     skippedCount: input.length - coursesToImport.length,
