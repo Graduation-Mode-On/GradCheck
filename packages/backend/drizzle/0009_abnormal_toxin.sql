@@ -1,0 +1,4 @@
+ALTER TABLE "user_course_plan_matches" ALTER COLUMN "program_plan_course_id" DROP NOT NULL;--> statement-breakpoint
+ALTER TABLE "user_course_plan_matches" ADD COLUMN "program_plan_course_group_id" uuid;--> statement-breakpoint
+ALTER TABLE "user_course_plan_matches" ADD COLUMN "match_target_type" varchar(20) DEFAULT 'course' NOT NULL;--> statement-breakpoint
+ALTER TABLE "user_course_plan_matches" ADD CONSTRAINT "user_course_plan_matches_program_plan_course_group_id_program_plan_course_groups_id_fk" FOREIGN KEY ("program_plan_course_group_id") REFERENCES "public"."program_plan_course_groups"("id") ON DELETE cascade ON UPDATE no action;

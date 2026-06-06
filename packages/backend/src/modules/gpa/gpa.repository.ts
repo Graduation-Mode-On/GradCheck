@@ -1,9 +1,16 @@
 import { and, eq, sql } from "drizzle-orm";
 
 import type { Database } from "../../db/client.js";
-import { gpaCalculationResults, gpaCourses, programPlanCourses, userCoursePlanMatches, userProgramPlanBindings } from "../../db/schema.js";
+import {
+  gpaCalculationResults,
+  gpaCourses,
+  programPlanCourseGroups,
+  programPlanCourses,
+  userCoursePlanMatches,
+  userProgramPlanBindings
+} from "../../db/schema.js";
 import { calculateGpaResult } from "./gpa.calculator.js";
-import { isTranscriptArtifactName, matchGpaCourseToPlanCourse } from "./course-plan-matcher.js";
+import { isTranscriptArtifactName, matchGpaCourseToPlanRequirement } from "./course-plan-matcher.js";
 import type { GpaCalculationResult, GpaCourse, GpaCourseInput, PersistedGpaCalculationResult } from "./gpa.types.js";
 
 export interface GpaDashboard {
@@ -98,12 +105,16 @@ export function createGpaRepository(db: Database): GpaRepository {
           .select()
           .from(programPlanCourses)
           .where(eq(programPlanCourses.programPlanId, binding.programPlanId));
+        const planGroups = await tx
+          .select()
+          .from(programPlanCourseGroups)
+          .where(eq(programPlanCourseGroups.programPlanId, binding.programPlanId));
         let matchedCount = 0;
 
         await tx.delete(userCoursePlanMatches).where(eq(userCoursePlanMatches.userId, userId));
 
         for (const course of courses) {
-          const match = matchGpaCourseToPlanCourse(course, planCourses);
+          const match = matchGpaCourseToPlanRequirement(course, { courses: planCourses, groups: planGroups });
           if (!match) {
             continue;
           }
@@ -113,13 +124,17 @@ export function createGpaRepository(db: Database): GpaRepository {
             userId,
             gpaCourseId: course.id,
             programPlanCourseId: match.programPlanCourseId,
+            programPlanCourseGroupId: match.programPlanCourseGroupId,
+            matchTargetType: match.matchTargetType,
             matchMethod: match.matchMethod,
             confidence: match.confidence,
-            confirmedByUser: false
+            confirmedByUser: match.confirmedByUser
           });
           matchedCount += 1;
 
-          if (matchedPlanCourse?.requirementType === "required" && !course.isRequired) {
+          const matchedGroup = planGroups.find((group) => group.id === match.programPlanCourseGroupId);
+          const matchedRequirementType = matchedPlanCourse?.requirementType ?? matchedGroup?.requirementType;
+          if (matchedRequirementType === "required" && !course.isRequired) {
             await tx.update(gpaCourses).set({ isRequired: true, updatedAt: new Date() }).where(eq(gpaCourses.id, course.id));
           }
         }

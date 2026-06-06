@@ -232,9 +232,11 @@ export const userCoursePlanMatches = pgTable("user_course_plan_matches", {
   gpaCourseId: uuid("gpa_course_id")
     .notNull()
     .references(() => gpaCourses.id, { onDelete: "cascade" }),
-  programPlanCourseId: uuid("program_plan_course_id")
-    .notNull()
-    .references(() => programPlanCourses.id, { onDelete: "cascade" }),
+  programPlanCourseId: uuid("program_plan_course_id").references(() => programPlanCourses.id, { onDelete: "cascade" }),
+  programPlanCourseGroupId: uuid("program_plan_course_group_id").references(() => programPlanCourseGroups.id, {
+    onDelete: "cascade"
+  }),
+  matchTargetType: varchar("match_target_type", { length: 20 }).notNull().default("course"),
   matchMethod: varchar("match_method", { length: 40 }).notNull(),
   confidence: numeric("confidence", { precision: 4, scale: 2 }).notNull(),
   confirmedByUser: boolean("confirmed_by_user").notNull().default(false),
