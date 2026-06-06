@@ -225,11 +225,13 @@ const remainingRuns = computed(() => Math.max(0, targetRuns.value - currentRuns.
 const guaranteedRemainingRuns = computed(() => Math.max(0, MIN_SPORTS_RUNS - currentRuns.value));
 const availableRunnableDays = computed(() => runnableDays.value.length);
 const runDateSet = computed(() => new Set(runDates.value));
+const latestRunDate = computed(() => runDates.value.at(-1));
 const consecutiveRunStreak = computed(() => {
-  if (!runDateSet.value.has(todayText)) return 0;
+  const startDateText = latestRunDate.value;
+  if (!startDateText) return 0;
 
   let streak = 0;
-  let date = new Date(todayText);
+  let date = new Date(startDateText);
   while (runDateSet.value.has(normalizeDate(date))) {
     streak += 1;
     date = addDays(date, -1);
@@ -237,7 +239,18 @@ const consecutiveRunStreak = computed(() => {
   return streak;
 });
 const activeSpark = computed(() => sparkStages[Math.min(consecutiveRunStreak.value, sparkStages.length) - 1] ?? sparkStages[0]);
-const isSparkLit = computed(() => consecutiveRunStreak.value > 0);
+const isLatestRunFresh = computed(() => {
+  const latest = latestRunDate.value;
+  if (!latest) return false;
+  const yesterdayText = normalizeDate(addDays(new Date(todayText), -1));
+  return latest === todayText || latest === yesterdayText;
+});
+const isSparkLit = computed(() => consecutiveRunStreak.value > 0 && isLatestRunFresh.value);
+const sparkCopy = computed(() => {
+  if (!isSparkLit.value) return "最近未跑，火花休眠";
+  if (latestRunDate.value === todayText) return `连续 ${consecutiveRunStreak.value} 天已跑`;
+  return `连续 ${consecutiveRunStreak.value} 天已跑，今日待完成`;
+});
 const runningExperience = computed(() => {
   const today = plan.value[0];
   if (!today) return "先刷新天气，帮你挑一个舒服的跑操窗口。";
@@ -353,7 +366,7 @@ const reminder = computed(() => {
               </div>
               <div class="min-w-0">
                 <p class="spark-title">{{ isSparkLit ? activeSpark.label : "待点燃" }}</p>
-                <p class="spark-copy">{{ isSparkLit ? `连续 ${consecutiveRunStreak} 天已跑` : "今日未跑，火花休眠" }}</p>
+                <p class="spark-copy">{{ sparkCopy }}</p>
                 <div class="spark-library" aria-label="火花等级">
                   <span
                     v-for="(_, index) in sparkStages"
