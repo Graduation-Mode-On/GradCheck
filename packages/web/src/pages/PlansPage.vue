@@ -63,6 +63,7 @@ const importMutation = useMutation({
     selectedFile.value = null;
     isReimporting.value = false;
     await queryClient.invalidateQueries({ queryKey: ["current-program-plan"] });
+    await queryClient.invalidateQueries({ queryKey: ["candidate-courses"] });
   },
   onError: (error) => {
     errorMessage.value = error instanceof Error ? error.message : "导入失败";

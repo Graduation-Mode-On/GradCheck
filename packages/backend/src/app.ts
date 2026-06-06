@@ -28,6 +28,8 @@ import { createVolunteerLaborRouter } from "./modules/volunteer-labor/volunteer-
 import { createWeatherRouter } from "./modules/weather/weather.routes.js";
 import type { CustomRequirementRepository } from "./modules/custom-requirements/custom-requirement.repository.js";
 import { createCustomRequirementRouter } from "./modules/custom-requirements/custom-requirement.routes.js";
+import type { CourseRecommendationRepository } from "./modules/course-recommendations/course-recommendations.repository.js";
+import { createCourseRecommendationsRouter } from "./modules/course-recommendations/course-recommendations.routes.js";
 import { createHomeSummaryRouter } from "./modules/home-summary/home-summary.routes.js";
 import type { LabExamEventsDatabase } from "./modules/lab-exam-events/lab-exam-events.repository.js";
 import { createLabExamEventsRouter } from "./modules/lab-exam-events/lab-exam-events.routes.js";
@@ -47,6 +49,7 @@ export interface AppDependencies {
   sportsRepository: SportsRepository;
   programPlanRepository: ProgramPlanRepository;
   gpaRepository: GpaRepository;
+  courseRecommendationRepository: CourseRecommendationRepository;
   coursesProgressRepository: CoursesProgressRepository;
   reminderRepository: ReminderRepository;
   labExamEvents: {
@@ -126,6 +129,15 @@ export function createApp(dependencies: AppDependencies) {
     app.use("/api/weather", createWeatherRouter(dependencies.amapWeatherKey));
   }
   app.use("/api", createProgramRulesRouter());
+  app.use(
+    "/api/course-recommendations",
+    createCourseRecommendationsRouter({
+      authRepository: dependencies.authRepository,
+      courseRecommendationRepository: dependencies.courseRecommendationRepository,
+      programPlanRepository: dependencies.programPlanRepository,
+      gpaRepository: dependencies.gpaRepository
+    })
+  );
   app.use(errorHandler);
 
   return app;

@@ -9,6 +9,7 @@ import LabExamEventsPage from "./pages/LabExamEventsPage.vue";
 import LecturePracticePage from "./pages/LecturePracticePage.vue";
 import LoginPage from "./pages/LoginPage.vue";
 import NewsPage from "./pages/NewsPage.vue";
+import CourseRecommendationsPage from "./pages/CourseRecommendationsPage.vue";
 import PlaceholderPage from "./pages/PlaceholderPage.vue";
 import PlazaPage from "./pages/PlazaPage.vue";
 import PlansPage from "./pages/PlansPage.vue";
@@ -45,8 +46,7 @@ export const router = createRouter({
     {
       path: "/course-recommendations",
       name: "course-recommendations",
-      component: PlaceholderPage,
-      meta: { title: "选课推荐", description: "后续根据培养方案缺口、课程时间和个人偏好生成选课建议。" }
+      component: CourseRecommendationsPage
     },
     {
       path: "/sports",
