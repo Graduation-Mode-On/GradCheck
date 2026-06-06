@@ -115,3 +115,28 @@ packages/backend dev:     at resolveTsPathsSync (file:///E:/Code/GradCheck/node_
 packages/backend dev:   code: 'ERR_MODULE_NOT_FOUND'
 packages/backend dev: }
 packages/backend dev: Node.js v24.14.0
+packages/web dev: [2m13:49:35[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/style.css, /src/pages/HomePage.vue, /src/pages/ProfilePage.vue, /src/pages/LoginPage.vue, /src/components/AppShell.vue[22m
+packages/backend dev: c13:49:35 [tsx] change in ./src\index.ts Rerunning...
+packages/web dev: [2m13:49:36[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/pages/PlazaPage.vue, /src/style.css[22m
+packages/backend dev: node:internal/modules/package_json_reader:301
+packages/backend dev:   throw new ERR_MODULE_NOT_FOUND(packageName, fileURLToPath(base), null);
+packages/backend dev:         ^
+packages/backend dev: Error [ERR_MODULE_NOT_FOUND]: Cannot find package 'multer' imported from E:\Code\GradCheck\packages\backend\src\modules\program-rules\expressRouter.ts
+packages/backend dev:     at Object.getPackageJSONURL (node:internal/modules/package_json_reader:301:9)
+packages/backend dev:     at packageResolve (node:internal/modules/esm/resolve:768:81)
+packages/backend dev:     at moduleResolve (node:internal/modules/esm/resolve:859:18)
+packages/backend dev:     at defaultResolve (node:internal/modules/esm/resolve:991:11)
+packages/backend dev:     at #cachedDefaultResolve (node:internal/modules/esm/loader:719:20)
+packages/backend dev:     at #resolveAndMaybeBlockOnLoaderThread (node:internal/modules/esm/loader:736:38)
+packages/backend dev:     at nextStep (node:internal/modules/customization_hooks:189:26)
+packages/backend dev:     at resolveBaseSync (file:///E:/Code/GradCheck/node_modules/.pnpm/tsx@4.22.4/node_modules/tsx/dist/register-CqMfTiWi.mjs:2:8745)
+packages/backend dev:     at resolveDirectorySync (file:///E:/Code/GradCheck/node_modules/.pnpm/tsx@4.22.4/node_modules/tsx/dist/register-CqMfTiWi.mjs:2:9958)
+packages/backend dev:     at resolveTsPathsSync (file:///E:/Code/GradCheck/node_modules/.pnpm/tsx@4.22.4/node_modules/tsx/dist/register-CqMfTiWi.mjs:2:11190) {
+packages/backend dev:   code: 'ERR_MODULE_NOT_FOUND'
+packages/backend dev: }
+packages/backend dev: Node.js v24.14.0
+packages/web dev: [2m14:08:33[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mpage reload [39m[2msrc/router.ts[22m
+packages/web dev: [2m14:08:46[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mpage reload [39m[2msrc/router.ts[22m
+packages/web dev: [2m14:09:14[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mpage reload [39m[2msrc/router.ts[22m
+packages/web dev: [2m14:10:41[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mpage reload [39m[2msrc/router.ts[22m
+packages/web dev: [2m14:12:34[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/style.css, /src/pages/HomePage.vue, /src/pages/ProfilePage.vue, /src/pages/LoginPage.vue, /src/components/AppShell.vue[22m
