@@ -67,15 +67,15 @@ function submit() {
 <template>
   <main class="flex min-h-screen items-center justify-center bg-slate-100 px-4 py-8">
     <section class="w-full max-w-md rounded-3xl bg-white p-6 shadow-xl">
-      <p class="text-sm font-semibold text-blue-700">GradCheck</p>
-      <h1 class="mt-2 text-2xl font-bold text-slate-900">{{ submitLabel }}</h1>
-      <p class="mt-2 text-sm text-slate-600">先建立账号和个人信息，后续毕业进度模块会复用这些基础资料。</p>
+      <p class="text-sm font-semibold text-[var(--tommy-primary)]">GradCheck</p>
+      <h1 class="mt-2 text-2xl font-bold text-[var(--tommy-text)]">{{ submitLabel }}</h1>
+      <p class="mt-2 text-sm text-[var(--tommy-text-secondary)]">先建立账号和个人信息，后续毕业进度模块会复用这些基础资料。</p>
 
       <div class="mt-5 grid grid-cols-2 rounded-full bg-slate-100 p-1 text-sm font-medium">
         <button
           type="button"
           class="rounded-full px-3 py-2"
-          :class="mode === 'login' ? 'bg-white text-blue-700 shadow-sm' : 'text-slate-600'"
+          :class="mode === 'login' ? 'bg-white text-[var(--tommy-primary)] shadow-sm' : 'text-[var(--tommy-text-secondary)]'"
           @click="mode = 'login'"
         >
           登录
@@ -83,7 +83,7 @@ function submit() {
         <button
           type="button"
           class="rounded-full px-3 py-2"
-          :class="mode === 'register' ? 'bg-white text-blue-700 shadow-sm' : 'text-slate-600'"
+          :class="mode === 'register' ? 'bg-white text-[var(--tommy-primary)] shadow-sm' : 'text-[var(--tommy-text-secondary)]'"
           @click="mode = 'register'"
         >
           注册
@@ -91,11 +91,11 @@ function submit() {
       </div>
 
       <form class="mt-5 space-y-4" @submit.prevent="submit">
-        <label class="block text-sm font-medium text-slate-700">
+        <label class="block text-sm font-medium text-[var(--tommy-text-secondary)]">
           邮箱
           <input v-model="form.email" class="mt-1 w-full rounded-xl border border-slate-300 px-3 py-2" type="email" />
         </label>
-        <label class="block text-sm font-medium text-slate-700">
+        <label class="block text-sm font-medium text-[var(--tommy-text-secondary)]">
           密码
           <input
             v-model="form.password"
@@ -105,20 +105,20 @@ function submit() {
         </label>
 
         <div v-if="mode === 'register'" class="space-y-4 border-t border-slate-100 pt-4">
-          <label class="block text-sm font-medium text-slate-700">
+          <label class="block text-sm font-medium text-[var(--tommy-text-secondary)]">
             显示名称
             <input v-model="form.displayName" class="mt-1 w-full rounded-xl border border-slate-300 px-3 py-2" />
           </label>
-          <label class="block text-sm font-medium text-slate-700">
+          <label class="block text-sm font-medium text-[var(--tommy-text-secondary)]">
             学院
             <input v-model="form.college" class="mt-1 w-full rounded-xl border border-slate-300 px-3 py-2" />
           </label>
-          <label class="block text-sm font-medium text-slate-700">
+          <label class="block text-sm font-medium text-[var(--tommy-text-secondary)]">
             专业
             <input v-model="form.major" class="mt-1 w-full rounded-xl border border-slate-300 px-3 py-2" />
           </label>
           <div class="grid grid-cols-2 gap-3">
-            <label class="block text-sm font-medium text-slate-700">
+            <label class="block text-sm font-medium text-[var(--tommy-text-secondary)]">
               年级
               <input
                 v-model.number="form.grade"
@@ -126,17 +126,17 @@ function submit() {
                 type="number"
               />
             </label>
-            <label class="block text-sm font-medium text-slate-700">
+            <label class="block text-sm font-medium text-[var(--tommy-text-secondary)]">
               目标 GPA
               <input v-model="form.gpaGoal" class="mt-1 w-full rounded-xl border border-slate-300 px-3 py-2" />
             </label>
           </div>
         </div>
 
-        <p v-if="errorMessage" class="rounded-xl bg-red-50 px-3 py-2 text-sm text-red-700">{{ errorMessage }}</p>
+        <p v-if="errorMessage" class="rounded-xl bg-[color-mix(in_srgb,var(--tommy-error)_12%,white)] px-3 py-2 text-sm text-[var(--tommy-error)]">{{ errorMessage }}</p>
 
         <button
-          class="w-full rounded-xl bg-blue-700 px-4 py-2.5 font-semibold text-white disabled:opacity-60"
+          class="w-full rounded-xl bg-[var(--tommy-primary)] px-4 py-2.5 font-semibold text-white disabled:opacity-60"
           type="submit"
           :disabled="mutation.isPending.value"
         >
