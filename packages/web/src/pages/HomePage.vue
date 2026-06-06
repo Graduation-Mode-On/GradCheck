@@ -223,10 +223,10 @@ const dashboardCards = computed(() => [
         </div>
         <div
           data-testid="graduation-dimension-count"
-          class="rounded-2xl bg-[color-mix(in_srgb,var(--tommy-primary)_12%,white)] px-4 py-3 text-right"
+          class="shrink-0 rounded-2xl bg-[color-mix(in_srgb,var(--tommy-primary)_12%,white)] px-4 py-3 text-right"
         >
           <p class="text-xs font-semibold text-[var(--tommy-info)]">已完成</p>
-          <p class="text-2xl font-bold text-[var(--tommy-primary)]">
+          <p class="whitespace-nowrap text-2xl font-bold text-[var(--tommy-primary)]">
             {{ completedDimensions }} <span class="text-base font-semibold text-[var(--tommy-text-secondary)]">/ {{ totalDimensions }}</span>
           </p>
         </div>
