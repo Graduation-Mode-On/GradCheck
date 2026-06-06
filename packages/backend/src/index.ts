@@ -2,11 +2,15 @@ import { createDb } from "./db/client.js";
 import { loadConfig } from "./lib/config.js";
 import { createApp } from "./app.js";
 import { createAuthRepository } from "./modules/auth/auth.repository.js";
+import { createGpaRepository } from "./modules/gpa/gpa.repository.js";
 
 const config = loadConfig();
 const db = createDb(config.DATABASE_URL);
+const authRepository = createAuthRepository(db);
+const gpaRepository = createGpaRepository(db);
 const app = createApp({
-  authRepository: createAuthRepository(db),
+  authRepository,
+  gpaRepository,
   corsOrigin: config.CORS_ORIGIN
 });
 
