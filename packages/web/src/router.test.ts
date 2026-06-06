@@ -48,3 +48,10 @@ describe("router placeholders for homepage feature entries", () => {
     }
   });
 });
+
+describe("router for program plans", () => {
+  it("registers the real plans route", () => {
+    expect(router.hasRoute("plans")).toBe(true);
+    expect(router.resolve({ name: "plans" }).path).toBe("/plans");
+  });
+});
