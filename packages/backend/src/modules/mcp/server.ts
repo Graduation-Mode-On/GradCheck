@@ -11,6 +11,7 @@ import { registerLabExamEventTools } from "./tools/lab-exam-events.tools.js";
 import { registerProgramPlanTools } from "./tools/program-plans.tools.js";
 import { registerCustomRequirementTools } from "./tools/custom-requirements.tools.js";
 import { registerResources } from "./resources/index.js";
+import { registerPrompts } from "./prompts/index.js";
 
 export function createMcpServer(ctx: McpContext, deps: McpDependencies): McpServer {
   const server = new McpServer({ name: "gradcheck", version: "1.0.0" });
@@ -24,5 +25,6 @@ export function createMcpServer(ctx: McpContext, deps: McpDependencies): McpServ
   registerProgramPlanTools(server, ctx, deps);
   registerCustomRequirementTools(server, ctx, deps);
   registerResources(server, ctx, deps);
+  registerPrompts(server);
   return server;
 }
