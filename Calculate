@@ -1,0 +1,245 @@
+# 东南大学 GPA 与加权均分置算规则（TypeScript 后端草案）
+
+## 1. 计算目标
+
+系统需要同时计算两类课程范围下的绩点与均分：
+
+1. 首修必修课程
+   - 只统计培养方案中明确要求的必修课程。
+   - 课程来源后续从培养方案结构化结果中抓取，例如 `requirementType === "required"`。
+   - 不包含选修课、通识选修课、任选课、限选课、跨专业选修课等非必修课程。
+   - 对同一门必修课程存在多次成绩时，默认只取首修成绩；重修、补考、刷分成绩不进入“首修必修课程”范围。
+
+2. 总课程
+   - 统计学生成绩单中所有可计入 GPA/均分的课程。
+   - 默认不统计无百分制成绩、无学分课程、成绩状态异常课程。
+   - 如果后续学校规则要求排除某些课程类型，可以通过 `isGpaEligible` 字段或课程分类规则控制。
+
+两个范围都需要输出：
+
+- 加权 GPA
+- 加权均分
+- 参与计算的总学分
+- 参与计算的课程数
+
+## 2. 东南大学 4.8 制绩点换算规则
+
+课程百分制成绩按以下规则换算绩点：
+
+- 96-100：4.8
+- 93-95：4.5
+- 90-92：4.0
+- 86-89：3.8
+- 83-85：3.5
+- 80-82：3.0
+- 76-79：2.8
+- 73-75：2.5
+- 70-72：2.0
+- 66-69：1.8
+- 63-65：1.5
+- 60-62：1.0
+- 0-59：0
+
+说明：
+
+- 用户给定的规则是 90-92 为 4.0、93-95 为 4.5、96-99 为 4.8，并说明 60-89 分数段按同样逻辑递推。
+- 这里将 100 分也归入最高档 4.8，避免满分无法换算。
+- 若成绩不是百分制数字，例如“优秀”“通过”“合格”“P”，默认不参与 GPA 和均分计算，除非后续建立等级成绩换算表。
+
+## 3. 加权计算公式
+
+单门课程：
+
+```ts
+courseGradePoint = convertScoreToSeuGradePoint(score);
+courseWeightedGradePoint = courseGradePoint * credit;
+courseWeightedScore = score * credit;
+```
+
+课程集合：
+
+```ts
+weightedGpa = sum(courseGradePoint * credit) / sum(credit);
+weightedAverageScore = sum(score * credit) / sum(credit);
+```
+
+结果保留四位小数：
+
+```ts
+round4(value) = Math.round(value * 10000) / 10000;
+```
+
+## 4. TypeScript 数据结构建议
+
+```ts
+type CourseRequirementType =
+  | "required"
+  | "limited_elective"
+  | "general_elective"
+  | "free_elective"
+  | "other";
+
+type CourseAttemptType = "first" | "retake" | "makeup";
+
+interface StudentCourseRecord {
+  courseCode: string;
+  courseName: string;
+  credit: number;
+  score: number | null;
+  requirementType?: CourseRequirementType;
+  attemptType?: CourseAttemptType;
+  isGpaEligible?: boolean;
+}
+
+interface GpaSummary {
+  gpa: number | null;
+  averageScore: number | null;
+  totalCredits: number;
+  courseCount: number;
+}
+
+interface GpaCalculationResult {
+  firstAttemptRequired: GpaSummary;
+  allCourses: GpaSummary;
+}
+```
+
+## 5. TypeScript 实现草案
+
+```ts
+const SEU_GPA_BANDS = [
+  { min: 96, max: 100, gradePoint: 4.8 },
+  { min: 93, max: 95, gradePoint: 4.5 },
+  { min: 90, max: 92, gradePoint: 4.0 },
+  { min: 86, max: 89, gradePoint: 3.8 },
+  { min: 83, max: 85, gradePoint: 3.5 },
+  { min: 80, max: 82, gradePoint: 3.0 },
+  { min: 76, max: 79, gradePoint: 2.8 },
+  { min: 73, max: 75, gradePoint: 2.5 },
+  { min: 70, max: 72, gradePoint: 2.0 },
+  { min: 66, max: 69, gradePoint: 1.8 },
+  { min: 63, max: 65, gradePoint: 1.5 },
+  { min: 60, max: 62, gradePoint: 1.0 },
+];
+
+function convertScoreToSeuGradePoint(score: number): number {
+  if (!Number.isFinite(score)) return 0;
+  if (score < 60) return 0;
+
+  const normalizedScore = Math.min(100, Math.max(0, Math.floor(score)));
+  const band = SEU_GPA_BANDS.find(
+    (item) => normalizedScore >= item.min && normalizedScore <= item.max,
+  );
+
+  return band?.gradePoint ?? 0;
+}
+
+function round4(value: number): number {
+  return Math.round(value * 10000) / 10000;
+}
+
+function isCalculableCourse(course: StudentCourseRecord): boolean {
+  return (
+    course.isGpaEligible !== false &&
+    typeof course.score === "number" &&
+    Number.isFinite(course.score) &&
+    course.credit > 0
+  );
+}
+
+function isFirstAttemptRequiredCourse(course: StudentCourseRecord): boolean {
+  return (
+    isCalculableCourse(course) &&
+    course.requirementType === "required" &&
+    (course.attemptType ?? "first") === "first"
+  );
+}
+
+function calculateWeightedSummary(courses: StudentCourseRecord[]): GpaSummary {
+  const calculableCourses = courses.filter(isCalculableCourse);
+  const totalCredits = calculableCourses.reduce((sum, course) => sum + course.credit, 0);
+
+  if (totalCredits <= 0) {
+    return {
+      gpa: null,
+      averageScore: null,
+      totalCredits: 0,
+      courseCount: 0,
+    };
+  }
+
+  const weightedGradePointSum = calculableCourses.reduce((sum, course) => {
+    return sum + convertScoreToSeuGradePoint(course.score as number) * course.credit;
+  }, 0);
+
+  const weightedScoreSum = calculableCourses.reduce((sum, course) => {
+    return sum + (course.score as number) * course.credit;
+  }, 0);
+
+  return {
+    gpa: round4(weightedGradePointSum / totalCredits),
+    averageScore: round4(weightedScoreSum / totalCredits),
+    totalCredits: round4(totalCredits),
+    courseCount: calculableCourses.length,
+  };
+}
+
+function calculateSeuGpa(courses: StudentCourseRecord[]): GpaCalculationResult {
+  return {
+    firstAttemptRequired: calculateWeightedSummary(
+      courses.filter(isFirstAttemptRequiredCourse),
+    ),
+    allCourses: calculateWeightedSummary(courses),
+  };
+}
+```
+
+## 6. 过滤与数据来源约定
+
+首修必修课程的判断不建议只依赖成绩单中的课程名称。推荐用培养方案结构化结果作为主数据源：
+
+```ts
+interface TrainingPlanCourse {
+  courseCode: string;
+  courseName: string;
+  credit: number;
+  requirementType: CourseRequirementType;
+}
+```
+
+成绩单课程与培养方案课程匹配时，优先按 `courseCode` 匹配；课程代码缺失时再用课程名、学分、开课院系等字段做辅助匹配。匹配到培养方案中 `requirementType === "required"` 的课程，才可进入首修必修课程池。
+
+需要显式排除：
+
+- 通识选修课
+- 专业选修课
+- 限选课
+- 任选课
+- 创新创业、讲座、实践活动等不属于培养方案必修课的记录
+- 重修、补考、刷分记录
+
+## 7. 示例
+
+```ts
+const result = calculateSeuGpa([
+  {
+    courseCode: "A001",
+    courseName: "高等数学",
+    credit: 5,
+    score: 94,
+    requirementType: "required",
+    attemptType: "first",
+  },
+  {
+    courseCode: "B001",
+    courseName: "通识选修",
+    credit: 2,
+    score: 90,
+    requirementType: "general_elective",
+    attemptType: "first",
+  },
+]);
+
+// result.firstAttemptRequired 只包含“高等数学”
+// result.allCourses 包含两门课
+```
