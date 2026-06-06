@@ -112,4 +112,21 @@ describe("GpaCourseMatchesPage", () => {
 
     expect(deleteGpaCourseMatch).toHaveBeenCalledWith("c1");
   });
+
+  it("treats unconfirmed automatic matches as pending review", async () => {
+    const wrapper = mountPage();
+    await flushPromises();
+
+    expect(wrapper.get('[data-testid="gpa-match-list"]').text()).toContain("待确认");
+
+    await wrapper.get('[data-testid="gpa-match-status-filter"]').setValue("pending");
+
+    expect(wrapper.get('[data-testid="gpa-match-list"]').text()).toContain("高等数学");
+    expect(wrapper.get('[data-testid="gpa-match-list"]').text()).toContain("电影艺术理论与实践");
+
+    await wrapper.get('[data-testid="gpa-match-status-filter"]').setValue("matched");
+
+    expect(wrapper.get('[data-testid="gpa-match-list"]').text()).not.toContain("高等数学");
+    expect(wrapper.get('[data-testid="gpa-match-list"]').text()).not.toContain("电影艺术理论与实践");
+  });
 });
