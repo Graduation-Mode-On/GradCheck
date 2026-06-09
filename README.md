@@ -317,7 +317,7 @@ GET    /api/weather                    高德实况天气
 
 ## 部署
 
-生产环境部署到 `https://gc.myseu.cn`，由 GitHub Actions 推送到目标服务器后 `docker compose up -d` 重启。
+生产环境部署到 `https://gc.myseu.cn`，由 GitHub Actions 推送到目标服务器后 `docker compose up -d` 重启。服务器上已有宿主机 Caddy 统一管理多个域名，GradCheck 容器只绑定 `127.0.0.1:8081`，由宿主机 Caddy 的 `gc.myseu.cn` 站点反代过去，避免影响 `meeting.myseu.cn` 等其他服务。
 
 ### 一次性服务器初始化
 
@@ -350,7 +350,7 @@ PUBLIC_HEALTH_URL=https://gc.myseu.cn/health scripts/deploy-production.sh
 `docker-compose.prod.yml` 提供三类服务：
 
 - `backend` —— 后端 API（暴露给同 compose network 内的 caddy）
-- `web` —— Caddy + 静态前端 + 反代到 `backend:3000`
+- `web` —— Caddy + 静态前端 + 反代到 `backend:3000`，仅监听宿主机 `127.0.0.1:8081`
 - `migrate` —— 单次任务 (`profiles: tools`)，`docker compose --profile tools run --rm migrate` 触发
 
 ## MCP 接入

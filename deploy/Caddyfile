@@ -1,4 +1,4 @@
-gc.myseu.cn {
+:80 {
 	encode zstd gzip
 	root * /srv
 
